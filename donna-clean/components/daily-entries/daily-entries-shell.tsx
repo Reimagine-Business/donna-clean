@@ -90,6 +90,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const [formValues, setFormValues] = useState<EntryFormState>(buildInitialFormState);
   const [filters, setFilters] = useState<FiltersState>(buildInitialFiltersState);
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const channel = supabase
@@ -209,16 +210,22 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
       console.log("Saving entry payload", payload);
 
-      if (editingEntryId) {
-        const { error } = await supabase.from("entries").update(payload).eq("id", editingEntryId);
-        if (error) throw error;
+        if (editingEntryId) {
+          const { error } = await supabase.from("entries").update(payload).eq("id", editingEntryId);
+          if (error) throw error;
+          setSuccessMessage("Entry updated!");
         } else {
-          await addEntryAction(payload);
+          const result = await addEntryAction(payload);
+          if (result?.error) {
+            throw new Error(result.error);
+          }
+          setSuccessMessage("Entry saved!");
         }
 
       resetForm();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Unable to save entry.");
+        setSuccessMessage(null);
     } finally {
       setIsSubmitting(false);
     }
@@ -456,6 +463,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
           </div>
 
           {formError && <p className="text-sm text-red-400">{formError}</p>}
+          {successMessage && <p className="text-sm text-emerald-400">{successMessage}</p>}
 
           <div className="flex flex-wrap gap-3">
             <Button

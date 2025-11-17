@@ -23,21 +23,31 @@ export async function addEntry(data: AddEntryInput) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    throw new Error("You must be signed in to add entries.");
+    return { error: "You must be signed in to add entries." };
   }
 
-  console.log("Entry saved:", data);
-
-  const { error } = await supabase.from("entries").insert({
-    ...data,
+  const payload = {
     user_id: user.id,
-  });
+    entry_type: data.entry_type,
+    category: data.category,
+    payment_method: data.payment_method,
+    amount: Number(data.amount),
+    entry_date: data.entry_date,
+    notes: data.notes,
+    image_url: data.image_url,
+  };
+
+  console.log("Insert payload:", payload);
+
+  const { error } = await supabase.from("entries").insert(payload);
 
   if (error) {
-    throw new Error(error.message);
+    return { error: error.message };
   }
 
   revalidatePath("/daily-entries");
   revalidatePath("/cashpulse");
   revalidatePath("/profit-lens");
+
+  return { success: true };
 }
