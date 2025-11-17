@@ -21,6 +21,8 @@ import { ArrowDownRight, ArrowUpRight, Banknote, Activity } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Entry, normalizeEntry } from "@/lib/entries";
 import { cn } from "@/lib/utils";
+import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
+import { Button } from "@/components/ui/button";
 
 type CashpulseShellProps = {
   initialEntries: Entry[];
@@ -94,6 +96,7 @@ const CashTooltip = ({ active, payload, label }: CashTooltipProps) => {
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
+  const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
 
   useEffect(() => {
     const channel = supabase
@@ -274,16 +277,19 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
         <PendingCard
           title="Pending Collections"
           description="Credit entries awaiting cash"
-          entries={stats.pendingCollections}
+          info={stats.pendingCollections}
           accent="emerald"
+          onSettle={setSettlementEntry}
         />
         <PendingCard
           title="Pending Bills"
           description="Advance entries yet to settle"
-          entries={stats.pendingBills}
+          info={stats.pendingBills}
           accent="rose"
+          onSettle={setSettlementEntry}
         />
       </section>
+      <SettleEntryDialog entry={settlementEntry} onClose={() => setSettlementEntry(null)} />
     </div>
   );
 }
@@ -295,8 +301,14 @@ type CashpulseStats = {
   cashVsBank: { method: string; value: number }[];
   lineData: { date: string; label: string; inflow: number; outflow: number }[];
   balanceData: { date: string; label: string; balance: number }[];
-  pendingCollections: { count: number; total: number };
-  pendingBills: { count: number; total: number };
+  pendingCollections: PendingList;
+  pendingBills: PendingList;
+};
+
+type PendingList = {
+  count: number;
+  total: number;
+  entries: Entry[];
 };
 
 const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
@@ -374,10 +386,12 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
     pendingCollections: {
       count: pendingCollectionsEntries.length,
       total: pendingCollectionsEntries.reduce((sum, entry) => sum + entry.amount, 0),
+      entries: pendingCollectionsEntries,
     },
     pendingBills: {
       count: pendingBillsEntries.length,
       total: pendingBillsEntries.reduce((sum, entry) => sum + entry.amount, 0),
+      entries: pendingBillsEntries,
     },
   };
 };
@@ -424,26 +438,56 @@ function StatCard({ title, value, subtitle, variant }: StatCardProps) {
 type PendingCardProps = {
   title: string;
   description: string;
-  entries: {
-    count: number;
-    total: number;
-  };
+  info: PendingList;
   accent: "emerald" | "rose";
+  onSettle: (entry: Entry) => void;
 };
 
-function PendingCard({ title, description, entries, accent }: PendingCardProps) {
+function PendingCard({ title, description, info, accent, onSettle }: PendingCardProps) {
   const accentColor = accent === "emerald" ? "text-emerald-300" : "text-rose-300";
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
       <p className={cn("text-xs uppercase tracking-widest", accentColor)}>{title}</p>
       <h3 className="mt-2 text-2xl font-semibold text-white">
-        {numberFormatter.format(entries.count)}{" "}
+        {numberFormatter.format(info.count)}{" "}
         <span className="text-base font-normal text-slate-400">open</span>
       </h3>
       <p className="text-sm text-slate-400">{description}</p>
       <p className="mt-4 text-lg font-semibold text-white">
-        {currencyFormatter.format(entries.total)}
+        {currencyFormatter.format(info.total)}
       </p>
+      <div className="mt-4 space-y-3">
+          {info.entries.length === 0 && (
+            <p className="text-sm text-slate-500">All settled. You&apos;re in control.</p>
+          )}
+        {info.entries.slice(0, 3).map((entry) => (
+          <div
+            key={entry.id}
+            className="flex items-center justify-between rounded-xl border border-white/5 bg-slate-950/40 px-3 py-2 text-sm"
+          >
+            <div>
+              <p className="font-medium text-white">
+                ₹{entry.amount.toLocaleString("en-IN")}{" "}
+                <span className="text-xs uppercase text-slate-400">{entry.category}</span>
+              </p>
+              <p className="text-xs text-slate-500">{formatLabel(entry.entry_date)}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-[#a78bfa]/40 text-[#a78bfa] hover:text-white"
+              onClick={() => onSettle(entry)}
+            >
+              Settle
+            </Button>
+          </div>
+        ))}
+        {info.entries.length > 3 && (
+          <p className="text-xs text-slate-500">
+            +{info.entries.length - 3} more waiting. Use Daily Entries to manage all.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

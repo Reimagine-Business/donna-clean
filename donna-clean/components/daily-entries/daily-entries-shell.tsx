@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
-import { Download, Edit3, Trash2, UploadCloud, X } from "lucide-react";
+import { Download, Edit3, Trash2, UploadCloud, X, Handshake } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import {
   type PaymentMethod,
   normalizeEntry,
 } from "@/lib/entries";
+import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -87,6 +88,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   const [formValues, setFormValues] = useState<EntryFormState>(buildInitialFormState);
   const [filters, setFilters] = useState<FiltersState>(buildInitialFiltersState);
+  const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
 
   useEffect(() => {
     const channel = supabase
@@ -677,7 +679,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                     )}
                   </td>
                   <td className="px-3 py-3 text-right">
-                    <div className="flex justify-end gap-2">
+                    <div className="flex flex-wrap justify-end gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
@@ -694,6 +696,18 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
+                      {!entry.settled &&
+                        (entry.entry_type === "Credit" || entry.entry_type === "Advance") && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-[#a78bfa] hover:text-white"
+                            onClick={() => setSettlementEntry(entry)}
+                          >
+                            <Handshake className="mr-1 h-4 w-4" />
+                            Settle
+                          </Button>
+                        )}
                     </div>
                   </td>
                 </tr>
@@ -702,6 +716,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
           </table>
         </div>
       </section>
+      <SettleEntryDialog entry={settlementEntry} onClose={() => setSettlementEntry(null)} />
     </div>
   );
 }

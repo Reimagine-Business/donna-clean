@@ -112,6 +112,12 @@ The `/cashpulse` route reads from the same `entries` table and expects the `sett
 
 The `/profit-lens` page shares the entries dataset and visualizes monthly profitability. Update the `settled` flag when you settle credits/advances so the cash flow and profit analytics stay accurate.
 
+## Settlement workflow
+
+- Credits and advances can be settled from the Daily Entries table or the Cashpulse pending widgets.
+- Settlement inserts a corresponding cash entry (cash inflow for credits, cash outflow for advances) and marks the original entry as settled.
+- Ensure Supabase Realtime is enabled on the `entries` table so Cashpulse/Profit Lens update instantly.
+
 ## Feedback and issues
 
 Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
