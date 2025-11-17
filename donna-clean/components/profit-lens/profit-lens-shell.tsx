@@ -272,26 +272,37 @@ const buildProfitStats = (entries: Entry[], filters: FiltersState): ProfitStats 
     (entry) => entry.entry_date >= filters.start_date && entry.entry_date <= filters.end_date,
   );
 
-  const sales = filtered.reduce((sum, entry) => {
-    if (entry.entry_type === "Cash Inflow" && entry.category === "Sales") {
-      return sum + entry.amount;
-    }
-    return sum;
-  }, 0);
+  let sales = 0;
+  let cogs = 0;
+  let opex = 0;
 
-  const cogs = filtered.reduce((sum, entry) => {
-    if (entry.entry_type === "Cash Outflow" && entry.category === "COGS") {
-      return sum + entry.amount;
+  filtered.forEach((entry) => {
+    switch (entry.entry_type) {
+      case "Cash Inflow":
+        if (entry.category === "Sales") {
+          sales += entry.amount;
+        }
+        break;
+      case "Cash Outflow":
+        if (entry.category === "COGS") {
+          cogs += entry.amount;
+        } else if (entry.category === "Opex") {
+          opex += entry.amount;
+        }
+        break;
+      case "Credit":
+        if (entry.category === "Sales") {
+          sales += entry.amount;
+        } else if (entry.category === "COGS") {
+          cogs += entry.amount;
+        } else if (entry.category === "Opex") {
+          opex += entry.amount;
+        }
+        break;
+      default:
+        break;
     }
-    return sum;
-  }, 0);
-
-  const opex = filtered.reduce((sum, entry) => {
-    if (entry.entry_type === "Cash Outflow" && entry.category === "Opex") {
-      return sum + entry.amount;
-    }
-    return sum;
-  }, 0);
+  });
 
   const grossProfit = sales - cogs;
   const netProfit = grossProfit - opex;

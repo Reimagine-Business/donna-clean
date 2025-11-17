@@ -27,10 +27,6 @@ const numberFormatter = new Intl.NumberFormat("en-IN", {
   minimumFractionDigits: 0,
 });
 
-const isCashInflow = (entry: Entry) => entry.entry_type === "Cash Inflow";
-
-const isCashOutflow = (entry: Entry) => entry.entry_type === "Cash Outflow";
-
 const formatDisplayDate = (date: string) => format(new Date(date), "dd MMM");
 
 const isWithinRange = (date: string, start: string, end: string) =>
@@ -331,14 +327,46 @@ const buildCashpulseStats = (
     isWithinRange(getCashDate(entry), filters.start_date, filters.end_date),
   );
 
-  const cashInflow = rangeEntries.reduce(
-    (sum, entry) => sum + (isCashInflow(entry) ? entry.amount : 0),
-    0,
-  );
-  const cashOutflow = rangeEntries.reduce(
-    (sum, entry) => sum + (isCashOutflow(entry) ? entry.amount : 0),
-    0,
-  );
+  let cashInflow = 0;
+  let cashOutflow = 0;
+  const cashBreakdownMap: Record<string, number> = {
+    Cash: 0,
+    Bank: 0,
+  };
+
+  const applyInflow = (entry: Entry) => {
+    cashInflow += entry.amount;
+    cashBreakdownMap[entry.payment_method] =
+      (cashBreakdownMap[entry.payment_method] ?? 0) + entry.amount;
+  };
+
+  const applyOutflow = (entry: Entry) => {
+    cashOutflow += entry.amount;
+    cashBreakdownMap[entry.payment_method] =
+      (cashBreakdownMap[entry.payment_method] ?? 0) - entry.amount;
+  };
+
+  rangeEntries.forEach((entry) => {
+    switch (entry.entry_type) {
+      case "Cash Inflow":
+        if (entry.category === "Sales") {
+          applyInflow(entry);
+        }
+        break;
+      case "Cash Outflow":
+        applyOutflow(entry);
+        break;
+      case "Advance":
+        if (entry.category === "Sales") {
+          applyInflow(entry);
+        } else {
+          applyOutflow(entry);
+        }
+        break;
+      default:
+        break;
+    }
+  });
 
   const pendingCredit = entries.filter((entry) => entry.entry_type === "Credit" && !entry.settled);
   const pendingCollectionsEntries = pendingCredit.filter((entry) => entry.category === "Sales");
@@ -365,15 +393,10 @@ const buildCashpulseStats = (
     cashInflow,
     cashOutflow,
     netCashFlow: cashInflow - cashOutflow,
-      cashBreakdown: ["Cash", "Bank"].map((method) => ({
-        method,
-        value: rangeEntries.reduce((sum, entry) => {
-          if (entry.payment_method !== method) return sum;
-          if (isCashInflow(entry)) return sum + entry.amount;
-          if (isCashOutflow(entry)) return sum - entry.amount;
-          return sum;
-        }, 0),
-      })),
+    cashBreakdown: Object.entries(cashBreakdownMap).map(([method, value]) => ({
+      method,
+      value,
+    })),
     pendingCollections: {
       count: pendingCollectionsEntries.length,
       total: pendingCollectionsEntries.reduce((sum, entry) => sum + entry.amount, 0),
