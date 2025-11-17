@@ -60,6 +60,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
+          console.log("Real-time event (cashpulse):", payload);
           setEntries((prev) => {
             switch (payload.eventType) {
               case "INSERT": {

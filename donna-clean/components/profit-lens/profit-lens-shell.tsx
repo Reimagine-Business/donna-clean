@@ -49,6 +49,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
+          console.log("Real-time event (profit-lens):", payload);
           setEntries((prev) => {
             switch (payload.eventType) {
               case "INSERT": {
