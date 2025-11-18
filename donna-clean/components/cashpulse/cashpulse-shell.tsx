@@ -93,7 +93,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
 
   useEffect(() => {
     const channel = supabase
-      .channel("cashpulse-entries")
+      .channel("entries-realtime")
       .on(
         "postgres_changes",
         {
@@ -103,12 +103,12 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          console.log("REAL-TIME EVENT RECEIVED – recalculating KPIs", payload);
+          console.log("REAL-TIME PAYLOAD:", payload);
           void refetchEntries();
         },
       )
       .subscribe();
-    console.log("Real-time subscribed for user_id:", userId);
+    console.log("SUBSCRIBED TO REAL-TIME with user_id:", userId);
 
     return () => {
       supabase.removeChannel(channel);

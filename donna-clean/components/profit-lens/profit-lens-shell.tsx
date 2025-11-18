@@ -75,7 +75,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
 
   useEffect(() => {
     const channel = supabase
-      .channel("profit-lens")
+      .channel("entries-realtime")
       .on(
         "postgres_changes",
         {
@@ -85,12 +85,12 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          console.log("REAL-TIME EVENT RECEIVED – recalculating KPIs", payload);
+          console.log("REAL-TIME PAYLOAD:", payload);
           void refetchEntries();
         },
       )
       .subscribe();
-    console.log("Real-time subscribed for user_id:", userId);
+    console.log("SUBSCRIBED TO REAL-TIME with user_id:", userId);
 
     return () => {
       supabase.removeChannel(channel);
