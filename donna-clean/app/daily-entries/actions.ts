@@ -19,14 +19,12 @@ export async function addEntry(data: AddEntryInput) {
   const supabase = await createClient();
   const {
     data: { user },
-    error: userError,
   } = await supabase.auth.getUser();
 
-  if (userError || !user) {
-    throw new Error("User not authenticated");
+  if (!user) {
+    throw new Error("Unauthorized");
   }
 
-  const userId = user.id;
   const amount = Number(data.amount);
 
   if (Number.isNaN(amount)) {
@@ -36,7 +34,7 @@ export async function addEntry(data: AddEntryInput) {
   console.log("Inserting with user_id:", user.id);
 
   const payload = {
-    user_id: userId,
+    user_id: user.id,
     entry_type: data.entry_type,
     category: data.category,
     payment_method: data.payment_method,
