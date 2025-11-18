@@ -9,66 +9,90 @@ type SettleParams = {
   settlementDate: string;
 };
 
+type SettleEntryResult =
+  | {
+      error: string;
+    }
+  | {
+      success: true;
+    };
+
 export async function settleEntry({
   supabase,
   entry,
   amount,
   settlementDate,
-}: SettleParams) {
-  const isCredit = entry.entry_type === "Credit";
-  const isAdvance = entry.entry_type === "Advance";
-  if (!isCredit && !isAdvance) {
-    throw new Error("Only Credit and Advance entries can be settled");
+}: SettleParams): Promise<SettleEntryResult> {
+  const originalEntry = entry;
+
+  if (originalEntry.entry_type !== "Credit" && originalEntry.entry_type !== "Advance") {
+    return { error: "Only Credit and Advance entries can be settled" };
   }
 
-  const remainingAmount = Number.isFinite(entry.remaining_amount)
-    ? entry.remaining_amount
-    : entry.amount;
-  const amountToSettle = Number(amount.toFixed(2));
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
 
-  if (!Number.isFinite(amountToSettle) || amountToSettle <= 0) {
-    throw new Error("Settlement amount must be greater than zero.");
+  if (userError) {
+    console.error("Unable to load user for settlement", userError);
   }
 
-  if (amountToSettle > remainingAmount) {
-    throw new Error("Settlement amount exceeds remaining balance.");
+  if (!user) {
+    return { error: "You must be signed in to settle entries." };
+  }
+
+  const remainingAmount = Number.isFinite(originalEntry.remaining_amount)
+    ? originalEntry.remaining_amount
+    : originalEntry.amount;
+
+  const settledAmount = Number(Number(amount).toFixed(2));
+
+  if (!Number.isFinite(settledAmount) || settledAmount <= 0) {
+    return { error: "Settlement amount must be greater than zero." };
+  }
+
+  if (settledAmount > remainingAmount) {
+    return { error: "Settlement amount exceeds remaining balance." };
+  }
+
+  if (originalEntry.entry_type === "Credit") {
+    const isInflow = originalEntry.category === "Sales";
+    const { error } = await supabase.from("entries").insert({
+      user_id: user.id,
+      entry_type: isInflow ? "Cash Inflow" : "Cash Outflow",
+      category: originalEntry.category,
+      payment_method: originalEntry.payment_method,
+      amount: settledAmount,
+      entry_date: settlementDate,
+      notes: `Settlement of credit ${originalEntry.category.toLowerCase()}`,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
+  }
+
+  if (originalEntry.entry_type === "Advance") {
+    const { error } = await supabase.from("entries").insert({
+      user_id: user.id,
+      entry_type: "Cash Inflow",
+      category: originalEntry.category,
+      payment_method: "None",
+      amount: settledAmount,
+      entry_date: settlementDate,
+      notes: `Recognition of advance ${originalEntry.category.toLowerCase()}`,
+    });
+
+    if (error) {
+      return { error: error.message };
+    }
   }
 
   const nextRemainingAmount = Number(
-    Math.max(remainingAmount - amountToSettle, 0).toFixed(2),
+    Math.max(remainingAmount - settledAmount, 0).toFixed(2),
   );
   const isFullySettled = nextRemainingAmount <= 0;
-
-  const settlementEntryType: Entry["entry_type"] =
-    isCredit && entry.category === "Sales"
-      ? "Cash Inflow"
-      : isCredit
-        ? "Cash Outflow"
-        : "Credit";
-
-  const settlementPaymentMethod =
-    isAdvance && settlementEntryType === "Credit" ? "None" : entry.payment_method;
-
-  const settlementNotes = isAdvance
-    ? `Advance recognised for ${entry.category} entry ${entry.id}`
-    : entry.category === "Sales"
-      ? `Credit collection for invoice ${entry.id}`
-      : `Credit bill settlement for entry ${entry.id}`;
-
-  const { error: insertError } = await supabase.from("entries").insert({
-    user_id: entry.user_id,
-    entry_type: settlementEntryType,
-    category: entry.category,
-    payment_method: settlementPaymentMethod,
-    amount: amountToSettle,
-    remaining_amount: settlementEntryType === "Credit" ? amountToSettle : 0,
-    entry_date: settlementDate,
-    notes: settlementNotes,
-  });
-
-  if (insertError) {
-    throw insertError;
-  }
 
   const { error: updateError } = await supabase
     .from("entries")
@@ -77,16 +101,18 @@ export async function settleEntry({
       settled: isFullySettled,
       settled_at: isFullySettled ? settlementDate : null,
     })
-    .eq("id", entry.id);
+    .eq("id", originalEntry.id);
 
   if (updateError) {
-    throw updateError;
+    return { error: updateError.message };
   }
 
   await revalidateDashboards();
+
+  return { success: true };
 }
 
-const DASHBOARD_PATHS = ["/cashpulse", "/profit-lens"];
+const DASHBOARD_PATHS = ["/cashpulse", "/profit-lens", "/daily-entries"];
 
 async function revalidateDashboards() {
   try {

@@ -73,13 +73,20 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
 
     setIsSaving(true);
     setError(null);
+
     try {
-      await settleEntry({
+      const result = await settleEntry({
         supabase,
         entry,
         amount: numericAmount,
         settlementDate,
       });
+
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+
       router.refresh();
       onClose();
     } catch (err) {

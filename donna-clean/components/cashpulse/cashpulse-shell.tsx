@@ -426,7 +426,7 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
       }
     }
 
-    if (paymentTotals[entry.payment_method] !== undefined) {
+    if (entry.payment_method === "Cash" || entry.payment_method === "Bank") {
       paymentTotals[entry.payment_method] += entry.amount;
     }
 
@@ -543,30 +543,43 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
         {info.entries.length === 0 && (
           <p className="text-sm text-slate-500">All settled. You&apos;re in control.</p>
         )}
-        {info.entries.slice(0, 3).map((entry) => (
-          <div
-            key={entry.id}
-            className="flex items-center justify-between rounded-xl border border-white/5 bg-slate-950/40 px-3 py-2 text-sm"
-          >
-            <div>
-              <p className="font-medium text-white">
-                ₹{entry.amount.toLocaleString("en-IN")}{" "}
-                <span className="text-xs uppercase text-slate-400">{entry.category}</span>
-              </p>
-                <p className="text-xs text-slate-500">
-                  {formatDisplayDate(entry.entry_date)}
-                </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-[#a78bfa]/40 text-[#a78bfa] hover:text-white"
-              onClick={() => onSettle(entry)}
-            >
-              Settle
-            </Button>
-          </div>
-        ))}
+          {info.entries.slice(0, 3).map((entry) => {
+            const canSettleEntry = entry.entry_type === "Credit" || entry.entry_type === "Advance";
+            return (
+              <div
+                key={entry.id}
+                className="flex items-center justify-between rounded-xl border border-white/5 bg-slate-950/40 px-3 py-2 text-sm"
+              >
+                <div>
+                  <p className="font-medium text-white">
+                    ₹{entry.amount.toLocaleString("en-IN")}{" "}
+                    <span className="text-xs uppercase text-slate-400">{entry.category}</span>
+                  </p>
+                  <p className="text-xs text-slate-500">{formatDisplayDate(entry.entry_date)}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "border-[#a78bfa]/40 text-[#a78bfa] hover:text-white",
+                    !canSettleEntry &&
+                      "border-white/5 text-slate-500 hover:text-slate-500 disabled:pointer-events-auto",
+                  )}
+                  disabled={!canSettleEntry}
+                  title={
+                    canSettleEntry ? undefined : "Only Credit/Advance entries can be settled"
+                  }
+                  onClick={() => {
+                    if (canSettleEntry) {
+                      onSettle(entry);
+                    }
+                  }}
+                >
+                  Settle
+                </Button>
+              </div>
+            );
+          })}
         {info.entries.length > 3 && (
           <p className="text-xs text-slate-500">
             +{info.entries.length - 3} more waiting. Use Daily Entries to manage all.
