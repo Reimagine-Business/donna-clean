@@ -331,15 +331,18 @@ type ProfitStats = {
 };
 
 const buildProfitStats = (entries: Entry[]) => {
-  let sales = 0;
-  let cogs = 0;
-  let opex = 0;
+  const sumMatching = (predicate: (entry: Entry) => boolean) =>
+    entries.reduce((total, entry) => (predicate(entry) ? total + entry.amount : total), 0);
 
-  entries.forEach((entry) => {
-    if (entry.category === "Sales" && entry.entry_type === "Cash Inflow") sales += entry.amount;
-    if (entry.category === "COGS" && entry.entry_type === "Cash Outflow") cogs += entry.amount;
-    if (entry.category === "Opex" && entry.entry_type === "Cash Outflow") opex += entry.amount;
-  });
+  const sales = sumMatching(
+    (entry) => entry.category === "Sales" && entry.entry_type === "Cash Inflow",
+  );
+  const cogs = sumMatching(
+    (entry) => entry.category === "COGS" && entry.entry_type === "Cash Outflow",
+  );
+  const opex = sumMatching(
+    (entry) => entry.category === "Opex" && entry.entry_type === "Cash Outflow",
+  );
 
   const grossProfit = sales - cogs;
   const netProfit = grossProfit - opex;

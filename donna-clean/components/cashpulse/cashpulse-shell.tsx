@@ -6,7 +6,7 @@ import { ArrowDownRight, ArrowUpRight, Activity } from "lucide-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { createBrowserClient } from "@/lib/supabase/client";
-import { Entry, normalizeEntry } from "@/lib/entries";
+import { Entry, PAYMENT_METHODS, type PaymentMethod, normalizeEntry } from "@/lib/entries";
 import { cn } from "@/lib/utils";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { Button } from "@/components/ui/button";
@@ -381,24 +381,73 @@ type PendingList = {
   entries: Entry[];
 };
 
+const toPendingList = (entries: Entry[]): PendingList => ({
+  count: entries.length,
+  total: entries.reduce((sum, entry) => sum + entry.amount, 0),
+  entries,
+});
+
 const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
   let cashInflow = 0;
   let cashOutflow = 0;
 
+  const paymentTotals = PAYMENT_METHODS.reduce<Record<PaymentMethod, number>>(
+    (acc, method) => {
+      acc[method] = 0;
+      return acc;
+    },
+    {} as Record<PaymentMethod, number>,
+  );
+
+  const pendingCollections: Entry[] = [];
+  const pendingBills: Entry[] = [];
+  const pendingAdvances: Entry[] = [];
+  const settledHistory: Entry[] = [];
+
   entries.forEach((entry) => {
-    if (entry.entry_type === "Cash Inflow") cashInflow += entry.amount;
-    if (entry.entry_type === "Cash Outflow") cashOutflow += entry.amount;
+    if (entry.entry_type === "Cash Inflow") {
+      cashInflow += entry.amount;
+      if (!entry.settled) {
+        pendingCollections.push(entry);
+      }
+    } else if (entry.entry_type === "Cash Outflow") {
+      cashOutflow += entry.amount;
+      if (!entry.settled) {
+        if (entry.category === "Assets") {
+          pendingAdvances.push(entry);
+        } else {
+          pendingBills.push(entry);
+        }
+      }
+    }
+
+    if (paymentTotals[entry.payment_method] !== undefined) {
+      paymentTotals[entry.payment_method] += entry.amount;
+    }
+
+    if (entry.settled) {
+      settledHistory.push(entry);
+    }
+  });
+
+  settledHistory.sort((a, b) => {
+    const aDate = a.settled_at ?? a.entry_date;
+    const bDate = b.settled_at ?? b.entry_date;
+    return bDate.localeCompare(aDate);
   });
 
   return {
     cashInflow,
     cashOutflow,
     netCashFlow: cashInflow - cashOutflow,
-    cashBreakdown: { Cash: 0, Bank: 0 },
-    pendingCollections: 0,
-    pendingBills: 0,
-    advances: 0,
-    totalPending: 0,
+    cashBreakdown: PAYMENT_METHODS.map((method) => ({
+      method,
+      value: paymentTotals[method],
+    })),
+    pendingCollections: toPendingList(pendingCollections),
+    pendingBills: toPendingList(pendingBills),
+    pendingAdvances: toPendingList(pendingAdvances),
+    history: settledHistory,
   };
 };
 

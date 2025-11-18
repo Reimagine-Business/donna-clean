@@ -58,7 +58,6 @@ type FiltersState = {
 
 const today = format(new Date(), "yyyy-MM-dd");
 const defaultStart = format(subDays(new Date(), 30), "yyyy-MM-dd");
-const CASH_REQUIRED_ENTRY_TYPES: EntryType[] = ["Cash Inflow", "Cash Outflow", "Advance"];
 
 const buildInitialFormState = (): EntryFormState => ({
   entry_type: ENTRY_TYPES[0],
@@ -92,27 +91,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const [filters, setFilters] = useState<FiltersState>(buildInitialFiltersState);
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const currentEntryType = formValues.entry_type;
-
-    useEffect(() => {
-      setFormValues((prev) => {
-        if (prev.entry_type === "Credit" && prev.payment_method !== "None") {
-          return { ...prev, payment_method: "None" };
-        }
-        return prev;
-      });
-
-      const requiresCashChannel = CASH_REQUIRED_ENTRY_TYPES.includes(currentEntryType);
-      setFormError((prev) => {
-        if (requiresCashChannel && formValues.payment_method === "None") {
-          return "Payment method required for cash movement";
-        }
-        if (prev === "Payment method required for cash movement") {
-          return null;
-        }
-        return prev;
-      });
-    }, [currentEntryType, formValues.payment_method]);
 
   useEffect(() => {
     const channel = supabase
@@ -215,22 +193,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         return;
       }
 
-      const selectedEntryType = formValues.entry_type;
-      const paymentMethod = formValues.payment_method;
-      const isCreditSelection = selectedEntryType === "Credit";
-      const requiresCashChannel = CASH_REQUIRED_ENTRY_TYPES.includes(selectedEntryType);
-
-      if (isCreditSelection && paymentMethod !== "None") {
-        setFormError('Credit entries must use "None" for payment method.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (requiresCashChannel && paymentMethod === "None") {
-        setFormError('Cash and Advance entries must use "Cash" or "Bank" as the payment method.');
-        setIsSubmitting(false);
-        return;
-      }
+        const selectedEntryType = formValues.entry_type;
+        const paymentMethod = formValues.payment_method;
 
       let uploadedUrl = existingImageUrl;
       if (receiptFile) {
@@ -401,39 +365,23 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm uppercase text-slate-400">Payment Method</Label>
-              <select
-                value={formValues.payment_method}
-                onChange={(event) =>
-                  handleInputChange("payment_method", event.target.value as PaymentMethod)
-                }
-                disabled={currentEntryType === "Credit"}
-                className={cn(
-                  "w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]",
-                  currentEntryType === "Credit"
-                    ? "cursor-not-allowed border-white/5 bg-slate-900/60 text-slate-500"
-                    : "border-white/10 bg-slate-950/80",
-                )}
-              >
-                {currentEntryType === "Credit" ? (
-                  <option value="None" disabled>
-                    None (credit entry)
-                  </option>
-                ) : (
-                  PAYMENT_METHODS.map((method) => (
+              <div className="space-y-2">
+                <Label className="text-sm uppercase text-slate-400">Payment Method</Label>
+                <select
+                  value={formValues.payment_method}
+                  onChange={(event) =>
+                    handleInputChange("payment_method", event.target.value as PaymentMethod)
+                  }
+                  className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
+                >
+                  {PAYMENT_METHODS.map((method) => (
                     <option key={method} value={method}>
                       {method}
                     </option>
-                  ))
-                )}
-              </select>
-              {currentEntryType === "Credit" ? (
-                <p className="text-xs text-slate-500">Credit entries settle later, so payment is tracked as None.</p>
-              ) : (
-                <p className="text-xs text-slate-500">Use Cash or Bank for live cash movement; None is reserved for Credit.</p>
-              )}
-            </div>
+                  ))}
+                </select>
+                <p className="text-xs text-slate-500">Use Cash or Bank to match how money moved.</p>
+              </div>
             <div className="space-y-2">
               <Label className="text-sm uppercase text-slate-400">Amount</Label>
               <Input
