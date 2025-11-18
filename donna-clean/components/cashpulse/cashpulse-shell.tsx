@@ -14,7 +14,6 @@ import { Download } from "lucide-react";
 
 type CashpulseShellProps = {
   initialEntries: Entry[];
-  userId: string;
 };
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
@@ -42,7 +41,7 @@ const getCashDate = (entry: Entry) => {
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
 
-export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
+export function CashpulseShell({ initialEntries }: CashpulseShellProps) {
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);

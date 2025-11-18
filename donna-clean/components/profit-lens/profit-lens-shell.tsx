@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 
 type ProfitLensShellProps = {
   initialEntries: Entry[];
-  userId: string;
 };
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
@@ -32,7 +31,7 @@ type FiltersState = {
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
 
-export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps) {
+export function ProfitLensShell({ initialEntries }: ProfitLensShellProps) {
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [filters, setFilters] = useState<FiltersState>({
