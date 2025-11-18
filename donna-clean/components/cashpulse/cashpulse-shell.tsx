@@ -426,7 +426,7 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
       }
     }
 
-    if (paymentTotals[entry.payment_method] !== undefined) {
+    if (entry.payment_method === "Cash" || entry.payment_method === "Bank") {
       paymentTotals[entry.payment_method] += entry.amount;
     }
 
