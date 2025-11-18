@@ -355,36 +355,28 @@ const buildProfitStats = (entries: Entry[], filters: FiltersState): ProfitStats 
 
   filtered.forEach((entry) => {
     const isSettledAdvance = entry.entry_type === "Advance" && entry.settled;
-    switch (entry.category) {
-      case "Sales":
-        if (
-          entry.entry_type === "Cash Inflow" ||
-          entry.entry_type === "Credit" ||
-          isSettledAdvance
-        ) {
-          sales += entry.amount;
-        }
-        break;
-      case "COGS":
-        if (
-          entry.entry_type === "Cash Outflow" ||
-          entry.entry_type === "Credit" ||
-          isSettledAdvance
-        ) {
-          cogs += entry.amount;
-        }
-        break;
-      case "Opex":
-        if (
-          entry.entry_type === "Cash Outflow" ||
-          entry.entry_type === "Credit" ||
-          isSettledAdvance
-        ) {
-          opex += entry.amount;
-        }
-        break;
-      default:
-        break;
+    const qualifiesForSales =
+      entry.category === "Sales" &&
+      (entry.entry_type === "Cash Inflow" ||
+        entry.entry_type === "Credit" ||
+        isSettledAdvance);
+    const qualifiesForCogs =
+      entry.category === "COGS" &&
+      (entry.entry_type === "Cash Outflow" ||
+        entry.entry_type === "Credit" ||
+        isSettledAdvance);
+    const qualifiesForOpex =
+      entry.category === "Opex" &&
+      (entry.entry_type === "Cash Outflow" ||
+        entry.entry_type === "Credit" ||
+        isSettledAdvance);
+
+    if (qualifiesForSales) {
+      sales += entry.amount;
+    } else if (qualifiesForCogs) {
+      cogs += entry.amount;
+    } else if (qualifiesForOpex) {
+      opex += entry.amount;
     }
   });
 

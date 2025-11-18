@@ -94,21 +94,25 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const currentEntryType = formValues.entry_type;
 
-  useEffect(() => {
-    setFormValues((prev) => {
-      if (prev.entry_type === "Credit" && prev.payment_method !== "None") {
-        return { ...prev, payment_method: "None" };
-      }
-      if (
-        prev.entry_type !== "Credit" &&
-        prev.payment_method === "None" &&
-        CASH_REQUIRED_ENTRY_TYPES.includes(prev.entry_type)
-      ) {
-        return { ...prev, payment_method: PAYMENT_METHODS[0] };
-      }
-      return prev;
-    });
-  }, [currentEntryType]);
+    useEffect(() => {
+      setFormValues((prev) => {
+        if (prev.entry_type === "Credit" && prev.payment_method !== "None") {
+          return { ...prev, payment_method: "None" };
+        }
+        return prev;
+      });
+
+      const requiresCashChannel = CASH_REQUIRED_ENTRY_TYPES.includes(currentEntryType);
+      setFormError((prev) => {
+        if (requiresCashChannel && formValues.payment_method === "None") {
+          return "Payment method required for cash movement";
+        }
+        if (prev === "Payment method required for cash movement") {
+          return null;
+        }
+        return prev;
+      });
+    }, [currentEntryType, formValues.payment_method]);
 
   useEffect(() => {
     const channel = supabase
@@ -412,11 +416,17 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                     : "border-white/10 bg-slate-950/80",
                 )}
               >
-                {PAYMENT_METHODS.map((method) => (
-                  <option key={method} value={method}>
-                    {method}
+                {currentEntryType === "Credit" ? (
+                  <option value="None" disabled>
+                    None (credit entry)
                   </option>
-                ))}
+                ) : (
+                  PAYMENT_METHODS.map((method) => (
+                    <option key={method} value={method}>
+                      {method}
+                    </option>
+                  ))
+                )}
               </select>
               {currentEntryType === "Credit" ? (
                 <p className="text-xs text-slate-500">Credit entries settle later, so payment is tracked as None.</p>
