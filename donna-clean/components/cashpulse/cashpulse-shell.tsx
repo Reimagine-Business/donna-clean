@@ -52,7 +52,21 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     end_date: format(new Date(), "yyyy-MM-dd"),
   });
 
-  const [stats, setStats] = useState(() => buildCashpulseStats(initialEntries, historyFilters));
+  const initialStatsRef = useRef<CashpulseStats | null>(null);
+  if (!initialStatsRef.current) {
+    initialStatsRef.current = buildCashpulseStats(initialEntries, historyFilters);
+  }
+  const initialStats = initialStatsRef.current as CashpulseStats;
+
+  const [inflow, setInflow] = useState(initialStats.cashInflow);
+  const [outflow, setOutflow] = useState(initialStats.cashOutflow);
+  const [net, setNet] = useState(initialStats.netCashFlow);
+  const [cashBreakdown, setCashBreakdown] = useState(initialStats.cashBreakdown);
+  const [pendingCollections, setPendingCollections] = useState(initialStats.pendingCollections);
+  const [pendingBills, setPendingBills] = useState(initialStats.pendingBills);
+  const [pendingAdvances, setPendingAdvances] = useState(initialStats.pendingAdvances);
+  const [history, setHistory] = useState(initialStats.history);
+
   const skipNextRecalc = useRef(false);
   const [realtimeUserId, setRealtimeUserId] = useState<string | null>(userId ?? null);
 
@@ -60,23 +74,27 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     console.log("Cashpulse is now CLIENT — real-time will work");
   }, []);
 
-    const recalcKpis = useCallback(
-      (nextEntries: Entry[], nextFilters = historyFilters) => {
-        const updatedStats = buildCashpulseStats(nextEntries, nextFilters);
-        setStats(updatedStats);
-        const salesTotal = updatedStats.cashBreakdown
-          .filter((channel) => channel.method === "Cash" || channel.method === "Bank")
-          .reduce((sum, channel) => sum + channel.value, 0);
-        console.log("KPIs recalc: inflow", updatedStats.cashInflow, "sales", salesTotal);
-      },
-      [historyFilters],
-    );
+  const recalcKpis = useCallback(
+    (nextEntries: Entry[], nextFilters = historyFilters) => {
+      const updatedStats = buildCashpulseStats(nextEntries, nextFilters);
+      setInflow(updatedStats.cashInflow);
+      setOutflow(updatedStats.cashOutflow);
+      setNet(updatedStats.netCashFlow);
+      setCashBreakdown(updatedStats.cashBreakdown);
+      setPendingCollections(updatedStats.pendingCollections);
+      setPendingBills(updatedStats.pendingBills);
+      setPendingAdvances(updatedStats.pendingAdvances);
+      setHistory(updatedStats.history);
+      return updatedStats;
+    },
+    [historyFilters],
+  );
 
   const refetchEntries = useCallback(async () => {
     const targetUserId = realtimeUserId ?? userId;
     if (!targetUserId) {
       console.error("Cannot refetch entries: missing user id");
-      return;
+      return undefined;
     }
 
     try {
@@ -90,64 +108,78 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
         throw error;
       }
 
-        const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
-        console.log("Refetched entries count (cashpulse):", nextEntries.length);
+      const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
       skipNextRecalc.current = true;
       setEntries(nextEntries);
-      recalcKpis(nextEntries);
+      return nextEntries;
     } catch (error) {
       console.error("Failed to refetch entries for Cashpulse", error);
+      return undefined;
     }
-    }, [realtimeUserId, recalcKpis, supabase, userId]);
+  }, [realtimeUserId, supabase, userId]);
 
-    useEffect(() => {
-      let isMounted = true;
-      let channel: RealtimeChannel | null = null;
+  useEffect(() => {
+    let isMounted = true;
+    let channel: RealtimeChannel | null = null;
 
-      const setupRealtime = async () => {
-        let targetUserId = realtimeUserId ?? userId;
+    const setupRealtime = async () => {
+      const targetUserId = realtimeUserId ?? userId;
 
-        if (!targetUserId) {
-          const { data, error } = await supabase.auth.getUser();
-          if (!isMounted) return;
-          if (error) {
-            console.error("Failed to fetch auth user for realtime (Cashpulse)", error);
-            return;
-          }
-          if (data?.user?.id) {
-            setRealtimeUserId(data.user.id);
-          }
+      if (!targetUserId) {
+        const { data, error } = await supabase.auth.getUser();
+        if (!isMounted) return;
+        if (error) {
+          console.error("Failed to fetch auth user for realtime (Cashpulse)", error);
           return;
         }
-
-        channel = supabase
-          .channel("entries-realtime")
-          .on(
-            "postgres_changes",
-            {
-              event: "*",
-              schema: "public",
-              table: "entries",
-              filter: `user_id=eq.${targetUserId}`,
-            },
-            (payload) => {
-              console.log("REAL-TIME PAYLOAD:", payload);
-              void refetchEntries();
-            },
-          )
-          .subscribe();
-        console.log("SUBSCRIPTION CREATED FOR USER:", targetUserId);
-      };
-
-      void setupRealtime();
-
-      return () => {
-        isMounted = false;
-        if (channel) {
-          supabase.removeChannel(channel);
+        if (data?.user?.id) {
+          setRealtimeUserId(data.user.id);
         }
-      };
-    }, [realtimeUserId, refetchEntries, supabase, userId]);
+        return;
+      }
+
+      channel = supabase
+        .channel("entries-realtime")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "entries",
+            filter: `user_id=eq.${targetUserId}`,
+          },
+          async (payload) => {
+            console.log("REAL-TIME: payload received", payload);
+            const latestEntries = await refetchEntries();
+            if (!latestEntries) {
+              return;
+            }
+            console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
+            const updatedStats = recalcKpis(latestEntries);
+            const realtimeSales = updatedStats.cashBreakdown
+              .filter((channelBreakdown) => channelBreakdown.method === "Cash" || channelBreakdown.method === "Bank")
+              .reduce((sum, channelBreakdown) => sum + channelBreakdown.value, 0);
+            console.log(
+              "REAL-TIME: KPIs recalculated → inflow:",
+              updatedStats.cashInflow,
+              "sales:",
+              realtimeSales,
+            );
+          },
+        )
+        .subscribe();
+      console.log("SUBSCRIPTION CREATED FOR USER:", targetUserId);
+    };
+
+    void setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [realtimeUserId, recalcKpis, refetchEntries, supabase, userId]);
 
   useEffect(() => {
     if (skipNextRecalc.current) {
@@ -162,7 +194,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
   )}`;
 
   const handleExportHistory = () => {
-    if (!stats.history.length) return;
+    if (!history.length) return;
     const headers = [
       "Date",
       "Entry Type",
@@ -171,7 +203,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       "Payment Method",
       "Notes",
     ];
-    const rows = stats.history.map((entry) => [
+    const rows = history.map((entry) => [
       entry.entry_date,
       entry.entry_type,
       entry.category,
@@ -238,131 +270,131 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
             Last 30 days
           </Button>
         </div>
-      </div>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          title="Total Cash Inflow"
-          value={currencyFormatter.format(stats.cashInflow)}
-          subtitle={historyLabel}
-          variant="positive"
-        />
-        <StatCard
-          title="Total Cash Outflow"
-          value={currencyFormatter.format(stats.cashOutflow)}
-          subtitle={historyLabel}
-          variant="negative"
-        />
-        <StatCard
-          title="Net Cash Flow"
-          value={currencyFormatter.format(stats.netCashFlow)}
-          subtitle={historyLabel}
-          variant="neutral"
-        />
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-2">
-        {stats.cashBreakdown.map((channel) => (
-          <ChannelCard
-            key={channel.method}
-            method={channel.method}
-            value={currencyFormatter.format(channel.value)}
-          />
-        ))}
-      </section>
-
-      <section className="grid gap-6 md:grid-cols-3">
-        <PendingCard
-          title="Pending Collections"
-          description="Credit sales awaiting payment."
-          info={stats.pendingCollections}
-          accent="emerald"
-          onSettle={setSettlementEntry}
-        />
-        <PendingCard
-          title="Pending Bills"
-          description="Credit purchases awaiting payment."
-          info={stats.pendingBills}
-          accent="rose"
-          onSettle={setSettlementEntry}
-        />
-        <PendingCard
-          title="Advances"
-          description="Advance payments to be settled."
-          info={stats.pendingAdvances}
-          accent="purple"
-          onSettle={setSettlementEntry}
-        />
-      </section>
-
-      <section className="rounded-3xl border border-white/10 bg-slate-900/40 p-6 shadow-2xl shadow-black/40">
-        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Settlement History</p>
-            <h2 className="text-2xl font-semibold text-white">Cash vs profit reconciled</h2>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="border-[#a78bfa]/50 text-[#a78bfa]"
-            disabled={!stats.history.length}
-            onClick={handleExportHistory}
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export CSV
-          </Button>
         </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead>
-              <tr className="text-left text-xs uppercase tracking-widest text-slate-400">
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Entry Type</th>
-                <th className="px-3 py-2">Category</th>
-                <th className="px-3 py-2">Amount</th>
-                <th className="px-3 py-2">Payment Method</th>
-                <th className="px-3 py-2">Notes</th>
-                <th className="px-3 py-2 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.history.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
-                    No settlements in this range.
-                  </td>
+
+        <section className="grid gap-4 md:grid-cols-3">
+          <StatCard
+            title="Total Cash Inflow"
+            value={currencyFormatter.format(inflow)}
+            subtitle={historyLabel}
+            variant="positive"
+          />
+          <StatCard
+            title="Total Cash Outflow"
+            value={currencyFormatter.format(outflow)}
+            subtitle={historyLabel}
+            variant="negative"
+          />
+          <StatCard
+            title="Net Cash Flow"
+            value={currencyFormatter.format(net)}
+            subtitle={historyLabel}
+            variant="neutral"
+          />
+        </section>
+
+        <section className="grid gap-4 md:grid-cols-2">
+          {cashBreakdown.map((channel) => (
+            <ChannelCard
+              key={channel.method}
+              method={channel.method}
+              value={currencyFormatter.format(channel.value)}
+            />
+          ))}
+        </section>
+
+        <section className="grid gap-6 md:grid-cols-3">
+          <PendingCard
+            title="Pending Collections"
+            description="Credit sales awaiting payment."
+            info={pendingCollections}
+            accent="emerald"
+            onSettle={setSettlementEntry}
+          />
+          <PendingCard
+            title="Pending Bills"
+            description="Credit purchases awaiting payment."
+            info={pendingBills}
+            accent="rose"
+            onSettle={setSettlementEntry}
+          />
+          <PendingCard
+            title="Advances"
+            description="Advance payments to be settled."
+            info={pendingAdvances}
+            accent="purple"
+            onSettle={setSettlementEntry}
+          />
+        </section>
+
+        <section className="rounded-3xl border border-white/10 bg-slate-900/40 p-6 shadow-2xl shadow-black/40">
+          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Settlement History</p>
+              <h2 className="text-2xl font-semibold text-white">Cash vs profit reconciled</h2>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="border-[#a78bfa]/50 text-[#a78bfa]"
+              disabled={!history.length}
+              onClick={handleExportHistory}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-widest text-slate-400">
+                  <th className="px-3 py-2">Date</th>
+                  <th className="px-3 py-2">Entry Type</th>
+                  <th className="px-3 py-2">Category</th>
+                  <th className="px-3 py-2">Amount</th>
+                  <th className="px-3 py-2">Payment Method</th>
+                  <th className="px-3 py-2">Notes</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
-              ) : (
-                stats.history.map((entry) => (
-                  <tr
-                    key={entry.id}
-                    className="border-t border-white/5 bg-white/5 text-slate-100 transition hover:bg-white/10"
-                  >
-                    <td className="px-3 py-3 font-medium">
-                      {format(new Date(entry.settled_at ?? entry.entry_date), "dd MMM yyyy")}
-                    </td>
-                    <td className="px-3 py-3">{entry.entry_type}</td>
-                    <td className="px-3 py-3">{entry.category}</td>
-                    <td className="px-3 py-3 font-semibold text-white">
-                      {currencyFormatter.format(entry.amount)}
-                    </td>
-                    <td className="px-3 py-3">{entry.payment_method}</td>
-                    <td className="px-3 py-3 max-w-[220px] truncate">{entry.notes ?? "—"}</td>
-                    <td className="px-3 py-3 text-right text-xs uppercase tracking-[0.2em] text-emerald-300">
-                      Settled
+              </thead>
+              <tbody>
+                {history.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
+                      No settlements in this range.
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </section>
+                ) : (
+                  history.map((entry) => (
+                    <tr
+                      key={entry.id}
+                      className="border-t border-white/5 bg-white/5 text-slate-100 transition hover:bg-white/10"
+                    >
+                      <td className="px-3 py-3 font-medium">
+                        {format(new Date(entry.settled_at ?? entry.entry_date), "dd MMM yyyy")}
+                      </td>
+                      <td className="px-3 py-3">{entry.entry_type}</td>
+                      <td className="px-3 py-3">{entry.category}</td>
+                      <td className="px-3 py-3 font-semibold text-white">
+                        {currencyFormatter.format(entry.amount)}
+                      </td>
+                      <td className="px-3 py-3">{entry.payment_method}</td>
+                      <td className="px-3 py-3 max-w-[220px] truncate">{entry.notes ?? "—"}</td>
+                      <td className="px-3 py-3 text-right text-xs uppercase tracking-[0.2em] text-emerald-300">
+                        Settled
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
-      <SettleEntryDialog entry={settlementEntry} onClose={() => setSettlementEntry(null)} />
-    </div>
-  );
-}
+        <SettleEntryDialog entry={settlementEntry} onClose={() => setSettlementEntry(null)} />
+      </div>
+    );
+  }
 
 type CashpulseStats = {
   cashInflow: number;

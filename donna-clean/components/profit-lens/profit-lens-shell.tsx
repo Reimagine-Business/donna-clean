@@ -41,7 +41,19 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     end_date: currentEnd,
   });
 
-  const [stats, setStats] = useState(() => buildProfitStats(initialEntries, filters));
+  const initialStatsRef = useRef<ProfitStats | null>(null);
+  if (!initialStatsRef.current) {
+    initialStatsRef.current = buildProfitStats(initialEntries, filters);
+  }
+  const initialStats = initialStatsRef.current as ProfitStats;
+
+  const [sales, setSales] = useState(initialStats.sales);
+  const [cogs, setCogs] = useState(initialStats.cogs);
+  const [opex, setOpex] = useState(initialStats.opex);
+  const [grossProfit, setGrossProfit] = useState(initialStats.grossProfit);
+  const [netProfit, setNetProfit] = useState(initialStats.netProfit);
+  const [grossMargin, setGrossMargin] = useState(initialStats.grossMargin);
+  const [netMargin, setNetMargin] = useState(initialStats.netMargin);
   const skipNextRecalc = useRef(false);
   const [realtimeUserId, setRealtimeUserId] = useState<string | null>(userId ?? null);
 
@@ -52,8 +64,14 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
   const recalcKpis = useCallback(
     (nextEntries: Entry[], nextFilters = filters) => {
       const nextStats = buildProfitStats(nextEntries, nextFilters);
-      setStats(nextStats);
-      console.log("KPIs recalc: inflow", nextStats.netProfit, "sales", nextStats.sales);
+      setSales(nextStats.sales);
+      setCogs(nextStats.cogs);
+      setOpex(nextStats.opex);
+      setGrossProfit(nextStats.grossProfit);
+      setNetProfit(nextStats.netProfit);
+      setGrossMargin(nextStats.grossMargin);
+      setNetMargin(nextStats.netMargin);
+      return nextStats;
     },
     [filters],
   );
@@ -62,7 +80,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     const targetUserId = realtimeUserId ?? userId;
     if (!targetUserId) {
       console.error("Cannot refetch entries for Profit Lens: missing user id");
-      return;
+      return undefined;
     }
 
     try {
@@ -77,63 +95,74 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       }
 
       const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
-      console.log("Refetched entries count (profit lens):", nextEntries.length);
       skipNextRecalc.current = true;
       setEntries(nextEntries);
-      recalcKpis(nextEntries);
+      return nextEntries;
     } catch (error) {
       console.error("Failed to refetch entries for Profit Lens", error);
+      return undefined;
     }
-    }, [realtimeUserId, recalcKpis, supabase, userId]);
+  }, [realtimeUserId, supabase, userId]);
 
-    useEffect(() => {
-      let isMounted = true;
-      let channel: RealtimeChannel | null = null;
+  useEffect(() => {
+    let isMounted = true;
+    let channel: RealtimeChannel | null = null;
 
-      const setupRealtime = async () => {
-        let targetUserId = realtimeUserId ?? userId;
+    const setupRealtime = async () => {
+      const targetUserId = realtimeUserId ?? userId;
 
-        if (!targetUserId) {
-          const { data, error } = await supabase.auth.getUser();
-          if (!isMounted) return;
-          if (error) {
-            console.error("Failed to fetch auth user for realtime (Profit Lens)", error);
-            return;
-          }
-          if (data?.user?.id) {
-            setRealtimeUserId(data.user.id);
-          }
+      if (!targetUserId) {
+        const { data, error } = await supabase.auth.getUser();
+        if (!isMounted) return;
+        if (error) {
+          console.error("Failed to fetch auth user for realtime (Profit Lens)", error);
           return;
         }
-
-        channel = supabase
-          .channel("entries-realtime")
-          .on(
-            "postgres_changes",
-            {
-              event: "*",
-              schema: "public",
-              table: "entries",
-              filter: `user_id=eq.${targetUserId}`,
-            },
-            (payload) => {
-              console.log("REAL-TIME PAYLOAD:", payload);
-              void refetchEntries();
-            },
-          )
-          .subscribe();
-        console.log("SUBSCRIPTION CREATED FOR USER:", targetUserId);
-      };
-
-      void setupRealtime();
-
-      return () => {
-        isMounted = false;
-        if (channel) {
-          supabase.removeChannel(channel);
+        if (data?.user?.id) {
+          setRealtimeUserId(data.user.id);
         }
-      };
-    }, [realtimeUserId, refetchEntries, supabase, userId]);
+        return;
+      }
+
+      channel = supabase
+        .channel("entries-realtime")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "entries",
+            filter: `user_id=eq.${targetUserId}`,
+          },
+          async (payload) => {
+            console.log("REAL-TIME: payload received", payload);
+            const latestEntries = await refetchEntries();
+            if (!latestEntries) {
+              return;
+            }
+            console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
+            const updatedStats = recalcKpis(latestEntries);
+            console.log(
+              "REAL-TIME: KPIs recalculated → inflow:",
+              updatedStats.netProfit,
+              "sales:",
+              updatedStats.sales,
+            );
+          },
+        )
+        .subscribe();
+      console.log("SUBSCRIPTION CREATED FOR USER:", targetUserId);
+    };
+
+    void setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [realtimeUserId, recalcKpis, refetchEntries, supabase, userId]);
 
   useEffect(() => {
     if (skipNextRecalc.current) {
@@ -149,11 +178,11 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
   )}`;
 
   const plRows = [
-    { label: "Sales", value: stats.sales, variant: "positive" as RowVariant },
-    { label: "Cost of Goods Sold", value: stats.cogs, variant: "negative" as RowVariant },
-    { label: "Gross Profit", value: stats.grossProfit, variant: "neutral" as RowVariant },
-    { label: "Operating Expenses", value: stats.opex, variant: "negative" as RowVariant },
-    { label: "Net Profit", value: stats.netProfit, variant: "positive" as RowVariant },
+    { label: "Sales", value: sales, variant: "positive" as RowVariant },
+    { label: "Cost of Goods Sold", value: cogs, variant: "negative" as RowVariant },
+    { label: "Gross Profit", value: grossProfit, variant: "neutral" as RowVariant },
+    { label: "Operating Expenses", value: opex, variant: "negative" as RowVariant },
+    { label: "Net Profit", value: netProfit, variant: "positive" as RowVariant },
   ];
 
   return (
@@ -229,18 +258,18 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2">
-        <MetricCard
-          title="Gross Margin"
-          value={percentageFormatter(stats.grossMargin)}
-          subtitle="Gross profit ÷ sales"
-        />
-        <MetricCard
-          title="Net Profit Margin"
-          value={percentageFormatter(stats.netMargin)}
-          subtitle="Net profit ÷ sales"
-        />
-      </section>
+        <section className="grid gap-4 md:grid-cols-2">
+          <MetricCard
+            title="Gross Margin"
+            value={percentageFormatter(grossMargin)}
+            subtitle="Gross profit ÷ sales"
+          />
+          <MetricCard
+            title="Net Profit Margin"
+            value={percentageFormatter(netMargin)}
+            subtitle="Net profit ÷ sales"
+          />
+        </section>
 
       <section className="space-y-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -249,27 +278,27 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             <h2 className="text-2xl font-semibold text-white">Where cash is leaving</h2>
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <BreakdownCard
-            title="Cost of Goods Sold"
-            value={currencyFormatter.format(stats.cogs)}
-            description="Direct inputs tied to sales"
-          />
-          <BreakdownCard
-            title="Other Expenses"
-            value={currencyFormatter.format(stats.opex)}
-            description="Operating and overhead costs"
-          />
-        </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <BreakdownCard
+              title="Cost of Goods Sold"
+              value={currencyFormatter.format(cogs)}
+              description="Direct inputs tied to sales"
+            />
+            <BreakdownCard
+              title="Other Expenses"
+              value={currencyFormatter.format(opex)}
+              description="Operating and overhead costs"
+            />
+          </div>
       </section>
 
-      <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#a78bfa]/30 to-[#a78bfa]/10 p-6 text-white shadow-[0_0_35px_rgba(167,139,250,0.25)]">
-        <p className="text-xs uppercase tracking-[0.3em] text-white/80">Total Sales</p>
-        <p className="mt-4 text-4xl font-semibold">{currencyFormatter.format(stats.sales)}</p>
-        <p className="mt-2 text-sm text-white/70">
-          Includes cash inflows and credit sales captured this period.
-        </p>
-      </section>
+        <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#a78bfa]/30 to-[#a78bfa]/10 p-6 text-white shadow-[0_0_35px_rgba(167,139,250,0.25)]">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/80">Total Sales</p>
+          <p className="mt-4 text-4xl font-semibold">{currencyFormatter.format(sales)}</p>
+          <p className="mt-2 text-sm text-white/70">
+            Includes cash inflows and credit sales captured this period.
+          </p>
+        </section>
     </div>
   );
 }
