@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, subDays } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, Activity } from "lucide-react";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { createClient } from "@/lib/supabase/client";
+import { createBrowserClient } from "@/lib/supabase/client";
 import { Entry, normalizeEntry } from "@/lib/entries";
 import { cn } from "@/lib/utils";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
@@ -43,7 +44,7 @@ const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
 
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createBrowserClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [historyFilters, setHistoryFilters] = useState({
@@ -54,6 +55,10 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
   const [stats, setStats] = useState(() => buildCashpulseStats(initialEntries, historyFilters));
   const skipNextRecalc = useRef(false);
   const [realtimeUserId, setRealtimeUserId] = useState<string | null>(userId ?? null);
+
+  useEffect(() => {
+    console.log("Cashpulse is now CLIENT — real-time will work");
+  }, []);
 
     const recalcKpis = useCallback(
       (nextEntries: Entry[], nextFilters = historyFilters) => {
@@ -95,48 +100,54 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     }
     }, [realtimeUserId, recalcKpis, supabase, userId]);
 
-  useEffect(() => {
-    let isMounted = true;
-    supabase.auth.getUser().then(({ data, error }) => {
-      if (!isMounted) return;
-      if (error) {
-        console.error("Failed to fetch auth user for realtime (Cashpulse)", error);
-        return;
-      }
-      if (data?.user?.id) {
-        setRealtimeUserId(data.user.id);
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
-  }, [supabase]);
+    useEffect(() => {
+      let isMounted = true;
+      let channel: RealtimeChannel | null = null;
 
-  useEffect(() => {
-    if (!realtimeUserId) return;
+      const setupRealtime = async () => {
+        let targetUserId = realtimeUserId ?? userId;
 
-    const channel = supabase
-      .channel("entries-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "entries",
-          filter: `user_id=eq.${realtimeUserId}`,
-        },
-        (payload) => {
-          console.log("REAL-TIME PAYLOAD:", payload);
-          void refetchEntries();
-        },
-      )
-      .subscribe();
-    console.log("SUBSCRIPTION CREATED FOR USER:", realtimeUserId);
+        if (!targetUserId) {
+          const { data, error } = await supabase.auth.getUser();
+          if (!isMounted) return;
+          if (error) {
+            console.error("Failed to fetch auth user for realtime (Cashpulse)", error);
+            return;
+          }
+          if (data?.user?.id) {
+            setRealtimeUserId(data.user.id);
+          }
+          return;
+        }
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [realtimeUserId, refetchEntries, supabase]);
+        channel = supabase
+          .channel("entries-realtime")
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "entries",
+              filter: `user_id=eq.${targetUserId}`,
+            },
+            (payload) => {
+              console.log("REAL-TIME PAYLOAD:", payload);
+              void refetchEntries();
+            },
+          )
+          .subscribe();
+        console.log("SUBSCRIPTION CREATED FOR USER:", targetUserId);
+      };
+
+      void setupRealtime();
+
+      return () => {
+        isMounted = false;
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      };
+    }, [realtimeUserId, refetchEntries, supabase, userId]);
 
   useEffect(() => {
     if (skipNextRecalc.current) {
