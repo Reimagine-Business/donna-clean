@@ -94,7 +94,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   useEffect(() => {
     const channel = supabase
-      .channel("entries-realtime")
+      .channel("public:entries")
       .on(
         "postgres_changes",
         {
