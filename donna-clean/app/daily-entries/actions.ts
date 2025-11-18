@@ -3,12 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 
-import {
-  type EntryType,
-  type CategoryType,
-  type PaymentMethod,
-  resolveEntryType,
-} from "@/lib/entries";
+import { type EntryType, type CategoryType, type PaymentMethod } from "@/lib/entries";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
 
 type AddEntryInput = {
@@ -32,9 +27,9 @@ export async function addEntry(data: AddEntryInput) {
     redirect("/auth/login");
   }
 
-  // Then continue with your queries using this supabase client
+    // Then continue with your queries using this supabase client
 
-  const amount = Number(data.amount);
+    const amount = Number(data.amount);
 
     if (Number.isNaN(amount)) {
       return { error: "Amount must be a valid number." };
@@ -42,11 +37,9 @@ export async function addEntry(data: AddEntryInput) {
 
     console.log("Inserting with user_id:", user.id);
 
-    const enforcedEntryType = resolveEntryType(data.entry_type, data.category);
-
     const payload = {
       user_id: user.id,
-      entry_type: enforcedEntryType,
+      entry_type: data.entry_type,
       category: data.category,
       payment_method: data.payment_method,
       amount,

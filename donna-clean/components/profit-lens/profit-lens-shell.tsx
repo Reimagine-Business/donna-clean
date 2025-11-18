@@ -330,35 +330,56 @@ type ProfitStats = {
   netMargin: number;
 };
 
+const getProfitLensDate = (entry: Entry): string | null => {
+  if (entry.entry_type === "Advance") {
+    if (!entry.settled) {
+      return null;
+    }
+    return (entry.settled_at ?? entry.entry_date).slice(0, 10);
+  }
+  return entry.entry_date;
+};
+
 const buildProfitStats = (entries: Entry[], filters: FiltersState): ProfitStats => {
-  const filtered = entries.filter(
-    (entry) => entry.entry_date >= filters.start_date && entry.entry_date <= filters.end_date,
-  );
+  const filtered = entries.filter((entry) => {
+    const profitDate = getProfitLensDate(entry);
+    if (!profitDate) {
+      return false;
+    }
+    return profitDate >= filters.start_date && profitDate <= filters.end_date;
+  });
 
   let sales = 0;
   let cogs = 0;
   let opex = 0;
 
   filtered.forEach((entry) => {
-    switch (entry.entry_type) {
-      case "Cash Inflow":
-        if (entry.category === "Sales") {
+    const isSettledAdvance = entry.entry_type === "Advance" && entry.settled;
+    switch (entry.category) {
+      case "Sales":
+        if (
+          entry.entry_type === "Cash Inflow" ||
+          entry.entry_type === "Credit" ||
+          isSettledAdvance
+        ) {
           sales += entry.amount;
         }
         break;
-      case "Cash Outflow":
-        if (entry.category === "COGS") {
+      case "COGS":
+        if (
+          entry.entry_type === "Cash Outflow" ||
+          entry.entry_type === "Credit" ||
+          isSettledAdvance
+        ) {
           cogs += entry.amount;
-        } else if (entry.category === "Opex") {
-          opex += entry.amount;
         }
         break;
-      case "Credit":
-        if (entry.category === "Sales") {
-          sales += entry.amount;
-        } else if (entry.category === "COGS") {
-          cogs += entry.amount;
-        } else if (entry.category === "Opex") {
+      case "Opex":
+        if (
+          entry.entry_type === "Cash Outflow" ||
+          entry.entry_type === "Credit" ||
+          isSettledAdvance
+        ) {
           opex += entry.amount;
         }
         break;

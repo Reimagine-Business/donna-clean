@@ -6,7 +6,7 @@ import { ArrowDownRight, ArrowUpRight, Activity } from "lucide-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { createBrowserClient } from "@/lib/supabase/client";
-import { Entry, normalizeEntry } from "@/lib/entries";
+import { Entry, normalizeEntry, type PaymentMethod } from "@/lib/entries";
 import { cn } from "@/lib/utils";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { Button } from "@/components/ui/button";
@@ -388,6 +388,8 @@ type PendingList = {
   entries: Entry[];
 };
 
+type CashChannel = Exclude<PaymentMethod, "None">;
+
 const buildCashpulseStats = (
   entries: Entry[],
   filters: { start_date: string; end_date: string },
@@ -398,18 +400,26 @@ const buildCashpulseStats = (
 
   let cashInflow = 0;
   let cashOutflow = 0;
-  const cashBreakdownMap: Record<string, number> = {
+  const cashBreakdownMap: Record<CashChannel, number> = {
     Cash: 0,
     Bank: 0,
   };
 
+  const isCashMovement = (method: PaymentMethod): method is CashChannel => method !== "None";
+
   const applyInflow = (entry: Entry) => {
+    if (!isCashMovement(entry.payment_method)) {
+      return;
+    }
     cashInflow += entry.amount;
     cashBreakdownMap[entry.payment_method] =
       (cashBreakdownMap[entry.payment_method] ?? 0) + entry.amount;
   };
 
   const applyOutflow = (entry: Entry) => {
+    if (!isCashMovement(entry.payment_method)) {
+      return;
+    }
     cashOutflow += entry.amount;
     cashBreakdownMap[entry.payment_method] =
       (cashBreakdownMap[entry.payment_method] ?? 0) - entry.amount;
@@ -418,9 +428,7 @@ const buildCashpulseStats = (
   rangeEntries.forEach((entry) => {
     switch (entry.entry_type) {
       case "Cash Inflow":
-        if (entry.category === "Sales") {
-          applyInflow(entry);
-        }
+        applyInflow(entry);
         break;
       case "Cash Outflow":
         applyOutflow(entry);
@@ -428,7 +436,7 @@ const buildCashpulseStats = (
       case "Advance":
         if (entry.category === "Sales") {
           applyInflow(entry);
-        } else {
+        } else if (entry.category === "COGS" || entry.category === "Opex" || entry.category === "Assets") {
           applyOutflow(entry);
         }
         break;

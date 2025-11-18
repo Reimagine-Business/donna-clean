@@ -18,9 +18,6 @@ import {
   type CategoryType,
   type PaymentMethod,
   normalizeEntry,
-  deriveEntryTypeFromCategory,
-  resolveEntryType,
-  isCashFlowEntryType,
 } from "@/lib/entries";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { addEntry as addEntryAction } from "@/app/daily-entries/actions";
@@ -44,7 +41,7 @@ type DailyEntriesShellProps = {
 type EntryFormState = {
   entry_type: EntryType;
   category: CategoryType;
-  payment_method: PaymentMethod | "";
+  payment_method: PaymentMethod;
   amount: string;
   entry_date: string;
   notes: string;
@@ -61,11 +58,12 @@ type FiltersState = {
 
 const today = format(new Date(), "yyyy-MM-dd");
 const defaultStart = format(subDays(new Date(), 30), "yyyy-MM-dd");
+const CASH_REQUIRED_ENTRY_TYPES: EntryType[] = ["Cash Inflow", "Cash Outflow", "Advance"];
 
 const buildInitialFormState = (): EntryFormState => ({
-  entry_type: deriveEntryTypeFromCategory(CATEGORIES[0]),
+  entry_type: ENTRY_TYPES[0],
   category: CATEGORIES[0],
-  payment_method: "",
+  payment_method: PAYMENT_METHODS[0],
   amount: "",
   entry_date: today,
   notes: "",
@@ -94,6 +92,23 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const [filters, setFilters] = useState<FiltersState>(buildInitialFiltersState);
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const currentEntryType = formValues.entry_type;
+
+  useEffect(() => {
+    setFormValues((prev) => {
+      if (prev.entry_type === "Credit" && prev.payment_method !== "None") {
+        return { ...prev, payment_method: "None" };
+      }
+      if (
+        prev.entry_type !== "Credit" &&
+        prev.payment_method === "None" &&
+        CASH_REQUIRED_ENTRY_TYPES.includes(prev.entry_type)
+      ) {
+        return { ...prev, payment_method: PAYMENT_METHODS[0] };
+      }
+      return prev;
+    });
+  }, [currentEntryType]);
 
   useEffect(() => {
     const channel = supabase
@@ -141,13 +156,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     name: K,
     value: EntryFormState[K],
   ) => {
-  setFormValues((prev) => {
-    const next = { ...prev, [name]: value };
-    if (name === "category" && isCashFlowEntryType(prev.entry_type)) {
-      next.entry_type = deriveEntryTypeFromCategory(value as CategoryType);
-    }
-    return next;
-  });
+    setFormValues((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAmountBlur = () => {
@@ -202,16 +211,30 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         return;
       }
 
+      const selectedEntryType = formValues.entry_type;
+      const paymentMethod = formValues.payment_method;
+      const isCreditSelection = selectedEntryType === "Credit";
+      const requiresCashChannel = CASH_REQUIRED_ENTRY_TYPES.includes(selectedEntryType);
+
+      if (isCreditSelection && paymentMethod !== "None") {
+        setFormError('Credit entries must use "None" for payment method.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (requiresCashChannel && paymentMethod === "None") {
+        setFormError('Cash and Advance entries must use "Cash" or "Bank" as the payment method.');
+        setIsSubmitting(false);
+        return;
+      }
+
       let uploadedUrl = existingImageUrl;
       if (receiptFile) {
         uploadedUrl = await uploadReceipt();
       }
 
-        const resolvedEntryType = resolveEntryType(formValues.entry_type, formValues.category);
-        const paymentMethod = formValues.payment_method || PAYMENT_METHODS[0];
-
-        const payload = {
-        entry_type: resolvedEntryType,
+      const payload = {
+        entry_type: selectedEntryType,
         category: formValues.category,
         payment_method: paymentMethod,
         amount: numericAmount,
@@ -222,41 +245,41 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
       console.log("Saving entry payload", payload);
 
-        if (editingEntryId) {
-            const { error } = await supabase.from("entries").update(payload).eq("id", editingEntryId);
-          if (error) throw error;
-          setSuccessMessage("Entry updated!");
-        } else {
-          const result = await addEntryAction(payload);
-          if (result?.error) {
-            throw new Error(result.error);
-          }
-          setSuccessMessage("Entry saved!");
+      if (editingEntryId) {
+        const { error } = await supabase.from("entries").update(payload).eq("id", editingEntryId);
+        if (error) throw error;
+        setSuccessMessage("Entry updated!");
+      } else {
+        const result = await addEntryAction(payload);
+        if (result?.error) {
+          throw new Error(result.error);
         }
+        setSuccessMessage("Entry saved!");
+      }
 
       resetForm();
     } catch (error) {
       setFormError(error instanceof Error ? error.message : "Unable to save entry.");
-        setSuccessMessage(null);
+      setSuccessMessage(null);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleEdit = (entry: Entry) => {
-    setEditingEntryId(entry.id);
-        setFormValues({
-          entry_type: entry.entry_type,
-          category: entry.category,
-          payment_method: entry.payment_method,
+    const handleEdit = (entry: Entry) => {
+      setEditingEntryId(entry.id);
+      setFormValues({
+        entry_type: entry.entry_type,
+        category: entry.category,
+        payment_method: entry.payment_method,
         amount: numberFormatter.format(entry.amount),
         entry_date: entry.entry_date,
         notes: entry.notes ?? "",
       });
-    setExistingImageUrl(entry.image_url);
-    setReceiptPreview(entry.image_url);
-    setReceiptFile(null);
-  };
+      setExistingImageUrl(entry.image_url);
+      setReceiptPreview(entry.image_url);
+      setReceiptFile(null);
+    };
 
   const handleDelete = async (entryId: string) => {
     const confirmed = window.confirm("Delete this entry?");
@@ -376,20 +399,30 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
             </div>
             <div className="space-y-2">
               <Label className="text-sm uppercase text-slate-400">Payment Method</Label>
-                <select
-                  value={formValues.payment_method}
-                  onChange={(event) =>
-                    handleInputChange("payment_method", event.target.value as PaymentMethod | "")
-                  }
-                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
+              <select
+                value={formValues.payment_method}
+                onChange={(event) =>
+                  handleInputChange("payment_method", event.target.value as PaymentMethod)
+                }
+                disabled={currentEntryType === "Credit"}
+                className={cn(
+                  "w-full rounded-lg border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]",
+                  currentEntryType === "Credit"
+                    ? "cursor-not-allowed border-white/5 bg-slate-900/60 text-slate-500"
+                    : "border-white/10 bg-slate-950/80",
+                )}
               >
-                  <option value="">Select payment method (optional)</option>
                 {PAYMENT_METHODS.map((method) => (
                   <option key={method} value={method}>
                     {method}
                   </option>
                 ))}
               </select>
+              {currentEntryType === "Credit" ? (
+                <p className="text-xs text-slate-500">Credit entries settle later, so payment is tracked as None.</p>
+              ) : (
+                <p className="text-xs text-slate-500">Use Cash or Bank for live cash movement; None is reserved for Credit.</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label className="text-sm uppercase text-slate-400">Amount</Label>
