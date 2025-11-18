@@ -341,5 +341,18 @@ const buildProfitStats = (entries: Entry[]) => {
     if (entry.category === "Opex" && entry.entry_type === "Cash Outflow") opex += entry.amount;
   });
 
-  return { sales, cogs, opex, grossProfit: sales - cogs, netProfit: sales - cogs - opex };
+  const grossProfit = sales - cogs;
+  const netProfit = grossProfit - opex;
+  const grossMargin = sales === 0 ? 0 : grossProfit / sales;
+  const netMargin = sales === 0 ? 0 : netProfit / sales;
+
+  return {
+    sales,
+    cogs,
+    opex,
+    grossProfit,
+    netProfit,
+    grossMargin,
+    netMargin,
+  };
 };

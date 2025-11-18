@@ -382,15 +382,24 @@ type PendingList = {
 };
 
 const buildCashpulseStats = (entries: Entry[]) => {
-  let inflow = 0;
-  let outflow = 0;
+  let cashInflow = 0;
+  let cashOutflow = 0;
 
-  entries.forEach((entry) => {
-    if (entry.entry_type === "Cash Inflow") inflow += entry.amount;
-    if (entry.entry_type === "Cash Outflow") outflow += entry.amount;
+  entries.forEach(entry => {
+    if (entry.entry_type === "Cash Inflow") cashInflow += entry.amount;
+    if (entry.entry_type === "Cash Outflow") cashOutflow += entry.amount;
   });
 
-  return { inflow, outflow, net: inflow - outflow };
+  return {
+    cashInflow,
+    cashOutflow,
+    netCashFlow: cashInflow - cashOutflow,
+    cashBreakdown: { Cash: 0, Bank: 0 }, // will be calculated properly later
+    pendingCollections: 0,
+    pendingBills: 0,
+    advances: 0,
+    totalPending: 0,
+  } as CashpulseStats;
 };
 
 type StatCardProps = {
