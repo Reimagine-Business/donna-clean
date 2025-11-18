@@ -10,8 +10,9 @@ type AuthState = {
   success?: boolean;
 };
 
-const getOrigin = () => {
-  const origin = headers().get("origin");
+const getOrigin = async () => {
+  const headerList = await headers();
+  const origin = headerList.get("origin");
   if (origin) {
     return origin;
   }
@@ -50,7 +51,7 @@ export async function signUpAction(_: AuthState, formData: FormData): Promise<Au
   }
 
   const supabase = await createClient();
-  const origin = getOrigin();
+  const origin = await getOrigin();
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -75,7 +76,7 @@ export async function forgotPasswordAction(_: AuthState, formData: FormData): Pr
   }
 
   const supabase = await createClient();
-  const origin = getOrigin();
+  const origin = await getOrigin();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${origin}/auth/update-password`,

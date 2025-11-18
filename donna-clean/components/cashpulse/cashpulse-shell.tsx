@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, subDays } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, Activity } from "lucide-react";
 
@@ -51,22 +51,45 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     end_date: format(new Date(), "yyyy-MM-dd"),
   });
 
+  const [stats, setStats] = useState(() => buildCashpulseStats(initialEntries, historyFilters));
+  const skipNextRecalc = useRef(false);
+
+  const recalcKpis = useCallback(
+    (nextEntries: Entry[], nextFilters = historyFilters) => {
+      const updatedStats = buildCashpulseStats(nextEntries, nextFilters);
+      setStats(updatedStats);
+      console.log(
+        "KPIs after recalc: inflow",
+        updatedStats.cashInflow,
+        "sales",
+        updatedStats.cashBreakdown
+          .filter((channel) => channel.method === "Cash" || channel.method === "Bank")
+          .reduce((sum, channel) => sum + channel.value, 0),
+      );
+    },
+    [historyFilters],
+  );
+
   const refetchEntries = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("entries")
-      .select(ENTRY_SELECT)
-      .eq("user_id", userId)
-      .order("entry_date", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("entries")
+        .select(ENTRY_SELECT)
+        .eq("user_id", userId)
+        .order("entry_date", { ascending: false });
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
+      skipNextRecalc.current = true;
+      setEntries(nextEntries);
+      recalcKpis(nextEntries);
+    } catch (error) {
       console.error("Failed to refetch entries for Cashpulse", error);
-      return;
     }
-
-    const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
-    setEntries(nextEntries);
-    setStats(buildCashpulseStats(nextEntries, historyFilters));
-  }, [historyFilters, supabase, userId]);
+  }, [recalcKpis, supabase, userId]);
 
   useEffect(() => {
     const channel = supabase
@@ -92,11 +115,13 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     };
   }, [refetchEntries, supabase, userId]);
 
-  const [stats, setStats] = useState(() => buildCashpulseStats(initialEntries, historyFilters));
-
   useEffect(() => {
-    setStats(buildCashpulseStats(entries, historyFilters));
-  }, [entries, historyFilters]);
+    if (skipNextRecalc.current) {
+      skipNextRecalc.current = false;
+      return;
+    }
+    recalcKpis(entries, historyFilters);
+  }, [entries, historyFilters, recalcKpis]);
   const historyLabel = `${format(new Date(historyFilters.start_date), "dd MMM yyyy")} – ${format(
     new Date(historyFilters.end_date),
     "dd MMM yyyy",

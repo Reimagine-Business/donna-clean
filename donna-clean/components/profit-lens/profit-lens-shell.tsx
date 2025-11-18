@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 
 import { createClient } from "@/lib/supabase/client";
@@ -40,22 +40,38 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     end_date: currentEnd,
   });
 
+  const [stats, setStats] = useState(() => buildProfitStats(initialEntries, filters));
+  const skipNextRecalc = useRef(false);
+
+  const recalcKpis = useCallback(
+    (nextEntries: Entry[], nextFilters = filters) => {
+      const nextStats = buildProfitStats(nextEntries, nextFilters);
+      setStats(nextStats);
+      console.log("KPIs after recalc: inflow", nextStats.netProfit, "sales", nextStats.sales);
+    },
+    [filters],
+  );
+
   const refetchEntries = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("entries")
-      .select(ENTRY_SELECT)
-      .eq("user_id", userId)
-      .order("entry_date", { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from("entries")
+        .select(ENTRY_SELECT)
+        .eq("user_id", userId)
+        .order("entry_date", { ascending: false });
 
-    if (error) {
+      if (error) {
+        throw error;
+      }
+
+      const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
+      skipNextRecalc.current = true;
+      setEntries(nextEntries);
+      recalcKpis(nextEntries);
+    } catch (error) {
       console.error("Failed to refetch entries for Profit Lens", error);
-      return;
     }
-
-    const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
-    setEntries(nextEntries);
-    setStats(buildProfitStats(nextEntries, filters));
-  }, [filters, supabase, userId]);
+  }, [recalcKpis, supabase, userId]);
 
   useEffect(() => {
     const channel = supabase
@@ -81,11 +97,13 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     };
   }, [refetchEntries, supabase, userId]);
 
-  const [stats, setStats] = useState(() => buildProfitStats(initialEntries, filters));
-
   useEffect(() => {
-    setStats(buildProfitStats(entries, filters));
-  }, [entries, filters]);
+    if (skipNextRecalc.current) {
+      skipNextRecalc.current = false;
+      return;
+    }
+    recalcKpis(entries, filters);
+  }, [entries, filters, recalcKpis]);
 
   const rangeLabel = `${format(new Date(filters.start_date), "dd MMM")} — ${format(
     new Date(filters.end_date),
