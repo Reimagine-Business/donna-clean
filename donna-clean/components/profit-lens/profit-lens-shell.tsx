@@ -39,72 +39,71 @@ export function ProfitLensShell({ initialEntries }: ProfitLensShellProps) {
     end_date: currentEnd,
   });
   const [realtimeError, setRealtimeError] = useState<string | null>(null);
+  const [activeUserId, setActiveUserId] = useState<string | null>(null);
 
-  const refetchEntries = useCallback(
-    async (uid: string) => {
-      if (!uid) {
-        console.error("Cannot refetch entries without a user id");
-        setRealtimeError("Not logged in");
-        return;
-      }
+  const refetchEntries = useCallback(async () => {
+    if (!activeUserId) {
+      console.error("Cannot refetch entries without a user id");
+      setRealtimeError("Not logged in");
+      return;
+    }
 
-      const { data, error } = await supabase
-        .from("entries")
-        .select(ENTRY_SELECT)
-        .eq("user_id", uid)
-        .order("entry_date", { ascending: false });
+    const { data, error } = await supabase
+      .from("entries")
+      .select(ENTRY_SELECT)
+      .eq("user_id", activeUserId)
+      .order("entry_date", { ascending: false });
 
-      if (error) {
-        console.error("Failed to refetch entries for Profit Lens", error);
-        return;
-      }
+    if (error) {
+      console.error("Failed to refetch entries for Profit Lens", error);
+      return;
+    }
 
-      const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
-      setEntries(nextEntries);
-      setStats(buildProfitStats(nextEntries, filters));
-    },
-    [filters, supabase],
-  );
+    const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
+    setEntries(nextEntries);
+    setStats(buildProfitStats(nextEntries, filters));
+  }, [activeUserId, filters, supabase]);
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | null = null;
     let isMounted = true;
 
     const setupRealtime = async () => {
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
 
-      if (!isMounted) {
-        return;
-      }
+        if (!isMounted) {
+          return;
+        }
 
-      if (error || !user) {
-        setRealtimeError("Not logged in");
-        console.error("Failed to subscribe to Profit Lens realtime updates", error);
-        return;
-      }
+        if (error || !user) {
+          setRealtimeError("Not logged in");
+          console.error("Failed to subscribe to Profit Lens realtime updates", error);
+          return;
+        }
 
-      setRealtimeError(null);
-      console.log("Real-time subscribed for user_id:", user.id);
+        setRealtimeError(null);
+        setActiveUserId(user.id);
+        console.log("Real-time subscribed for user_id:", user.id);
 
-      channel = supabase
-        .channel("profit-lens")
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "entries",
-            filter: `user_id=eq.${user?.id}`,
-          },
+        channel = supabase
+          .channel("profit-lens")
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "entries",
+              filter: `user_id=eq.${user?.id}`,
+            },
             (payload) => {
               console.log("REAL-TIME EVENT RECEIVED – recalculating KPIs", payload);
-              void refetchEntries(user.id);
+              void refetchEntries();
             },
-        )
-        .subscribe();
+          )
+          .subscribe();
     };
 
     void setupRealtime();
