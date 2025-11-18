@@ -1,5 +1,6 @@
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import type { User } from "@supabase/supabase-js";
 
 import { SiteHeader } from "@/components/site-header";
 import {
@@ -9,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { createClient } from "@/lib/supabase/server";
 
 type Profile = {
   business_name: string | null;
@@ -18,29 +18,30 @@ type Profile = {
 
 export default async function DashboardPage() {
   let sessionError: string | null = null;
-  let user: User | null = null;
   let profile: Profile | null = null;
-  let metadata: Record<string, string | null> = {};
 
-  const supabase = await createClient();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies },
+  );
 
-  try {
-    const { data, error } = await supabase.auth.getUser();
-    if (error) {
-      throw error;
-    }
-    user = data.user;
-    metadata = (user?.user_metadata as Record<string, string | null>) ?? {};
-  } catch (error) {
-    console.error("Dashboard auth fetch failed", error);
-    sessionError = "Session error";
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    console.error("Dashboard auth fetch failed", userError);
   }
 
-  if (!user && !sessionError) {
+  if (!user) {
     redirect("/auth/login");
   }
 
-  if (user && !sessionError) {
+  const metadata = (user.user_metadata as Record<string, string | null>) ?? {};
+
+  if (!sessionError) {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -56,9 +57,7 @@ export default async function DashboardPage() {
         profile = data;
       } else {
         const defaultBusinessName =
-          metadata.business_name ??
-          user.email?.split("@")[0] ??
-          "Not set";
+          metadata.business_name ?? user.email?.split("@")[0] ?? "Not set";
         const defaultRole = metadata.role ?? "owner";
 
         const { data: createdProfile, error: createError } = await supabase
@@ -83,7 +82,7 @@ export default async function DashboardPage() {
     }
   }
 
-  const showLoading = !sessionError && (!user || !profile);
+  const showLoading = !sessionError && !profile;
 
   return (
     <main className="min-h-screen flex flex-col items-center">

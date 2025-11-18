@@ -1,11 +1,16 @@
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
 import { InfoIcon } from "lucide-react";
 import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
 
 export default async function ProtectedPage() {
-  const supabase = await createClient();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies },
+  );
 
   const { data, error } = await supabase.auth.getClaims();
   if (error || !data?.claims) {

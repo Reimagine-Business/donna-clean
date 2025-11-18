@@ -1,12 +1,17 @@
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { SiteHeader } from "@/components/site-header";
-import { createClient } from "@/lib/supabase/server";
 import { CashpulseShell } from "@/components/cashpulse/cashpulse-shell";
 import { normalizeEntry, type Entry } from "@/lib/entries";
 
 export default async function CashpulsePage() {
-  const supabase = await createClient();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies },
+  );
 
   const {
     data: { user },
