@@ -31,7 +31,7 @@ type FiltersState = {
 };
 
 const ENTRY_SELECT =
-  "id, user_id, entry_type, category, payment_method, amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
+  "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
 
 export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps) {
   const supabase = useMemo(() => createBrowserClient(), []);
