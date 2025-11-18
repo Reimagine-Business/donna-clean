@@ -123,30 +123,36 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     let channel: RealtimeChannel | null = null;
 
     const setupRealtime = async () => {
-      const targetUserId = realtimeUserId ?? userId;
-
-      if (!targetUserId) {
-        const { data, error } = await supabase.auth.getUser();
-        if (!isMounted) return;
-        if (error) {
-          console.error("Failed to fetch auth user for realtime (Cashpulse)", error);
-          return;
-        }
-        if (data?.user?.id) {
-          setRealtimeUserId(data.user.id);
-        }
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+      if (!isMounted) return;
+      if (error) {
+        console.error("Failed to fetch auth user for realtime (Cashpulse)", error);
+      }
+      let resolvedUserId = user?.id ?? null;
+      if (!resolvedUserId && userId) {
+        resolvedUserId = userId;
+        console.warn("Realtime subscription falling back to provided userId (Cashpulse)", userId);
+      }
+      if (!resolvedUserId) {
+        console.error("Cannot subscribe to realtime (Cashpulse): missing user");
         return;
       }
 
+      setRealtimeUserId((prev) => (prev === resolvedUserId ? prev : resolvedUserId));
+      console.log("SUBSCRIBING with user ID:", resolvedUserId);
+
       channel = supabase
-        .channel("entries-realtime")
+        .channel("public:entries")
         .on(
           "postgres_changes",
           {
             event: "*",
             schema: "public",
             table: "entries",
-            filter: `user_id=eq.${targetUserId}`,
+            filter: `user_id=eq.${resolvedUserId}`,
           },
           async (payload) => {
             console.log("REAL-TIME: payload received", payload);
@@ -157,7 +163,10 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
             console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
             const updatedStats = recalcKpis(latestEntries);
             const realtimeSales = updatedStats.cashBreakdown
-              .filter((channelBreakdown) => channelBreakdown.method === "Cash" || channelBreakdown.method === "Bank")
+              .filter(
+                (channelBreakdown) =>
+                  channelBreakdown.method === "Cash" || channelBreakdown.method === "Bank",
+              )
               .reduce((sum, channelBreakdown) => sum + channelBreakdown.value, 0);
             console.log(
               "REAL-TIME: KPIs recalculated → inflow:",
@@ -168,7 +177,8 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           },
         )
         .subscribe();
-      console.log("SUBSCRIPTION CREATED FOR USER:", targetUserId);
+      console.log("REAL-TIME SUBSCRIBED TO public:entries");
+      console.log("SUBSCRIPTION CREATED FOR USER:", resolvedUserId);
     };
 
     void setupRealtime();
