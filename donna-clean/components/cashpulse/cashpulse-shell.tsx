@@ -6,7 +6,12 @@ import { ArrowDownRight, ArrowUpRight, Activity } from "lucide-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { createBrowserClient } from "@/lib/supabase/client";
-import { Entry, PAYMENT_METHODS, type PaymentMethod, normalizeEntry } from "@/lib/entries";
+import {
+  Entry,
+  PAYMENT_METHODS,
+  type CashPaymentMethod,
+  normalizeEntry,
+} from "@/lib/entries";
 import { cn } from "@/lib/utils";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { Button } from "@/components/ui/button";
@@ -34,7 +39,7 @@ const isWithinRange = (date: string, start: string, end: string) =>
   date >= start && date <= end;
 
 const ENTRY_SELECT =
-  "id, user_id, entry_type, category, payment_method, amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
+  "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
 
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
   const supabase = useMemo(() => createBrowserClient(), []);
@@ -391,12 +396,12 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
   let cashInflow = 0;
   let cashOutflow = 0;
 
-  const paymentTotals = PAYMENT_METHODS.reduce<Record<PaymentMethod, number>>(
+  const paymentTotals = PAYMENT_METHODS.reduce<Record<CashPaymentMethod, number>>(
     (acc, method) => {
       acc[method] = 0;
       return acc;
     },
-    {} as Record<PaymentMethod, number>,
+    {} as Record<CashPaymentMethod, number>,
   );
 
   const pendingCollections: Entry[] = [];

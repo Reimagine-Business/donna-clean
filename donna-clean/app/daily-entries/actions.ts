@@ -37,16 +37,17 @@ export async function addEntry(data: AddEntryInput) {
 
     console.log("Inserting with user_id:", user.id);
 
-    const payload = {
-      user_id: user.id,
-      entry_type: data.entry_type,
-      category: data.category,
-      payment_method: data.payment_method,
-      amount,
-      entry_date: data.entry_date,
-      notes: data.notes,
-      image_url: data.image_url,
-    };
+      const payload = {
+        user_id: user.id,
+        entry_type: data.entry_type,
+        category: data.category,
+        payment_method: data.payment_method,
+        amount,
+        remaining_amount: amount,
+        entry_date: data.entry_date,
+        notes: data.notes,
+        image_url: data.image_url,
+      };
 
   const { error } = await supabase.from("entries").insert(payload);
 

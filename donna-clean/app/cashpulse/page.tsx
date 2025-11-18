@@ -17,19 +17,21 @@ export default async function CashpulsePage() {
 
   // Then continue with your queries using this supabase client
 
-  const { data: entries } = await supabase
+  const { data: entries, error } = await supabase
     .from("entries")
     .select("*")
     .eq("user_id", user.id)
-    .order("entry_date", { ascending: false });
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
 
     return (
       <main className="min-h-screen bg-slate-950 text-white">
         <div className="flex flex-col gap-10">
           <SiteHeader />
           <section className="px-4 pb-12 md:px-8">
-            <div className="mx-auto w-full max-w-6xl">
-              <CashpulseShell initialEntries={entries || []} userId={user.id} />
+              <div className="mx-auto w-full max-w-6xl">
+                <CashpulseShell initialEntries={entries || []} userId={user.id} />
             </div>
           </section>
         </div>

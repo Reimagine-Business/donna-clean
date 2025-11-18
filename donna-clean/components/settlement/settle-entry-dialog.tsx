@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 
 import { createClient } from "@/lib/supabase/client";
@@ -17,6 +18,7 @@ type SettleEntryDialogProps = {
 
 export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
   const supabase = useMemo(() => createClient(), []);
+  const router = useRouter();
   const [settlementDate, setSettlementDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [amount, setAmount] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -25,16 +27,39 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
   useEffect(() => {
     if (entry) {
       setSettlementDate(format(new Date(), "yyyy-MM-dd"));
-      setAmount(entry.amount.toString());
+      const remaining = entry.remaining_amount ?? entry.amount;
+      setAmount(remaining.toString());
       setError(null);
     }
   }, [entry]);
 
   if (!entry) return null;
 
-  const maxAmount = entry.amount;
+  const remainingAmount = entry.remaining_amount ?? entry.amount;
+  const maxAmount = remainingAmount;
+  const isCredit = entry.entry_type === "Credit";
+  const isAdvance = entry.entry_type === "Advance";
+  const canSettle = isCredit || isAdvance;
+
+  const modalTitle = useMemo(() => {
+    if (isCredit && entry.category === "Sales") {
+      return "Settle Collection - Cash Inflow";
+    }
+    if (isCredit) {
+      return "Settle Bill - Cash Outflow";
+    }
+    if (isAdvance) {
+      return "Recognise Advance - Accrual Only";
+    }
+    return "Settle Entry";
+  }, [entry.category, isAdvance, isCredit]);
 
   const handleConfirm = async () => {
+    if (!canSettle) {
+      setError("Only Credit and Advance entries can be settled");
+      return;
+    }
+
     const numericAmount = Number(amount);
     if (!numericAmount || Number.isNaN(numericAmount) || numericAmount <= 0) {
       setError("Enter a valid amount.");
@@ -42,7 +67,7 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
     }
 
     if (numericAmount > maxAmount) {
-      setError("Amount cannot exceed the original entry.");
+      setError("Amount cannot exceed the remaining balance.");
       return;
     }
 
@@ -55,6 +80,7 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
         amount: numericAmount,
         settlementDate,
       });
+      router.refresh();
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to settle entry.");
@@ -68,11 +94,16 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
       <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
         <div className="space-y-1">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Settle Entry</p>
-          <h3 className="text-2xl font-semibold text-white">{entry.entry_type}</h3>
+            <h3 className="text-2xl font-semibold text-white">{modalTitle}</h3>
           <p className="text-sm text-slate-400">
             Category: <span className="text-white">{entry.category}</span> · Amount:{" "}
             <span className="text-white">₹{entry.amount.toLocaleString("en-IN")}</span>
           </p>
+            {entry.remaining_amount !== undefined && entry.remaining_amount !== entry.amount && (
+              <p className="text-xs text-slate-500">
+                Remaining: ₹{remainingAmount.toLocaleString("en-IN")}
+              </p>
+            )}
         </div>
 
         <div className="mt-6 space-y-4">
