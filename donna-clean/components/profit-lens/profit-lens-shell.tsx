@@ -39,45 +39,83 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     start_date: currentStart,
     end_date: currentEnd,
   });
+  const [realtimeError, setRealtimeError] = useState<string | null>(null);
 
-  const refetchEntries = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("entries")
-      .select(ENTRY_SELECT)
-      .eq("user_id", userId)
-      .order("entry_date", { ascending: false });
+  const refetchEntries = useCallback(
+    async (targetUserId?: string) => {
+      const effectiveUserId = targetUserId ?? userId;
+      if (!effectiveUserId) {
+        console.error("Cannot refetch entries without a user id");
+        return;
+      }
 
-    if (error) {
-      console.error("Failed to refetch entries for Profit Lens", error);
-      return;
-    }
+      const { data, error } = await supabase
+        .from("entries")
+        .select(ENTRY_SELECT)
+        .eq("user_id", effectiveUserId)
+        .order("entry_date", { ascending: false });
 
-    const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
-    setEntries(nextEntries);
-  }, [supabase, userId]);
+      if (error) {
+        console.error("Failed to refetch entries for Profit Lens", error);
+        return;
+      }
+
+      const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
+      setEntries(nextEntries);
+    },
+    [supabase, userId],
+  );
 
   useEffect(() => {
-    const channel = supabase
-      .channel("profit-lens")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "entries",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          console.log("REAL-TIME EVENT RECEIVED – recalculating KPIs", payload);
-          void refetchEntries();
-        },
-      )
-      .subscribe();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let isMounted = true;
 
-      return () => {
+    const setupRealtime = async () => {
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error || !user) {
+        setRealtimeError("Not logged in");
+        console.error("Failed to subscribe to Profit Lens realtime updates", error);
+        return;
+      }
+
+      setRealtimeError(null);
+      console.log("Real-time subscribed for user_id:", user.id);
+
+      channel = supabase
+        .channel("profit-lens")
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "entries",
+            filter: `user_id=eq.${user?.id}`,
+          },
+          (payload) => {
+            console.log("REAL-TIME EVENT RECEIVED – recalculating KPIs", payload);
+            void refetchEntries(user.id);
+          },
+        )
+        .subscribe();
+    };
+
+    void setupRealtime();
+
+    return () => {
+      isMounted = false;
+      if (channel) {
         supabase.removeChannel(channel);
-      };
-    }, [refetchEntries, supabase, userId]);
+      }
+    };
+  }, [refetchEntries, supabase]);
 
   const [stats, setStats] = useState(() => buildProfitStats(initialEntries, filters));
 
@@ -100,6 +138,11 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
 
   return (
     <div className="flex flex-col gap-8 text-white">
+      {realtimeError && (
+        <div className="rounded-2xl border border-rose-500/40 bg-rose-500/10 p-4 text-sm text-rose-100">
+          {realtimeError}
+        </div>
+      )}
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Donna · Profit Lens</p>
