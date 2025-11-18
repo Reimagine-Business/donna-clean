@@ -2,11 +2,26 @@ import { format } from "date-fns";
 
 export const ENTRY_TYPES = ["Cash Inflow", "Cash Outflow", "Credit", "Advance"] as const;
 export const CATEGORIES = ["Sales", "COGS", "Opex", "Assets"] as const;
-export const PAYMENT_METHODS = ["Cash", "Bank"] as const;
+export const PAYMENT_METHODS = ["Cash", "Bank", "UPI", "Card", "Cheque", "Other"] as const;
+export const CASH_FLOW_ENTRY_TYPES = ["Cash Inflow", "Cash Outflow"] as const;
 
 export type EntryType = (typeof ENTRY_TYPES)[number];
 export type CategoryType = (typeof CATEGORIES)[number];
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+export type CashFlowEntryType = (typeof CASH_FLOW_ENTRY_TYPES)[number];
+
+export const deriveEntryTypeFromCategory = (category: CategoryType): EntryType =>
+  category === "Sales" ? "Cash Inflow" : "Cash Outflow";
+
+export const isCashFlowEntryType = (entryType: EntryType): entryType is CashFlowEntryType =>
+  CASH_FLOW_ENTRY_TYPES.includes(entryType as CashFlowEntryType);
+
+export const resolveEntryType = (entryType: EntryType, category: CategoryType): EntryType => {
+  if (!isCashFlowEntryType(entryType)) {
+    return entryType;
+  }
+  return deriveEntryTypeFromCategory(category);
+};
 
 export type Entry = {
   id: string;

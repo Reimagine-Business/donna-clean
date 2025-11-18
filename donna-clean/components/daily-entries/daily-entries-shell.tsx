@@ -18,6 +18,9 @@ import {
   type CategoryType,
   type PaymentMethod,
   normalizeEntry,
+  deriveEntryTypeFromCategory,
+  resolveEntryType,
+  isCashFlowEntryType,
 } from "@/lib/entries";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { addEntry as addEntryAction } from "@/app/daily-entries/actions";
@@ -41,7 +44,7 @@ type DailyEntriesShellProps = {
 type EntryFormState = {
   entry_type: EntryType;
   category: CategoryType;
-  payment_method: PaymentMethod;
+  payment_method: PaymentMethod | "";
   amount: string;
   entry_date: string;
   notes: string;
@@ -60,9 +63,9 @@ const today = format(new Date(), "yyyy-MM-dd");
 const defaultStart = format(subDays(new Date(), 30), "yyyy-MM-dd");
 
 const buildInitialFormState = (): EntryFormState => ({
-  entry_type: ENTRY_TYPES[0],
+  entry_type: deriveEntryTypeFromCategory(CATEGORIES[0]),
   category: CATEGORIES[0],
-  payment_method: PAYMENT_METHODS[0],
+  payment_method: "",
   amount: "",
   entry_date: today,
   notes: "",
@@ -138,7 +141,13 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     name: K,
     value: EntryFormState[K],
   ) => {
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+  setFormValues((prev) => {
+    const next = { ...prev, [name]: value };
+    if (name === "category" && isCashFlowEntryType(prev.entry_type)) {
+      next.entry_type = deriveEntryTypeFromCategory(value as CategoryType);
+    }
+    return next;
+  });
   };
 
   const handleAmountBlur = () => {
@@ -198,10 +207,13 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         uploadedUrl = await uploadReceipt();
       }
 
+        const resolvedEntryType = resolveEntryType(formValues.entry_type, formValues.category);
+        const paymentMethod = formValues.payment_method || PAYMENT_METHODS[0];
+
         const payload = {
-        entry_type: formValues.entry_type,
+        entry_type: resolvedEntryType,
         category: formValues.category,
-        payment_method: formValues.payment_method,
+        payment_method: paymentMethod,
         amount: numericAmount,
         entry_date: formValues.entry_date,
         notes: formValues.notes || null,
@@ -211,7 +223,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       console.log("Saving entry payload", payload);
 
         if (editingEntryId) {
-          const { error } = await supabase.from("entries").update(payload).eq("id", editingEntryId);
+            const { error } = await supabase.from("entries").update(payload).eq("id", editingEntryId);
           if (error) throw error;
           setSuccessMessage("Entry updated!");
         } else {
@@ -233,10 +245,10 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   const handleEdit = (entry: Entry) => {
     setEditingEntryId(entry.id);
-      setFormValues({
-        entry_type: entry.entry_type,
-        category: entry.category,
-        payment_method: entry.payment_method,
+        setFormValues({
+          entry_type: entry.entry_type,
+          category: entry.category,
+          payment_method: entry.payment_method,
         amount: numberFormatter.format(entry.amount),
         entry_date: entry.entry_date,
         notes: entry.notes ?? "",
@@ -342,6 +354,9 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                   </option>
                 ))}
               </select>
+                <p className="text-xs text-slate-500">
+                  Sales entries are saved as inflows; expenses default to outflows.
+                </p>
             </div>
             <div className="space-y-2">
               <Label className="text-sm uppercase text-slate-400">Category</Label>
@@ -364,10 +379,11 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 <select
                   value={formValues.payment_method}
                   onChange={(event) =>
-                    handleInputChange("payment_method", event.target.value as PaymentMethod)
+                    handleInputChange("payment_method", event.target.value as PaymentMethod | "")
                   }
                 className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
               >
+                  <option value="">Select payment method (optional)</option>
                 {PAYMENT_METHODS.map((method) => (
                   <option key={method} value={method}>
                     {method}

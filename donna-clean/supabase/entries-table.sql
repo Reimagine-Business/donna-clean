@@ -5,7 +5,7 @@ create table if not exists public.entries (
   user_id uuid not null references auth.users (id) on delete cascade,
   entry_type text not null check (entry_type in ('Cash Inflow', 'Cash Outflow', 'Credit', 'Advance')),
   category text not null check (category in ('Sales', 'COGS', 'Opex', 'Assets')),
-  payment_method text not null default 'Cash' check (payment_method in ('Cash', 'Bank')),
+  payment_method text not null default 'Cash' check (payment_method in ('Cash', 'Bank', 'UPI', 'Card', 'Cheque', 'Other')),
   amount numeric(14,2) not null check (amount >= 0),
   entry_date date not null default current_date,
   notes text,
