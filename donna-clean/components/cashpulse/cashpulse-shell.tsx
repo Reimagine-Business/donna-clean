@@ -381,50 +381,16 @@ type PendingList = {
   entries: Entry[];
 };
 
-const buildCashpulseStats = (
-  entries: Entry[],
-  filters: { start_date: string; end_date: string },
-): CashpulseStats => {
-  const rangeEntries = entries.filter((entry) => {
-    const entryDate = entry.entry_date.slice(0, 10);
-    return isWithinRange(entryDate, filters.start_date, filters.end_date);
+const buildCashpulseStats = (entries: Entry[]) => {
+  let inflow = 0;
+  let outflow = 0;
+
+  entries.forEach((entry) => {
+    if (entry.entry_type === "Cash Inflow") inflow += entry.amount;
+    if (entry.entry_type === "Cash Outflow") outflow += entry.amount;
   });
 
-  let cashInflow = 0;
-  let cashOutflow = 0;
-  const cashBreakdownMap: Record<string, number> = {
-    Cash: 0,
-    Bank: 0,
-  };
-
-  rangeEntries.forEach((entry) => {
-    if (entry.entry_type === "Cash Inflow") {
-      cashInflow += entry.amount;
-      cashBreakdownMap[entry.payment_method] =
-        (cashBreakdownMap[entry.payment_method] ?? 0) + entry.amount;
-      return;
-    }
-
-    if (entry.entry_type === "Cash Outflow") {
-      cashOutflow += entry.amount;
-      cashBreakdownMap[entry.payment_method] =
-        (cashBreakdownMap[entry.payment_method] ?? 0) - entry.amount;
-    }
-  });
-
-  return {
-    cashInflow,
-    cashOutflow,
-    netCashFlow: cashInflow - cashOutflow,
-    cashBreakdown: Object.entries(cashBreakdownMap).map(([method, value]) => ({
-      method,
-      value,
-    })),
-    pendingCollections: { count: 0, total: 0, entries: [] },
-    pendingBills: { count: 0, total: 0, entries: [] },
-    pendingAdvances: { count: 0, total: 0, entries: [] },
-    history: [],
-  };
+  return { inflow, outflow, net: inflow - outflow };
 };
 
 type StatCardProps = {

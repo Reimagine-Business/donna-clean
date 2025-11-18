@@ -330,44 +330,16 @@ type ProfitStats = {
   netMargin: number;
 };
 
-const buildProfitStats = (entries: Entry[], filters: FiltersState): ProfitStats => {
-  const filtered = entries.filter((entry) => {
-    const entryDate = entry.entry_date.slice(0, 10);
-    return entryDate >= filters.start_date && entryDate <= filters.end_date;
-  });
-
+const buildProfitStats = (entries: Entry[]) => {
   let sales = 0;
   let cogs = 0;
   let opex = 0;
 
-  filtered.forEach((entry) => {
-    if (entry.category === "Sales" && entry.entry_type === "Cash Inflow") {
-      sales += entry.amount;
-      return;
-    }
-
-    if (entry.entry_type === "Cash Outflow") {
-      if (entry.category === "COGS") {
-        cogs += entry.amount;
-        return;
-      }
-
-      if (entry.category === "Opex") {
-        opex += entry.amount;
-      }
-    }
+  entries.forEach((entry) => {
+    if (entry.category === "Sales" && entry.entry_type === "Cash Inflow") sales += entry.amount;
+    if (entry.category === "COGS" && entry.entry_type === "Cash Outflow") cogs += entry.amount;
+    if (entry.category === "Opex" && entry.entry_type === "Cash Outflow") opex += entry.amount;
   });
 
-  const grossProfit = sales - cogs;
-  const netProfit = grossProfit - opex;
-
-  return {
-    sales,
-    cogs,
-    opex,
-    grossProfit,
-    netProfit,
-    grossMargin: sales > 0 ? grossProfit / sales : NaN,
-    netMargin: sales > 0 ? netProfit / sales : NaN,
-  };
+  return { sales, cogs, opex, grossProfit: sales - cogs, netProfit: sales - cogs - opex };
 };
