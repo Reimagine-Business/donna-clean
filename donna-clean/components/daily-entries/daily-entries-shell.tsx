@@ -291,7 +291,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       console.log("Saving entry payload", payload);
 
         if (editingEntryId) {
-          // @ts-expect-error temporary payload cast until types are generated
           const { error } = await supabase.from("entries").update(payload).eq("id", editingEntryId);
         if (error) throw error;
         setSuccessMessage("Entry updated!");
