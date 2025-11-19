@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
-import { AuthSessionKeeper } from "@/components/auth-session-keeper";
+import { AuthSessionKeeper } from "@/components/auth-session-keeper"; // Add this import
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -34,7 +34,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-            <AuthSessionKeeper />
+          <AuthSessionKeeper /> {/* Add this here */}
           {children}
         </ThemeProvider>
       </body>
