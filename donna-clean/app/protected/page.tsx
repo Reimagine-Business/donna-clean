@@ -3,10 +3,10 @@ import { redirect } from "next/navigation";
 import { InfoIcon } from "lucide-react";
 import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export default async function ProtectedPage() {
-  const supabase = createServerSupabaseClient();
+  const supabase = createSupabaseServerClient();
 
     const { user, wasInitiallyNull, initialError, refreshError } = await getOrRefreshUser(supabase);
 

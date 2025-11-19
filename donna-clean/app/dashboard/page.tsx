@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 type Profile = {
   business_name: string | null;
@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   let sessionError: string | null = null;
   let profile: Profile | null = null;
 
-  const supabase = createServerSupabaseClient();
+  const supabase = createSupabaseServerClient();
 
     const { user, wasInitiallyNull, initialError, refreshError } = await getOrRefreshUser(supabase);
 

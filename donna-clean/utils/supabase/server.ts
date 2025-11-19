@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient as createServerClient } from "@/lib/supabase/server";
 
 export async function createSupabaseServerClient() {
-  return createServerSupabaseClient();
+  return createServerClient();
 }
