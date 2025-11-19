@@ -457,18 +457,18 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
         logCashpulseSkip(entry, "Ignored for cash outflow: payment method must be Cash/Bank");
       }
     } else if (isAdvanceSales) {
-      if (entry.settled && paymentIsCash) {
+      if (paymentIsCash) {
         cashInflow += entry.amount;
         countedCashMovement = true;
       } else {
-        logCashpulseSkip(entry, "Ignored for cash inflow: advance sale not settled/cash");
+        logCashpulseSkip(entry, "Ignored for cash inflow: advance sale must be Cash/Bank");
       }
     } else if (isAdvanceExpense) {
-      if (entry.settled && paymentIsCash) {
+      if (paymentIsCash) {
         cashOutflow += entry.amount;
         countedCashMovement = true;
       } else {
-        logCashpulseSkip(entry, "Ignored for cash outflow: advance expense not settled/cash");
+        logCashpulseSkip(entry, "Ignored for cash outflow: advance expense must be Cash/Bank");
       }
     } else {
       logCashpulseSkip(entry, "Ignored for cash totals");
@@ -499,7 +499,7 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
     }
 
     if (isAdvance) {
-      if (hasCollectibleBalance) {
+      if (!entry.settled && hasCollectibleBalance) {
         pendingAdvances.push(entry);
       } else if (!entry.settled) {
         logCashpulseSkip(entry, "Pending Advances skip (no outstanding balance)");
@@ -626,13 +626,21 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
         {info.entries.length === 0 && (
           <p className="text-sm text-slate-500">All settled. You&apos;re in control.</p>
         )}
-          {info.entries.slice(0, 3).map((entry) => {
-            const canSettleEntry = entry.entry_type === "Credit" || entry.entry_type === "Advance";
-              if (!canSettleEntry) {
-                console.log(
-                  `[Cashpulse] Pending filter: only unsettled Credit/Advance entries can be settled (entry ${entry.id}).`,
-                );
-              }
+        {info.entries.slice(0, 3).map((entry) => {
+          const isSupportedType = entry.entry_type === "Credit" || entry.entry_type === "Advance";
+          const hasBalance = entry.remaining_amount > 0;
+          const alreadySettled = entry.settled;
+          const canSettleEntry = isSupportedType && hasBalance && !alreadySettled;
+          if (!canSettleEntry) {
+            console.log(
+              `[Cashpulse] Settle disabled for ${entry.id}: type=${entry.entry_type}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
+            );
+          }
+          const disabledTitle = !canSettleEntry
+            ? isSupportedType
+              ? "Already settled or no balance"
+              : "Only Credit/Advance entries can be settled"
+            : undefined;
             return (
               <div
                 key={entry.id}
@@ -645,24 +653,22 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
                   </p>
                   <p className="text-xs text-slate-500">{formatDisplayDate(entry.entry_date)}</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "border-[#a78bfa]/40 text-[#a78bfa] hover:text-white",
-                    !canSettleEntry &&
-                      "border-white/5 text-slate-500 hover:text-slate-500 disabled:pointer-events-auto",
-                  )}
-                  disabled={!canSettleEntry}
-                  title={
-                    canSettleEntry ? undefined : "Only Credit/Advance entries can be settled"
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "border-[#a78bfa]/40 text-[#a78bfa] hover:text-white",
+                  !canSettleEntry &&
+                    "border-white/5 text-slate-500 hover:text-slate-500 disabled:pointer-events-auto",
+                )}
+                disabled={!canSettleEntry}
+                title={disabledTitle}
+                onClick={() => {
+                  if (canSettleEntry) {
+                    onSettle(entry);
                   }
-                  onClick={() => {
-                    if (canSettleEntry) {
-                      onSettle(entry);
-                    }
-                  }}
-                >
+                }}
+              >
                   Settle
                 </Button>
               </div>

@@ -354,7 +354,13 @@ const buildProfitStats = (entries: Entry[]): ProfitStats => {
       if (isCashInflow || isCredit || isSettledAdvance) {
         sales += entry.amount;
       } else {
-        logProfitLensSkip(entry, "Ignored for sales: requires Cash Inflow, Credit, or settled Advance");
+        const reason =
+          entry.entry_type === "Credit"
+            ? "Ignored Credit for Sales: immediate accrual needed"
+            : entry.entry_type === "Advance"
+              ? "Ignored Advance for Sales: settle before recognition"
+              : "Ignored for Sales: requires Cash Inflow, Credit, or settled Advance";
+        logProfitLensSkip(entry, reason);
       }
       return;
     }
@@ -363,7 +369,13 @@ const buildProfitStats = (entries: Entry[]): ProfitStats => {
       if (isCashOutflow || isCredit || isSettledAdvance) {
         cogs += entry.amount;
       } else {
-        logProfitLensSkip(entry, "Ignored for COGS: requires Cash Outflow, Credit, or settled Advance");
+        const reason =
+          entry.entry_type === "Credit"
+            ? "Ignored Credit for COGS: immediate accrual needed"
+            : entry.entry_type === "Advance"
+              ? "Ignored Advance for COGS: settle before recognition"
+              : "Ignored for COGS: requires Cash Outflow, Credit, or settled Advance";
+        logProfitLensSkip(entry, reason);
       }
       return;
     }
@@ -372,12 +384,24 @@ const buildProfitStats = (entries: Entry[]): ProfitStats => {
       if (isCashOutflow || isCredit || isSettledAdvance) {
         opex += entry.amount;
       } else {
-        logProfitLensSkip(entry, "Ignored for Opex: requires Cash Outflow, Credit, or settled Advance");
+        const reason =
+          entry.entry_type === "Credit"
+            ? "Ignored Credit for Opex: immediate accrual needed"
+            : entry.entry_type === "Advance"
+              ? "Ignored Advance for Opex: settle before recognition"
+              : "Ignored for Opex: requires Cash Outflow, Credit, or settled Advance";
+        logProfitLensSkip(entry, reason);
       }
       return;
     }
 
-    logProfitLensSkip(entry, "Ignored for P&L (balance sheet / unsupported category)");
+    if (entry.entry_type === "Credit") {
+      logProfitLensSkip(entry, `Ignored Credit for ${entry.category}: immediate accrual needed`);
+    } else if (entry.entry_type === "Advance") {
+      logProfitLensSkip(entry, `Ignored Advance for ${entry.category}: settle before recognition`);
+    } else {
+      logProfitLensSkip(entry, "Ignored for P&L (balance sheet / unsupported category)");
+    }
   });
 
   const grossProfit = sales - cogs;
