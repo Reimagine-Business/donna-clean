@@ -1,16 +1,12 @@
-import { createClient as createSupabaseBrowserClient } from "@supabase/supabase-js";
+"use client";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-export function createBrowserClient() {
-  if (!supabaseUrl || !supabaseKey) {
-    console.warn("Missing Supabase browser environment variables – check .env.local or deployment env.");
-    return null; // Return null to handle gracefully in calling code (e.g., check if client is null)
-  }
-  return createSupabaseBrowserClient(supabaseUrl, supabaseKey);
+export function createBrowserClient(): SupabaseClient {
+  return createBrowserSupabaseClient();
 }
 
-export function createClient() {
+export function createClient(): SupabaseClient {
   return createBrowserClient();
 }
