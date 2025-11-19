@@ -48,10 +48,14 @@ export function SignUpForm({ className, ...props }: React.ComponentPropsWithoutR
     setIsSubmitting(true);
     setStatus(null);
 
-    try {
-      const emailRedirectTo =
-        typeof window !== "undefined" ? `${window.location.origin}/auth/callback` : undefined;
-      const { error } = await supabase.auth.signUp({
+      try {
+        const emailRedirectTo =
+          process.env.NEXT_PUBLIC_SITE_URL && process.env.NEXT_PUBLIC_SITE_URL.length > 0
+            ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+            : typeof window !== "undefined"
+              ? `${window.location.origin}/auth/callback`
+              : undefined;
+        const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
