@@ -10,6 +10,7 @@ import {
   Entry,
   PAYMENT_METHODS,
   type CashPaymentMethod,
+  type PaymentMethod,
   normalizeEntry,
 } from "@/lib/entries";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,22 @@ const isWithinRange = (date: string, start: string, end: string) =>
 
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
+
+const CASH_METHOD_LOOKUP = new Set<string>(PAYMENT_METHODS);
+
+const isCashPaymentMethod = (method: PaymentMethod): method is CashPaymentMethod =>
+  CASH_METHOD_LOOKUP.has(method);
+
+const logCashpulseSkip = (entry: Entry, message: string) => {
+  console.log(`[Cashpulse] ${message}`, {
+    entryId: entry.id,
+    type: entry.entry_type,
+    category: entry.category,
+    payment: entry.payment_method,
+    settled: entry.settled,
+    remaining: entry.remaining_amount,
+  });
+};
 
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
   const supabase = useMemo(() => createBrowserClient(), []);
@@ -410,27 +427,86 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
   const settledHistory: Entry[] = [];
 
   entries.forEach((entry) => {
-    if (entry.entry_type === "Cash Inflow") {
-      cashInflow += entry.amount;
-      if (!entry.settled) {
+    const paymentIsCash = isCashPaymentMethod(entry.payment_method);
+    const isCashInflow = entry.entry_type === "Cash Inflow";
+    const isCashOutflow = entry.entry_type === "Cash Outflow";
+    const isCredit = entry.entry_type === "Credit";
+    const isAdvance = entry.entry_type === "Advance";
+    const isAdvanceSales = isAdvance && entry.category === "Sales";
+    const isAdvanceExpense =
+      isAdvance && (entry.category === "COGS" || entry.category === "Opex" || entry.category === "Assets");
+    const isCreditSales = isCredit && entry.category === "Sales";
+    const isCreditExpense =
+      isCredit && (entry.category === "COGS" || entry.category === "Opex");
+    const hasCollectibleBalance = entry.remaining_amount > 0 && !entry.settled;
+
+    let countedCashMovement = false;
+
+    if (isCashInflow) {
+      if (paymentIsCash) {
+        cashInflow += entry.amount;
+        countedCashMovement = true;
+      } else {
+        logCashpulseSkip(entry, "Ignored for cash inflow: payment method must be Cash/Bank");
+      }
+    } else if (isCashOutflow) {
+      if (paymentIsCash) {
+        cashOutflow += entry.amount;
+        countedCashMovement = true;
+      } else {
+        logCashpulseSkip(entry, "Ignored for cash outflow: payment method must be Cash/Bank");
+      }
+    } else if (isAdvanceSales) {
+      if (entry.settled && paymentIsCash) {
+        cashInflow += entry.amount;
+        countedCashMovement = true;
+      } else {
+        logCashpulseSkip(entry, "Ignored for cash inflow: advance sale not settled/cash");
+      }
+    } else if (isAdvanceExpense) {
+      if (entry.settled && paymentIsCash) {
+        cashOutflow += entry.amount;
+        countedCashMovement = true;
+      } else {
+        logCashpulseSkip(entry, "Ignored for cash outflow: advance expense not settled/cash");
+      }
+    } else {
+      logCashpulseSkip(entry, "Ignored for cash totals");
+    }
+
+    if (countedCashMovement) {
+      if (paymentIsCash) {
+        paymentTotals[entry.payment_method as CashPaymentMethod] += entry.amount;
+      } else {
+        logCashpulseSkip(entry, "Cash movement recorded without cash/bank method");
+      }
+    }
+
+    if (isCreditSales) {
+      if (hasCollectibleBalance) {
         pendingCollections.push(entry);
-      }
-    } else if (entry.entry_type === "Cash Outflow") {
-      cashOutflow += entry.amount;
-      if (!entry.settled) {
-        if (entry.category === "Assets") {
-          pendingAdvances.push(entry);
-        } else {
-          pendingBills.push(entry);
-        }
+      } else {
+        logCashpulseSkip(entry, "Pending Collections skip (settled or zero balance)");
       }
     }
 
-    if (entry.payment_method === "Cash" || entry.payment_method === "Bank") {
-      paymentTotals[entry.payment_method] += entry.amount;
+    if (isCreditExpense) {
+      if (hasCollectibleBalance) {
+        pendingBills.push(entry);
+      } else {
+        logCashpulseSkip(entry, "Pending Bills skip (settled or zero balance)");
+      }
     }
 
-    if (entry.settled) {
+    if (isAdvance) {
+      if (hasCollectibleBalance) {
+        pendingAdvances.push(entry);
+      } else if (!entry.settled) {
+        logCashpulseSkip(entry, "Pending Advances skip (no outstanding balance)");
+      }
+    }
+
+    if (entry.settled && (isCredit || isAdvance)) {
       settledHistory.push(entry);
     }
   });
@@ -528,6 +604,13 @@ const accentText: Record<PendingCardProps["accent"], string> = {
 
 function PendingCard({ title, description, info, accent, onSettle }: PendingCardProps) {
   const accentColor = accentText[accent];
+  useEffect(() => {
+    if (info.entries.length === 0) {
+      console.log(
+        `[Cashpulse] PendingCard "${title}" empty. Pending filter: only unsettled Credit/Advance entries with remaining balance are displayed.`,
+      );
+    }
+  }, [info.entries.length, title]);
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
       <p className={cn("text-xs uppercase tracking-widest", accentColor)}>{title}</p>
@@ -545,6 +628,11 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
         )}
           {info.entries.slice(0, 3).map((entry) => {
             const canSettleEntry = entry.entry_type === "Credit" || entry.entry_type === "Advance";
+              if (!canSettleEntry) {
+                console.log(
+                  `[Cashpulse] Pending filter: only unsettled Credit/Advance entries can be settled (entry ${entry.id}).`,
+                );
+              }
             return (
               <div
                 key={entry.id}

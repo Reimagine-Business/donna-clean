@@ -330,19 +330,55 @@ type ProfitStats = {
   netMargin: number;
 };
 
-const buildProfitStats = (entries: Entry[]) => {
-  const sumMatching = (predicate: (entry: Entry) => boolean) =>
-    entries.reduce((total, entry) => (predicate(entry) ? total + entry.amount : total), 0);
+const logProfitLensSkip = (entry: Entry, message: string) => {
+  console.log(`[ProfitLens] ${message}`, {
+    entryId: entry.id,
+    type: entry.entry_type,
+    category: entry.category,
+    settled: entry.settled,
+  });
+};
 
-  const sales = sumMatching(
-    (entry) => entry.category === "Sales" && entry.entry_type === "Cash Inflow",
-  );
-  const cogs = sumMatching(
-    (entry) => entry.category === "COGS" && entry.entry_type === "Cash Outflow",
-  );
-  const opex = sumMatching(
-    (entry) => entry.category === "Opex" && entry.entry_type === "Cash Outflow",
-  );
+const buildProfitStats = (entries: Entry[]): ProfitStats => {
+  let sales = 0;
+  let cogs = 0;
+  let opex = 0;
+
+  entries.forEach((entry) => {
+    const isCashInflow = entry.entry_type === "Cash Inflow";
+    const isCashOutflow = entry.entry_type === "Cash Outflow";
+    const isCredit = entry.entry_type === "Credit";
+    const isSettledAdvance = entry.entry_type === "Advance" && entry.settled;
+
+    if (entry.category === "Sales") {
+      if (isCashInflow || isCredit || isSettledAdvance) {
+        sales += entry.amount;
+      } else {
+        logProfitLensSkip(entry, "Ignored for sales: requires Cash Inflow, Credit, or settled Advance");
+      }
+      return;
+    }
+
+    if (entry.category === "COGS") {
+      if (isCashOutflow || isCredit || isSettledAdvance) {
+        cogs += entry.amount;
+      } else {
+        logProfitLensSkip(entry, "Ignored for COGS: requires Cash Outflow, Credit, or settled Advance");
+      }
+      return;
+    }
+
+    if (entry.category === "Opex") {
+      if (isCashOutflow || isCredit || isSettledAdvance) {
+        opex += entry.amount;
+      } else {
+        logProfitLensSkip(entry, "Ignored for Opex: requires Cash Outflow, Credit, or settled Advance");
+      }
+      return;
+    }
+
+    logProfitLensSkip(entry, "Ignored for P&L (balance sheet / unsupported category)");
+  });
 
   const grossProfit = sales - cogs;
   const netProfit = grossProfit - opex;
