@@ -1,7 +1,9 @@
-'use client';
 import { Geist } from "next/font/google";
 import "./globals.css";
+import { metadata } from "./metadata";
 import ClientProviders from "./client-providers";
+
+export { metadata };
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
