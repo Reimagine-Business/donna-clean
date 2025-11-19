@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
+import type { User } from "@supabase/supabase-js";  // Import User type from Supabase
 
 export default async function LoginPage() {
   const supabase = await createSupabaseServerClient();
@@ -8,7 +9,7 @@ export default async function LoginPage() {
 
   const user = data.user ?? null;
 
-  const shouldAlertVerifyEmail = Boolean(user && !getConfirmedTimestamp(user as any));
+  const shouldAlertVerifyEmail = Boolean(user && !getConfirmedTimestamp(user));
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -45,6 +46,6 @@ export default async function LoginPage() {
   );
 }
 
-function getConfirmedTimestamp(user) {
-  return user.confirmed_at; // Assuming this is the function; adjust if different
+function getConfirmedTimestamp(user: User | null) {
+  return user?.confirmed_at;  // Type user as User | null, access safely
 }
