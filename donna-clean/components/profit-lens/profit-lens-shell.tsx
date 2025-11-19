@@ -331,12 +331,9 @@ type ProfitStats = {
 };
 
 const logProfitLensSkip = (entry: Entry, message: string) => {
-  console.log(`[ProfitLens] ${message}`, {
-    entryId: entry.id,
-    type: entry.entry_type,
-    category: entry.category,
-    settled: entry.settled,
-  });
+  console.log(
+    `[ProfitLens Skip] ${message} for ID ${entry.id}: type=${entry.entry_type}, category=${entry.category}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
+  );
 };
 
 const buildProfitStats = (entries: Entry[]): ProfitStats => {

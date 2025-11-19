@@ -48,14 +48,9 @@ const isCashPaymentMethod = (method: PaymentMethod): method is CashPaymentMethod
   CASH_METHOD_LOOKUP.has(method);
 
 const logCashpulseSkip = (entry: Entry, message: string) => {
-  console.log(`[Cashpulse] ${message}`, {
-    entryId: entry.id,
-    type: entry.entry_type,
-    category: entry.category,
-    payment: entry.payment_method,
-    settled: entry.settled,
-    remaining: entry.remaining_amount,
-  });
+  console.log(
+    `[Cashpulse Skip] ${message} for ID ${entry.id}: type=${entry.entry_type}, category=${entry.category}, payment=${entry.payment_method}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
+  );
 };
 
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
@@ -607,7 +602,7 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
   useEffect(() => {
     if (info.entries.length === 0) {
       console.log(
-        `[Cashpulse] PendingCard "${title}" empty. Pending filter: only unsettled Credit/Advance entries with remaining balance are displayed.`,
+        `[Pending Skip] No entries for ${title}: filter only unsettled Credit/Advance with remaining >0 by category (Sales=Collections, COGS/Opex=Bills, all for Advances).`,
       );
     }
   }, [info.entries.length, title]);
@@ -627,20 +622,13 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
           <p className="text-sm text-slate-500">All settled. You&apos;re in control.</p>
         )}
         {info.entries.slice(0, 3).map((entry) => {
-          const isSupportedType = entry.entry_type === "Credit" || entry.entry_type === "Advance";
-          const hasBalance = entry.remaining_amount > 0;
-          const alreadySettled = entry.settled;
-          const canSettleEntry = isSupportedType && hasBalance && !alreadySettled;
+          const canSettleEntry = !entry.settled && entry.remaining_amount > 0;
           if (!canSettleEntry) {
             console.log(
-              `[Cashpulse] Settle disabled for ${entry.id}: type=${entry.entry_type}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
+              `[Pending Skip] Settle disabled for ID ${entry.id}: settled or remaining <=0`,
             );
           }
-          const disabledTitle = !canSettleEntry
-            ? isSupportedType
-              ? "Already settled or no balance"
-              : "Only Credit/Advance entries can be settled"
-            : undefined;
+          const disabledTitle = canSettleEntry ? undefined : "No balance left or already settled";
             return (
               <div
                 key={entry.id}
