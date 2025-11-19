@@ -3,6 +3,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Entry, SupabaseEntry } from "@/lib/entries";
 import { normalizeEntry } from "@/lib/entries";
 
+// To fix schema errors, run the SQL in scripts/supabase-migrations/add-settlement-columns.sql in Supabase SQL Editor. This adds remaining_amount, settled, settled_at and backfills.
+
 /**
  * Heads-up: run `psql -f supabase/fix-remaining-amounts.sql` once if legacy entries need a remaining_amount backfill.
  */
@@ -71,11 +73,15 @@ export async function createSettlement({
 
     if (latestEntry.entry_type === "Credit") {
       const isInflow = latestEntry.category === "Sales";
+      const settlementPaymentMethod =
+        latestEntry.payment_method === "Cash" || latestEntry.payment_method === "Bank"
+          ? latestEntry.payment_method
+          : "Cash";
       const { error: cashEntryError } = await supabase.from("entries").insert({
         user_id: user.id,
         entry_type: isInflow ? "Cash Inflow" : "Cash Outflow",
         category: latestEntry.category,
-        payment_method: latestEntry.payment_method,
+        payment_method: settlementPaymentMethod,
         amount: settledAmount,
         remaining_amount: settledAmount,
         entry_date: settlementDate,
@@ -144,6 +150,14 @@ function normalizeAmount(value: unknown, fallback: number): number {
 
 async function revalidateDashboards() {
   try {
+    if (typeof window === "undefined") {
+      const { revalidatePath } = await import("next/cache");
+      revalidatePath("/cashpulse");
+      revalidatePath("/profit-lens");
+      revalidatePath("/daily-entries");
+      return;
+    }
+
     await fetch("/api/revalidate", {
       method: "POST",
       headers: {

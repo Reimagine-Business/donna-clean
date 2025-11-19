@@ -97,11 +97,42 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     }
   }, [supabase, userId]);
 
-  useEffect(() => {
-    let channel: RealtimeChannel | null = null;
+useEffect(() => {
+  let channel: RealtimeChannel | null = null;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+
+  const teardownChannel = () => {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+    if (channel) {
+      supabase.removeChannel(channel);
+      channel = null;
+    }
+  };
+
+  const startHeartbeat = () => {
+    if (heartbeatTimer || !channel) return;
+    heartbeatTimer = setInterval(() => {
+      channel?.send({
+        type: "broadcast",
+        event: "heartbeat",
+        payload: {},
+        topic: "heartbeat",
+      } as any);
+    }, 30000);
+  };
+
+  const subscribe = () => {
+    teardownChannel();
 
     channel = supabase
-      .channel("public:entries")
+      .channel(`public:entries:${userId}:profit`)
+      .on("system", { event: "*" }, (systemPayload) => {
+        console.log("[Realtime System]", systemPayload);
+      })
       .on(
         "postgres_changes",
         {
@@ -126,15 +157,51 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
           );
         },
       )
-      .subscribe();
-    console.log("REAL-TIME SUBSCRIBED TO public:entries for user:", userId);
+      .subscribe(async (status) => {
+        console.log(`[Realtime] Status: ${status}`);
+        if (status === "SUBSCRIBED") {
+          console.log("[Realtime] joined public:entries Profit Lens channel");
+          startHeartbeat();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.error("[Realtime Error] Closed – retrying");
+          teardownChannel();
+          await supabase.auth.refreshSession();
+          if (!retryTimer) {
+            retryTimer = setTimeout(() => {
+              retryTimer = null;
+              subscribe();
+            }, 1000);
+          }
+        }
+      });
+  };
 
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [recalcKpis, refetchEntries, supabase, userId]);
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      supabase.auth.refreshSession().finally(() => {
+        if (!channel || channel.state !== "joined") {
+          subscribe();
+        }
+      });
+    }
+  };
+
+  subscribe();
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+  }
+
+  return () => {
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+    }
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }
+    teardownChannel();
+  };
+}, [recalcKpis, refetchEntries, supabase, userId]);
 
   useEffect(() => {
     if (skipNextRecalc.current) {
@@ -330,19 +397,76 @@ type ProfitStats = {
   netMargin: number;
 };
 
-const buildProfitStats = (entries: Entry[]) => {
-  const sumMatching = (predicate: (entry: Entry) => boolean) =>
-    entries.reduce((total, entry) => (predicate(entry) ? total + entry.amount : total), 0);
+const logProfitLensSkip = (entry: Entry, reason: string) => {
+  console.log(
+    `[ProfitLens Skip] ${reason} ID ${entry.id}: type=${entry.entry_type}, category=${entry.category}, payment=${entry.payment_method}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
+  );
+};
 
-  const sales = sumMatching(
-    (entry) => entry.category === "Sales" && entry.entry_type === "Cash Inflow",
-  );
-  const cogs = sumMatching(
-    (entry) => entry.category === "COGS" && entry.entry_type === "Cash Outflow",
-  );
-  const opex = sumMatching(
-    (entry) => entry.category === "Opex" && entry.entry_type === "Cash Outflow",
-  );
+const buildProfitStats = (entries: Entry[]): ProfitStats => {
+  let sales = 0;
+  let cogs = 0;
+  let opex = 0;
+
+  entries.forEach((entry) => {
+    const isCashInflow = entry.entry_type === "Cash Inflow";
+    const isCashOutflow = entry.entry_type === "Cash Outflow";
+    const isCredit = entry.entry_type === "Credit";
+    const isSettledAdvance = entry.entry_type === "Advance" && entry.settled;
+
+    if (entry.category === "Sales") {
+      if (isCashInflow || isCredit || isSettledAdvance) {
+        sales += entry.amount;
+      } else {
+        const reason =
+          entry.entry_type === "Credit"
+            ? "Ignored Credit for Sales: immediate accrual needed"
+            : entry.entry_type === "Advance"
+              ? "Ignored Advance for Sales: settle before recognition"
+              : "Ignored for Sales: requires Cash Inflow, Credit, or settled Advance";
+        logProfitLensSkip(entry, reason);
+      }
+      return;
+    }
+
+    if (entry.category === "COGS") {
+      if (isCashOutflow || isCredit || isSettledAdvance) {
+        cogs += entry.amount;
+      } else {
+        const reason =
+          entry.entry_type === "Credit"
+            ? "Ignored Credit for COGS: immediate accrual needed"
+            : entry.entry_type === "Advance"
+              ? "Ignored Advance for COGS: settle before recognition"
+              : "Ignored for COGS: requires Cash Outflow, Credit, or settled Advance";
+        logProfitLensSkip(entry, reason);
+      }
+      return;
+    }
+
+    if (entry.category === "Opex") {
+      if (isCashOutflow || isCredit || isSettledAdvance) {
+        opex += entry.amount;
+      } else {
+        const reason =
+          entry.entry_type === "Credit"
+            ? "Ignored Credit for Opex: immediate accrual needed"
+            : entry.entry_type === "Advance"
+              ? "Ignored Advance for Opex: settle before recognition"
+              : "Ignored for Opex: requires Cash Outflow, Credit, or settled Advance";
+        logProfitLensSkip(entry, reason);
+      }
+      return;
+    }
+
+    if (entry.entry_type === "Credit") {
+      logProfitLensSkip(entry, `Ignored Credit for ${entry.category}: immediate accrual needed`);
+    } else if (entry.entry_type === "Advance") {
+      logProfitLensSkip(entry, `Ignored Advance for ${entry.category}: settle before recognition`);
+    } else {
+      logProfitLensSkip(entry, "Ignored for P&L (balance sheet / unsupported category)");
+    }
+  });
 
   const grossProfit = sales - cogs;
   const netProfit = grossProfit - opex;

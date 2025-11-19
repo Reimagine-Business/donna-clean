@@ -10,6 +10,7 @@ import {
   Entry,
   PAYMENT_METHODS,
   type CashPaymentMethod,
+  type PaymentMethod,
   normalizeEntry,
 } from "@/lib/entries";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,17 @@ const isWithinRange = (date: string, start: string, end: string) =>
 
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
+
+const CASH_METHOD_LOOKUP = new Set<string>(PAYMENT_METHODS);
+
+const isCashPaymentMethod = (method: PaymentMethod): method is CashPaymentMethod =>
+  CASH_METHOD_LOOKUP.has(method);
+
+const logCashpulseSkip = (entry: Entry, reason: string) => {
+  console.log(
+    `[Cashpulse Skip] ${reason} ID ${entry.id}: type=${entry.entry_type}, category=${entry.category}, payment=${entry.payment_method}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
+  );
+};
 
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
   const supabase = useMemo(() => createBrowserClient(), []);
@@ -109,11 +121,42 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     }
   }, [supabase, userId]);
 
-  useEffect(() => {
-    let channel: RealtimeChannel | null = null;
+useEffect(() => {
+  let channel: RealtimeChannel | null = null;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+
+  const teardownChannel = () => {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+    if (channel) {
+      supabase.removeChannel(channel);
+      channel = null;
+    }
+  };
+
+  const startHeartbeat = () => {
+    if (heartbeatTimer || !channel) return;
+    heartbeatTimer = setInterval(() => {
+      channel?.send({
+        type: "broadcast",
+        event: "heartbeat",
+        payload: {},
+        topic: "heartbeat",
+      } as any);
+    }, 30000);
+  };
+
+  const subscribe = () => {
+    teardownChannel();
 
     channel = supabase
-      .channel("public:entries")
+      .channel(`public:entries:${userId}`)
+      .on("system", { event: "*" }, (systemPayload) => {
+        console.log("[Realtime System]", systemPayload);
+      })
       .on(
         "postgres_changes",
         {
@@ -144,15 +187,51 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           );
         },
       )
-      .subscribe();
-    console.log("REAL-TIME SUBSCRIBED TO public:entries for user:", userId);
+      .subscribe(async (status) => {
+        console.log(`[Realtime] Status: ${status}`);
+        if (status === "SUBSCRIBED") {
+          console.log("[Realtime] joined public:entries Cashpulse channel");
+          startHeartbeat();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.error("[Realtime Error] Closed – retrying");
+          teardownChannel();
+          await supabase.auth.refreshSession();
+          if (!retryTimer) {
+            retryTimer = setTimeout(() => {
+              retryTimer = null;
+              subscribe();
+            }, 1000);
+          }
+        }
+      });
+  };
 
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [recalcKpis, refetchEntries, supabase, userId]);
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      supabase.auth.refreshSession().finally(() => {
+        if (!channel || channel.state !== "joined") {
+          subscribe();
+        }
+      });
+    }
+  };
+
+  subscribe();
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+  }
+
+  return () => {
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+    }
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }
+    teardownChannel();
+  };
+}, [recalcKpis, refetchEntries, supabase, userId]);
 
   useEffect(() => {
     if (skipNextRecalc.current) {
@@ -410,27 +489,86 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
   const settledHistory: Entry[] = [];
 
   entries.forEach((entry) => {
-    if (entry.entry_type === "Cash Inflow") {
-      cashInflow += entry.amount;
-      if (!entry.settled) {
+    const paymentIsCash = isCashPaymentMethod(entry.payment_method);
+    const isCashInflow = entry.entry_type === "Cash Inflow";
+    const isCashOutflow = entry.entry_type === "Cash Outflow";
+    const isCredit = entry.entry_type === "Credit";
+    const isAdvance = entry.entry_type === "Advance";
+    const isAdvanceSales = isAdvance && entry.category === "Sales";
+    const isAdvanceExpense =
+      isAdvance && (entry.category === "COGS" || entry.category === "Opex" || entry.category === "Assets");
+    const isCreditSales = isCredit && entry.category === "Sales";
+    const isCreditExpense =
+      isCredit && (entry.category === "COGS" || entry.category === "Opex");
+    const hasCollectibleBalance = entry.remaining_amount > 0 && !entry.settled;
+
+    let countedCashMovement = false;
+
+    if (isCashInflow) {
+      if (paymentIsCash) {
+        cashInflow += entry.amount;
+        countedCashMovement = true;
+      } else {
+        logCashpulseSkip(entry, "Cash Inflow requires Cash/Bank payment");
+      }
+    } else if (isCashOutflow) {
+      if (paymentIsCash) {
+        cashOutflow += entry.amount;
+        countedCashMovement = true;
+      } else {
+        logCashpulseSkip(entry, "Cash Outflow requires Cash/Bank payment");
+      }
+    } else if (isAdvanceSales) {
+      if (paymentIsCash) {
+        cashInflow += entry.amount;
+        countedCashMovement = true;
+      } else {
+        logCashpulseSkip(entry, "Advance Sales must use Cash/Bank to count as cash");
+      }
+    } else if (isAdvanceExpense) {
+      if (paymentIsCash) {
+        cashOutflow += entry.amount;
+        countedCashMovement = true;
+      } else {
+        logCashpulseSkip(entry, "Advance expenses must use Cash/Bank to count as cash");
+      }
+    } else {
+      logCashpulseSkip(entry, "Entry excluded from cash totals");
+    }
+
+    if (countedCashMovement) {
+      if (paymentIsCash) {
+        paymentTotals[entry.payment_method as CashPaymentMethod] += entry.amount;
+      } else {
+        logCashpulseSkip(entry, "Cash movement missing Cash/Bank method");
+      }
+    }
+
+    if (isCreditSales) {
+      if (hasCollectibleBalance) {
         pendingCollections.push(entry);
-      }
-    } else if (entry.entry_type === "Cash Outflow") {
-      cashOutflow += entry.amount;
-      if (!entry.settled) {
-        if (entry.category === "Assets") {
-          pendingAdvances.push(entry);
-        } else {
-          pendingBills.push(entry);
-        }
+      } else {
+        logCashpulseSkip(entry, "Pending Collections skip (settled or zero balance)");
       }
     }
 
-    if (entry.payment_method === "Cash" || entry.payment_method === "Bank") {
-      paymentTotals[entry.payment_method] += entry.amount;
+    if (isCreditExpense) {
+      if (hasCollectibleBalance) {
+        pendingBills.push(entry);
+      } else {
+        logCashpulseSkip(entry, "Pending Bills skip (settled or zero balance)");
+      }
     }
 
-    if (entry.settled) {
+    if (isAdvance) {
+      if (!entry.settled && hasCollectibleBalance) {
+        pendingAdvances.push(entry);
+      } else if (!entry.settled) {
+        logCashpulseSkip(entry, "Pending Advances skip (no outstanding balance)");
+      }
+    }
+
+    if (entry.settled && (isCredit || isAdvance)) {
       settledHistory.push(entry);
     }
   });
@@ -528,6 +666,13 @@ const accentText: Record<PendingCardProps["accent"], string> = {
 
 function PendingCard({ title, description, info, accent, onSettle }: PendingCardProps) {
   const accentColor = accentText[accent];
+  useEffect(() => {
+    if (info.entries.length === 0) {
+      console.log(
+        `[Pending Empty] ${title}: filter unsettled Credit/Advance with remaining >0 by category (Sales=Collections, COGS/Opex=Bills, all for Advances).`,
+      );
+    }
+  }, [info.entries.length, title]);
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
       <p className={cn("text-xs uppercase tracking-widest", accentColor)}>{title}</p>
@@ -543,8 +688,12 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
         {info.entries.length === 0 && (
           <p className="text-sm text-slate-500">All settled. You&apos;re in control.</p>
         )}
-          {info.entries.slice(0, 3).map((entry) => {
-            const canSettleEntry = entry.entry_type === "Credit" || entry.entry_type === "Advance";
+        {info.entries.slice(0, 3).map((entry) => {
+          const canSettleEntry = !entry.settled && entry.remaining_amount > 0;
+          if (!canSettleEntry) {
+            console.log(`Settle disabled for ID ${entry.id}: settled or no remaining`);
+          }
+          const disabledTitle = canSettleEntry ? undefined : "Settled or no balance";
             return (
               <div
                 key={entry.id}
@@ -557,24 +706,22 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
                   </p>
                   <p className="text-xs text-slate-500">{formatDisplayDate(entry.entry_date)}</p>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "border-[#a78bfa]/40 text-[#a78bfa] hover:text-white",
-                    !canSettleEntry &&
-                      "border-white/5 text-slate-500 hover:text-slate-500 disabled:pointer-events-auto",
-                  )}
-                  disabled={!canSettleEntry}
-                  title={
-                    canSettleEntry ? undefined : "Only Credit/Advance entries can be settled"
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "border-[#a78bfa]/40 text-[#a78bfa] hover:text-white",
+                  !canSettleEntry &&
+                    "border-white/5 text-slate-500 hover:text-slate-500 disabled:pointer-events-auto",
+                )}
+                disabled={!canSettleEntry}
+                title={disabledTitle}
+                onClick={() => {
+                  if (canSettleEntry) {
+                    onSettle(entry);
                   }
-                  onClick={() => {
-                    if (canSettleEntry) {
-                      onSettle(entry);
-                    }
-                  }}
-                >
+                }}
+              >
                   Settle
                 </Button>
               </div>
