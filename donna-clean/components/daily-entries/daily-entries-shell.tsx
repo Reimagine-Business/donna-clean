@@ -77,6 +77,41 @@ const buildInitialFiltersState = (): FiltersState => ({
   search: "",
 });
 
+const CREDIT_PAYMENT_METHOD: PaymentMethod = "None";
+const CREDIT_METHOD_OPTIONS = [CREDIT_PAYMENT_METHOD] as const;
+const CASH_PAYMENT_METHOD_OPTIONS = PAYMENT_METHODS as readonly PaymentMethod[];
+
+const entryTypeIsCredit = (type: EntryType): boolean => type === "Credit";
+
+const entryTypeRequiresCashMovement = (type: EntryType): boolean =>
+  type === "Cash Inflow" || type === "Cash Outflow" || type === "Advance";
+
+const enforcePaymentMethodForType = (
+  entryType: EntryType,
+  paymentMethod: PaymentMethod,
+): PaymentMethod => {
+  if (entryTypeIsCredit(entryType)) {
+    return CREDIT_PAYMENT_METHOD;
+  }
+  if (entryTypeRequiresCashMovement(entryType) && paymentMethod === CREDIT_PAYMENT_METHOD) {
+    return PAYMENT_METHODS[0];
+  }
+  return paymentMethod;
+};
+
+const paymentMethodRuleViolation = (
+  entryType: EntryType,
+  paymentMethod: PaymentMethod,
+): string | null => {
+  if (entryTypeIsCredit(entryType) && paymentMethod !== CREDIT_PAYMENT_METHOD) {
+    return "Credit entries must use Payment Method: None";
+  }
+  if (entryTypeRequiresCashMovement(entryType) && paymentMethod === CREDIT_PAYMENT_METHOD) {
+    return "This entry type requires actual payment";
+  }
+  return null;
+};
+
 export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellProps) {
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
@@ -86,6 +121,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
+  const [paymentMethodError, setPaymentMethodError] = useState<string | null>(null);
 
   const [formValues, setFormValues] = useState<EntryFormState>(buildInitialFormState);
   const [filters, setFilters] = useState<FiltersState>(buildInitialFiltersState);
@@ -138,6 +174,31 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     name: K,
     value: EntryFormState[K],
   ) => {
+    if (name === "entry_type") {
+      const nextEntryType = value as EntryType;
+      setFormValues((prev) => ({
+        ...prev,
+        entry_type: nextEntryType,
+        payment_method: enforcePaymentMethodForType(nextEntryType, prev.payment_method),
+      }));
+      setPaymentMethodError(null);
+      return;
+    }
+
+    if (name === "payment_method") {
+      const nextPaymentMethod = value as PaymentMethod;
+      setFormValues((prev) => {
+        const violation = paymentMethodRuleViolation(prev.entry_type, nextPaymentMethod);
+        if (violation) {
+          setPaymentMethodError(violation);
+          return prev;
+        }
+        setPaymentMethodError(null);
+        return { ...prev, payment_method: nextPaymentMethod };
+      });
+      return;
+    }
+
     setFormValues((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -156,6 +217,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     setReceiptPreview(null);
     setExistingImageUrl(null);
     setFormError(null);
+    setPaymentMethodError(null);
   };
 
   const uploadReceipt = async (): Promise<string | null> => {
@@ -193,18 +255,34 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         return;
       }
 
-        const selectedEntryType = formValues.entry_type;
-        const paymentMethod = formValues.payment_method;
+      const selectedEntryType = formValues.entry_type;
+      const paymentMethod = formValues.payment_method;
+
+      const paymentValidationMessage = paymentMethodRuleViolation(
+        selectedEntryType,
+        paymentMethod,
+      );
+
+      if (paymentValidationMessage) {
+        setFormError(paymentValidationMessage);
+        setPaymentMethodError(paymentValidationMessage);
+        setIsSubmitting(false);
+        return;
+      }
 
       let uploadedUrl = existingImageUrl;
       if (receiptFile) {
         uploadedUrl = await uploadReceipt();
       }
 
+      const normalizedPaymentMethod = entryTypeIsCredit(selectedEntryType)
+        ? CREDIT_PAYMENT_METHOD
+        : paymentMethod;
+
       const payload = {
         entry_type: selectedEntryType,
         category: formValues.category,
-        payment_method: paymentMethod,
+        payment_method: normalizedPaymentMethod,
         amount: numericAmount,
         entry_date: formValues.entry_date,
         notes: formValues.notes || null,
@@ -236,10 +314,16 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
     const handleEdit = (entry: Entry) => {
       setEditingEntryId(entry.id);
+      setFormError(null);
+      setPaymentMethodError(null);
+      const sanitizedPaymentMethod = enforcePaymentMethodForType(
+        entry.entry_type,
+        entry.payment_method,
+      );
       setFormValues({
         entry_type: entry.entry_type,
         category: entry.category,
-        payment_method: entry.payment_method,
+        payment_method: sanitizedPaymentMethod,
         amount: numberFormatter.format(entry.amount),
         entry_date: entry.entry_date,
         notes: entry.notes ?? "",
@@ -318,6 +402,16 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     URL.revokeObjectURL(url);
   };
 
+    const isCreditEntry = entryTypeIsCredit(formValues.entry_type);
+    const paymentMethodOptions = isCreditEntry
+      ? CREDIT_METHOD_OPTIONS
+      : CASH_PAYMENT_METHOD_OPTIONS;
+    const paymentMethodHelperText = isCreditEntry
+      ? "Credit entries use 'None' – cash moves only on settlement"
+      : entryTypeRequiresCashMovement(formValues.entry_type)
+        ? "This entry type requires actual payment"
+        : "Use Cash or Bank to match how money moved";
+
   return (
     <div className="flex flex-col gap-10 text-white">
       <div className="space-y-4">
@@ -365,23 +459,31 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 ))}
               </select>
             </div>
-              <div className="space-y-2">
-                <Label className="text-sm uppercase text-slate-400">Payment Method</Label>
-                <select
-                  value={formValues.payment_method}
-                  onChange={(event) =>
-                    handleInputChange("payment_method", event.target.value as PaymentMethod)
-                  }
-                  className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
-                >
-                  {PAYMENT_METHODS.map((method) => (
-                    <option key={method} value={method}>
-                      {method}
-                    </option>
-                  ))}
-                </select>
-                <p className="text-xs text-slate-500">Use Cash or Bank to match how money moved.</p>
-              </div>
+            <div className="space-y-2">
+              <Label className="text-sm uppercase text-slate-400">Payment Method</Label>
+              <select
+                value={formValues.payment_method}
+                onChange={(event) =>
+                  handleInputChange("payment_method", event.target.value as PaymentMethod)
+                }
+                disabled={isCreditEntry}
+                aria-disabled={isCreditEntry}
+                className={cn(
+                  "w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]",
+                  isCreditEntry && "cursor-not-allowed opacity-60",
+                )}
+              >
+                {paymentMethodOptions.map((method) => (
+                  <option key={method} value={method}>
+                    {method}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-500">{paymentMethodHelperText}</p>
+              {paymentMethodError && (
+                <p className="text-xs text-rose-400">{paymentMethodError}</p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label className="text-sm uppercase text-slate-400">Amount</Label>
               <Input

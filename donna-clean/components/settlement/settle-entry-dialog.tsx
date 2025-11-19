@@ -6,7 +6,7 @@ import { format } from "date-fns";
 
 import { createClient } from "@/lib/supabase/client";
 import { Entry } from "@/lib/entries";
-import { settleEntry } from "@/lib/settlements";
+import { createSettlement, type SettleEntryResult } from "@/lib/settlements";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,14 +75,14 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
     setError(null);
 
     try {
-      const result = await settleEntry({
+      const result: SettleEntryResult = await createSettlement({
         supabase,
-        entry,
+        entryId: entry.id,
         amount: numericAmount,
         settlementDate,
       });
 
-      if (result?.error) {
+      if (!result.success) {
         setError(result.error);
         return;
       }

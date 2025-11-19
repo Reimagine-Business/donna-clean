@@ -6,6 +6,11 @@ import { revalidatePath } from "next/cache";
 import { type EntryType, type CategoryType, type PaymentMethod } from "@/lib/entries";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
 
+const entryTypeIsCredit = (type: EntryType): boolean => type === "Credit";
+
+const entryTypeRequiresCashMovement = (type: EntryType): boolean =>
+  type === "Cash Inflow" || type === "Cash Outflow" || type === "Advance";
+
 type AddEntryInput = {
   entry_type: EntryType;
   category: CategoryType;
@@ -27,27 +32,33 @@ export async function addEntry(data: AddEntryInput) {
     redirect("/auth/login");
   }
 
-    // Then continue with your queries using this supabase client
+  const amount = Number(data.amount);
 
-    const amount = Number(data.amount);
+  if (!Number.isFinite(amount)) {
+    return { error: "Amount must be a valid number." };
+  }
 
-    if (Number.isNaN(amount)) {
-      return { error: "Amount must be a valid number." };
-    }
+  if (entryTypeIsCredit(data.entry_type) && data.payment_method !== "None") {
+    return { error: "Credit entries must use Payment Method: None" };
+  }
 
-    console.log("Inserting with user_id:", user.id);
+  if (entryTypeRequiresCashMovement(data.entry_type) && data.payment_method === "None") {
+    return { error: "This entry type requires actual payment" };
+  }
 
-      const payload = {
-        user_id: user.id,
-        entry_type: data.entry_type,
-        category: data.category,
-        payment_method: data.payment_method,
-        amount,
-        remaining_amount: amount,
-        entry_date: data.entry_date,
-        notes: data.notes,
-        image_url: data.image_url,
-      };
+  const shouldTrackRemaining = data.entry_type === "Credit" || data.entry_type === "Advance";
+
+  const payload = {
+    user_id: user.id,
+    entry_type: data.entry_type,
+    category: data.category,
+    payment_method: entryTypeIsCredit(data.entry_type) ? "None" : data.payment_method,
+    amount,
+    remaining_amount: shouldTrackRemaining ? amount : null,
+    entry_date: data.entry_date,
+    notes: data.notes,
+    image_url: data.image_url,
+  };
 
   const { error } = await supabase.from("entries").insert(payload);
 
