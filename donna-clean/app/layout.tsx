@@ -1,7 +1,8 @@
+'use client';
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
-import { ClientProviders } from "@/components/client-providers";
+import ClientProviders from "./client-providers";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -25,10 +26,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-      <html lang="en" suppressHydrationWarning>
-        <body className={`${geistSans.className} antialiased`}>
-          <ClientProviders>{children}</ClientProviders>
-        </body>
-      </html>
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <ClientProviders>
+          {children}
+        </ClientProviders>
+      </body>
+    </html>
   );
 }
