@@ -14,7 +14,12 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (!supabase) {
+      setError("Supabase client not initialized – check env vars");
+      return;
+    }
+
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     if (signInError) {
       setError(signInError.message);
