@@ -13,24 +13,24 @@ export async function POST(request: Request) {
       const supabase = await createSupabaseServerClient();
       const { user, wasInitiallyNull, initialError, refreshError } = await getOrRefreshUser(supabase);
 
-      if (wasInitiallyNull) {
-        console.warn(
-          `[Auth] GetUser null – error {${
-            initialError ? initialError.message : "none"
-          }} (ctx: api/revalidate)`,
-          initialError ?? undefined,
-        );
-      }
-
-      if (!user) {
-        if (refreshError) {
-          console.error(
-            `[Auth] refreshSession failed – error {${refreshError.message}} (ctx: api/revalidate)`,
-            refreshError,
+        if (wasInitiallyNull) {
+          console.warn(
+            `[Auth] Session null on api/revalidate – error {${
+              initialError ? initialError.message : "none"
+            }}`,
+            initialError ?? undefined,
           );
         }
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-      }
+
+        if (!user) {
+          if (refreshError) {
+            console.error(
+              `[Auth Fail] Refresh error {${refreshError.message}} on api/revalidate`,
+              refreshError,
+            );
+          }
+          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
 
     const body = (await request.json().catch(() => ({}))) as RevalidatePayload;
     const pathList = Array.isArray(body.paths) ? body.paths : [];

@@ -11,9 +11,9 @@ export default async function DailyEntriesPage() {
 
   if (wasInitiallyNull) {
     console.warn(
-      `[Auth] GetUser null – error {${
+      `[Auth] Session null on daily-entries/page – error {${
         initialError ? initialError.message : "none"
-      }} (ctx: daily-entries/page)`,
+      }}`,
       initialError ?? undefined,
     );
   }
@@ -21,7 +21,7 @@ export default async function DailyEntriesPage() {
   if (!user) {
     if (refreshError) {
       console.error(
-        `[Auth] refreshSession failed – error {${refreshError.message}} (ctx: daily-entries/page)`,
+        `[Auth Fail] Refresh error {${refreshError.message}} on daily-entries/page`,
         refreshError,
       );
     }

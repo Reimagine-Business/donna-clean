@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -22,6 +22,16 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [state, formAction] = useActionState(loginAction, { error: null });
+
+  useEffect(() => {
+    if (
+      state?.error === "Verify email" &&
+      typeof window !== "undefined" &&
+      typeof window.alert === "function"
+    ) {
+      window.alert("Verify email");
+    }
+  }, [state?.error]);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

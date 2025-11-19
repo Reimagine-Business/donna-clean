@@ -28,10 +28,23 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return { error: "Invalid credentials" };
+  }
+
+  const user = data.user;
+  const confirmedTimestamp =
+    user?.email_confirmed_at ??
+    (user as { confirmed_at?: string | null })?.confirmed_at ??
+    (user?.user_metadata?.confirmed_at as string | null) ??
+    null;
+  const isVerified = Boolean(confirmedTimestamp);
+
+  if (!isVerified) {
+    await supabase.auth.signOut();
+    return { error: "Verify email" };
   }
 
   redirect("/dashboard");

@@ -35,9 +35,9 @@ export default async function ProtectedPage() {
 
     if (wasInitiallyNull) {
       console.warn(
-        `[Auth] GetUser null – error {${
+        `[Auth] Session null on protected/page – error {${
           initialError ? initialError.message : "none"
-        }} (ctx: protected/page)`,
+        }}`,
         initialError ?? undefined,
       );
     }
@@ -45,7 +45,7 @@ export default async function ProtectedPage() {
     if (!user) {
       if (refreshError) {
         console.error(
-          `[Auth] refreshSession failed – error {${refreshError.message}} (ctx: protected/page)`,
+          `[Auth Fail] Refresh error {${refreshError.message}} on protected/page`,
           refreshError,
         );
       }

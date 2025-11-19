@@ -29,9 +29,9 @@ export async function addEntry(data: AddEntryInput) {
 
   if (wasInitiallyNull) {
     console.warn(
-      `[Auth] GetUser null – error {${
+      `[Auth] Session null on daily-entries/addEntry – error {${
         initialError ? initialError.message : "none"
-      }} (ctx: daily-entries/addEntry)`,
+      }}`,
       initialError ?? undefined,
     );
   }
@@ -39,7 +39,7 @@ export async function addEntry(data: AddEntryInput) {
   if (!user) {
     if (refreshError) {
       console.error(
-        `[Auth] refreshSession failed – error {${refreshError.message}} (ctx: daily-entries/addEntry)`,
+        `[Auth Fail] Refresh error {${refreshError.message}} on daily-entries/addEntry`,
         refreshError,
       );
     }

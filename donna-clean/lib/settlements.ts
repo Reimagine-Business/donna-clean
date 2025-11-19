@@ -33,6 +33,7 @@ export async function createSettlement({
   amount,
   settlementDate,
 }: CreateSettlementParams): Promise<SettleEntryResult> {
+  const ctx = "settlements/createSettlement";
   try {
     const settledAmount = normalizeAmount(amount, 0);
 
@@ -45,27 +46,24 @@ export async function createSettlement({
 
     if (wasInitiallyNull) {
       console.warn(
-        `[Auth] Session null – error {${
+        `[Auth] Session null on ${ctx} – error {${
           initialError ? initialError.message : "none"
-        }} on settlements/createSettlement`,
+        }}`,
         initialError ?? undefined,
       );
       if (user && didRefresh) {
-        console.info("[Auth] Refreshed OK on settlements/createSettlement");
+        console.info(`[Auth] Refreshed OK on ${ctx}`);
       }
     }
 
     if (!user) {
-        if (refreshError) {
-          console.error(
-            `[Auth Fail] Refresh error {${refreshError.message}} on settlements/createSettlement`,
-            refreshError,
-          );
-          if (typeof window !== "undefined" && typeof window.alert === "function") {
-            window.alert("Session expired – relogin");
-          }
-          return { success: false, error: "Session expired – relogin" };
-        }
+      if (refreshError) {
+        console.error(
+          `[Auth Fail] Refresh error {${refreshError.message}} on ${ctx}`,
+          refreshError,
+        );
+        return { success: false, error: "Session expired – relogin" };
+      }
       return { success: false, error: "You must be signed in to settle entries." };
     }
 
