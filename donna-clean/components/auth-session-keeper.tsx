@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+
+import { supabase } from "@/lib/supabase/client";
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 export function AuthSessionKeeper() {
-  const supabase = useSupabaseClient();
-
   useEffect(() => {
     let intervalId: number | null = null;
 
@@ -42,7 +41,7 @@ export function AuthSessionKeeper() {
         window.clearInterval(intervalId);
       }
     };
-  }, [supabase]);
+    }, []);
 
   return null;
 }

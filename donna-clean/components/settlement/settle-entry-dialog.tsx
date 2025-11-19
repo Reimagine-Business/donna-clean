@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 
-import { createClient } from "@/lib/supabase/client";
 import { Entry } from "@/lib/entries";
 import { createSettlement, type SettleEntryResult } from "@/lib/settlements";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/lib/supabase/client";
 
 type SettleEntryDialogProps = {
   entry: Entry | null;
@@ -17,7 +17,6 @@ type SettleEntryDialogProps = {
 };
 
 export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
-  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const [settlementDate, setSettlementDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [amount, setAmount] = useState("");
@@ -41,18 +40,18 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
   const isAdvance = entry.entry_type === "Advance";
   const canSettle = isCredit || isAdvance;
 
-  const modalTitle = useMemo(() => {
-    if (isCredit && entry.category === "Sales") {
-      return "Settle Collection - Cash Inflow";
-    }
-    if (isCredit) {
-      return "Settle Bill - Cash Outflow";
-    }
-    if (isAdvance) {
-      return "Recognise Advance - Accrual Only";
-    }
-    return "Settle Entry";
-  }, [entry.category, isAdvance, isCredit]);
+    const modalTitle = (() => {
+      if (isCredit && entry.category === "Sales") {
+        return "Settle Collection - Cash Inflow";
+      }
+      if (isCredit) {
+        return "Settle Bill - Cash Outflow";
+      }
+      if (isAdvance) {
+        return "Recognise Advance - Accrual Only";
+      }
+      return "Settle Entry";
+    })();
 
   const handleConfirm = async () => {
     if (!canSettle) {

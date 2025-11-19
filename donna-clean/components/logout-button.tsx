@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
 export function LogoutButton() {
-  const supabase = useMemo(() => createClient(), []);
   const [isPending, setIsPending] = useState(false);
 
   const handleLogout = useCallback(async () => {
@@ -30,7 +29,7 @@ export function LogoutButton() {
       }
       setIsPending(false);
     }
-  }, [isPending, supabase]);
+    }, [isPending]);
 
   return (
     <Button onClick={handleLogout} disabled={isPending}>

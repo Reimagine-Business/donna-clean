@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { Entry, normalizeEntry } from "@/lib/entries";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,6 @@ const BASE_REALTIME_DELAY_MS = 5000;
 const MAX_REALTIME_DELAY_MS = 30000;
 
 export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps) {
-  const supabase = useMemo(() => createBrowserClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [filters, setFilters] = useState<FiltersState>({
     start_date: currentStart,
@@ -64,20 +63,17 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     console.log("Profit Lens is now CLIENT — real-time will work");
   }, []);
 
-  const recalcKpis = useCallback(
-    (nextEntries: Entry[], nextFilters = filters) => {
-      const nextStats = buildProfitStats(nextEntries);
-      setSales(nextStats.sales);
-      setCogs(nextStats.cogs);
-      setOpex(nextStats.opex);
-      setGrossProfit(nextStats.grossProfit);
-      setNetProfit(nextStats.netProfit);
-      setGrossMargin(nextStats.grossMargin);
-      setNetMargin(nextStats.netMargin);
-      return nextStats;
-    },
-    [filters],
-  );
+  const recalcKpis = useCallback((nextEntries: Entry[]) => {
+    const nextStats = buildProfitStats(nextEntries);
+    setSales(nextStats.sales);
+    setCogs(nextStats.cogs);
+    setOpex(nextStats.opex);
+    setGrossProfit(nextStats.grossProfit);
+    setNetProfit(nextStats.netProfit);
+    setGrossMargin(nextStats.grossMargin);
+    setNetMargin(nextStats.netMargin);
+    return nextStats;
+  }, []);
 
   const refetchEntries = useCallback(async () => {
     try {
@@ -99,7 +95,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       console.error("Failed to refetch entries for Profit Lens", error);
       return undefined;
     }
-  }, [supabase, userId]);
+  }, [userId]);
 
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
@@ -152,17 +148,18 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       }
     };
 
-    const startHeartbeat = () => {
-      if (heartbeatTimer || !channel) return;
-      heartbeatTimer = setInterval(() => {
-        channel?.send({
-          type: "broadcast",
-          event: "heartbeat",
-          payload: {},
-          topic: "heartbeat",
-        } as any);
-      }, 30000);
-    };
+      const startHeartbeat = () => {
+        if (heartbeatTimer || !channel) return;
+        heartbeatTimer = setInterval(() => {
+          const heartbeatEvent: Parameters<RealtimeChannel["send"]>[0] = {
+            type: "broadcast",
+            event: "heartbeat",
+            payload: {},
+            topic: "heartbeat",
+          };
+          channel?.send(heartbeatEvent);
+        }, 30000);
+      };
 
     const subscribe = () => {
       teardownChannel();
@@ -269,15 +266,15 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       }
       teardownChannel();
     };
-  }, [recalcKpis, refetchEntries, supabase, userId]);
+    }, [recalcKpis, refetchEntries, userId]);
 
-  useEffect(() => {
-    if (skipNextRecalc.current) {
-      skipNextRecalc.current = false;
-      return;
-    }
-    recalcKpis(entries, filters);
-  }, [entries, filters, recalcKpis]);
+    useEffect(() => {
+      if (skipNextRecalc.current) {
+        skipNextRecalc.current = false;
+        return;
+      }
+      recalcKpis(entries);
+    }, [entries, recalcKpis]);
 
   const rangeLabel = `${format(new Date(filters.start_date), "dd MMM")} — ${format(
     new Date(filters.end_date),

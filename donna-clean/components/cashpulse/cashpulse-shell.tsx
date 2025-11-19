@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { format, subDays } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, Activity } from "lucide-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import {
   Entry,
   PAYMENT_METHODS,
@@ -36,9 +36,6 @@ const numberFormatter = new Intl.NumberFormat("en-IN", {
 
 const formatDisplayDate = (date: string) => format(new Date(date), "dd MMM");
 
-const isWithinRange = (date: string, start: string, end: string) =>
-  date >= start && date <= end;
-
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
 
@@ -58,7 +55,6 @@ const BASE_REALTIME_DELAY_MS = 5000;
 const MAX_REALTIME_DELAY_MS = 30000;
 
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
-  const supabase = useMemo(() => createBrowserClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [historyFilters, setHistoryFilters] = useState({
@@ -87,23 +83,20 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     console.log("Cashpulse is now CLIENT — real-time will work");
   }, []);
 
-  const recalcKpis = useCallback(
-    (nextEntries: Entry[], nextFilters = historyFilters) => {
-      const updatedStats = buildCashpulseStats(nextEntries);
-      setInflow(updatedStats.cashInflow);
-      setOutflow(updatedStats.cashOutflow);
-      setNet(updatedStats.netCashFlow);
-      setCashBreakdown(updatedStats.cashBreakdown);
-      setPendingCollections(updatedStats.pendingCollections);
-      setPendingBills(updatedStats.pendingBills);
-      setPendingAdvances(updatedStats.pendingAdvances);
-      setHistory(updatedStats.history);
-      return updatedStats;
-    },
-    [historyFilters],
-  );
+  const recalcKpis = useCallback((nextEntries: Entry[]) => {
+    const updatedStats = buildCashpulseStats(nextEntries);
+    setInflow(updatedStats.cashInflow);
+    setOutflow(updatedStats.cashOutflow);
+    setNet(updatedStats.netCashFlow);
+    setCashBreakdown(updatedStats.cashBreakdown);
+    setPendingCollections(updatedStats.pendingCollections);
+    setPendingBills(updatedStats.pendingBills);
+    setPendingAdvances(updatedStats.pendingAdvances);
+    setHistory(updatedStats.history);
+    return updatedStats;
+  }, []);
 
-  const refetchEntries = useCallback(async () => {
+    const refetchEntries = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("entries")
@@ -123,7 +116,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       console.error("Failed to refetch entries for Cashpulse", error);
       return undefined;
     }
-  }, [supabase, userId]);
+    }, [userId]);
 
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
@@ -176,17 +169,18 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       }
     };
 
-    const startHeartbeat = () => {
-      if (heartbeatTimer || !channel) return;
-      heartbeatTimer = setInterval(() => {
-        channel?.send({
-          type: "broadcast",
-          event: "heartbeat",
-          payload: {},
-          topic: "heartbeat",
-        } as any);
-      }, 30000);
-    };
+      const startHeartbeat = () => {
+        if (heartbeatTimer || !channel) return;
+        heartbeatTimer = setInterval(() => {
+          const heartbeatEvent: Parameters<RealtimeChannel["send"]>[0] = {
+            type: "broadcast",
+            event: "heartbeat",
+            payload: {},
+            topic: "heartbeat",
+          };
+          channel?.send(heartbeatEvent);
+        }, 30000);
+      };
 
     const subscribe = () => {
       teardownChannel();
@@ -299,15 +293,15 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       }
       teardownChannel();
     };
-  }, [recalcKpis, refetchEntries, supabase, userId]);
+    }, [recalcKpis, refetchEntries, userId]);
 
-  useEffect(() => {
-    if (skipNextRecalc.current) {
-      skipNextRecalc.current = false;
-      return;
-    }
-    recalcKpis(entries, historyFilters);
-  }, [entries, historyFilters, recalcKpis]);
+    useEffect(() => {
+      if (skipNextRecalc.current) {
+        skipNextRecalc.current = false;
+        return;
+      }
+      recalcKpis(entries);
+    }, [entries, recalcKpis]);
   const historyLabel = `${format(new Date(historyFilters.start_date), "dd MMM yyyy")} – ${format(
     new Date(historyFilters.end_date),
     "dd MMM yyyy",

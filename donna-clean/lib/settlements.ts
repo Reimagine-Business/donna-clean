@@ -111,9 +111,10 @@ export async function createSettlement({
     const nextRemainingAmount = Number(Math.max(remainingAmount - settledAmount, 0).toFixed(2));
     const isFullySettled = nextRemainingAmount <= 0;
 
-    const { error: updateError } = await supabase
-      .from("entries")
-      .update({
+      // @ts-expect-error temporary payload cast until types are generated
+      const { error: updateError } = await supabase
+        .from("entries")
+        .update({
         remaining_amount: nextRemainingAmount,
         settled: isFullySettled,
         settled_at: isFullySettled ? settlementDate : null,

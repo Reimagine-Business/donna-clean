@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { createClient } from "@/lib/supabase/server";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 type AuthState = {
   error?: string | null;
@@ -23,11 +23,11 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
   const email = formData.get("email");
   const password = formData.get("password");
 
-  if (typeof email !== "string" || typeof password !== "string") {
-    return { error: "Email and password are required" };
-  }
+    if (typeof email !== "string" || typeof password !== "string") {
+      return { error: "Email and password are required" };
+    }
 
-  const supabase = await createClient();
+    const supabase = createServerSupabaseClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
@@ -59,11 +59,11 @@ export async function signUpAction(_: AuthState, formData: FormData): Promise<Au
     return { error: "Please complete the form." };
   }
 
-  if (password !== repeatPassword) {
-    return { error: "Passwords do not match" };
-  }
+    if (password !== repeatPassword) {
+      return { error: "Passwords do not match" };
+    }
 
-  const supabase = await createClient();
+    const supabase = createServerSupabaseClient();
   const origin = await getOrigin();
 
   const { error } = await supabase.auth.signUp({
@@ -84,11 +84,11 @@ export async function signUpAction(_: AuthState, formData: FormData): Promise<Au
 export async function forgotPasswordAction(_: AuthState, formData: FormData): Promise<AuthState> {
   const email = formData.get("email");
 
-  if (typeof email !== "string") {
-    return { error: "Email is required" };
-  }
+    if (typeof email !== "string") {
+      return { error: "Email is required" };
+    }
 
-  const supabase = await createClient();
+    const supabase = createServerSupabaseClient();
   const origin = await getOrigin();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -105,11 +105,11 @@ export async function forgotPasswordAction(_: AuthState, formData: FormData): Pr
 export async function updatePasswordAction(_: AuthState, formData: FormData): Promise<AuthState> {
   const password = formData.get("password");
 
-  if (typeof password !== "string" || !password.length) {
-    return { error: "Password is required" };
-  }
+    if (typeof password !== "string" || !password.length) {
+      return { error: "Password is required" };
+    }
 
-  const supabase = await createClient();
+    const supabase = createServerSupabaseClient();
   const { error } = await supabase.auth.updateUser({ password });
 
   if (error) {
@@ -120,7 +120,7 @@ export async function updatePasswordAction(_: AuthState, formData: FormData): Pr
 }
 
 export async function logoutAction() {
-  const supabase = await createClient();
+  const supabase = createServerSupabaseClient();
   await supabase.auth.signOut();
   redirect("/auth/login");
 }
