@@ -124,11 +124,32 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
 useEffect(() => {
   let channel: RealtimeChannel | null = null;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
 
-  const subscribe = () => {
+  const teardownChannel = () => {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
     if (channel) {
       supabase.removeChannel(channel);
+      channel = null;
     }
+  };
+
+  const startHeartbeat = () => {
+    if (heartbeatTimer || !channel) return;
+    heartbeatTimer = setInterval(() => {
+      channel?.send({
+        type: "broadcast",
+        event: "heartbeat",
+        payload: {},
+      });
+    }, 20000);
+  };
+
+  const subscribe = () => {
+    teardownChannel();
 
     channel = supabase
       .channel(`public:entries:${userId}`)
@@ -164,7 +185,12 @@ useEffect(() => {
       )
       .subscribe(async (status) => {
         console.log(`[Realtime] Status: ${status}`);
-        if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+        if (status === "SUBSCRIBED") {
+          console.log("[Realtime] joined public:entries Cashpulse channel");
+          startHeartbeat();
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          console.error(`[Realtime Error] status: ${status} – retrying`);
+          teardownChannel();
           await supabase.auth.getSession();
           if (!retryTimer) {
             retryTimer = setTimeout(() => {
@@ -176,15 +202,28 @@ useEffect(() => {
       });
   };
 
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === "visible") {
+      supabase.auth.getSession().then(() => {
+        subscribe();
+      });
+    }
+  };
+
   subscribe();
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+  }
 
   return () => {
     if (retryTimer) {
       clearTimeout(retryTimer);
     }
-    if (channel) {
-      supabase.removeChannel(channel);
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     }
+    teardownChannel();
   };
 }, [recalcKpis, refetchEntries, supabase, userId]);
 
