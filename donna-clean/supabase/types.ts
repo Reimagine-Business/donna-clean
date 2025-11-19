@@ -1,3 +1,4 @@
+// lib/supabase/types.ts
 export type Json =
   | string
   | number
@@ -11,94 +12,80 @@ export type Database = {
     Tables: {
       entries: {
         Row: {
-          amount: number
-          category: 'Sales' | 'COGS' | 'Opex' | 'Assets'
-          created_at: string
-          entry_date: string
-          entry_type: 'Cash Inflow' | 'Cash Outflow' | 'Credit' | 'Advance'
           id: string
-          image_url: string | null
-          notes: string | null
-          payment_method: 'Cash' | 'Bank' | 'None'
-          remaining_amount: number | null
-          settled: boolean
-          settled_at: string | null
-          updated_at: string
           user_id: string
+          notes: string | null
+          created_at: string
+          payment_method: string
+          image_url: string | null
+          entry_type: string
+          category: string
+          amount: string
+          entry_date: string
+          remaining_amount: string | null
+          settled: boolean | null
+          settled_at: string | null
         }
         Insert: {
-          amount: number
-          category: 'Sales' | 'COGS' | 'Opex' | 'Assets'
-          created_at?: string
-          entry_date?: string
-          entry_type: 'Cash Inflow' | 'Cash Outflow' | 'Credit' | 'Advance'
           id?: string
-          image_url?: string | null
-          notes?: string | null
-          payment_method?: 'Cash' | 'Bank' | 'None'
-          remaining_amount?: number | null
-          settled?: boolean
-          settled_at?: string | null
-          updated_at?: string
           user_id: string
+          notes?: string | null
+          created_at?: string
+          payment_method?: string
+          image_url?: string | null
+          entry_type?: string
+          category?: string
+          amount?: string
+          entry_date?: string
+          remaining_amount?: string | null
+          settled?: boolean | null
+          settled_at?: string | null
         }
         Update: {
-          amount?: number
-          category?: 'Sales' | 'COGS' | 'Opex' | 'Assets'
-          created_at?: string
-          entry_date?: string
-          entry_type?: 'Cash Inflow' | 'Cash Outflow' | 'Credit' | 'Advance'
           id?: string
-          image_url?: string | null
-          notes?: string | null
-          payment_method?: 'Cash' | 'Bank' | 'None'
-          remaining_amount?: number | null
-          settled?: boolean
-          settled_at?: string | null
-          updated_at?: string
           user_id?: string
+          notes?: string | null
+          created_at?: string
+          payment_method?: string
+          image_url?: string | null
+          entry_type?: string
+          category?: string
+          amount?: string
+          entry_date?: string
+          remaining_amount?: string | null
+          settled?: boolean | null
+          settled_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: 'entries_user_id_fkey'
-            columns: ['user_id']
-            referencedRelation: 'users'
-            referencedColumns: ['id']
-          },
-        ]
       }
       profiles: {
         Row: {
-          business_name: string | null
-          created_at: string | null
           id: string
+          created_at: string | null
+          updated_at: string | null
+          email: string | null
+          business_name: string | null
           role: string | null
+          trial_ends_at: string | null
         }
         Insert: {
-          business_name?: string | null
-          created_at?: string | null
           id: string
+          created_at?: string | null
+          updated_at?: string | null
+          email?: string | null
+          business_name?: string | null
           role?: string | null
+          trial_ends_at?: string | null
         }
         Update: {
-          business_name?: string | null
-          created_at?: string | null
           id?: string
+          created_at?: string | null
+          updated_at?: string | null
+          email?: string | null
+          business_name?: string | null
           role?: string | null
+          trial_ends_at?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: 'profiles_id_fkey'
-            columns: ['id']
-            referencedRelation: 'users'
-            referencedColumns: ['id']
-          },
-        ]
       }
     }
-    Views: Record<string, never>
-    Functions: Record<string, never>
-    Enums: Record<string, never>
-    CompositeTypes: Record<string, never>
   }
 }
