@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
 import { Download, Edit3, Trash2, UploadCloud, X, Handshake } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,7 +113,6 @@ const paymentMethodRuleViolation = (
 };
 
 export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellProps) {
-  const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
@@ -168,7 +167,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [supabase, userId]);
+  }, [userId]);
 
   const handleInputChange = <K extends keyof EntryFormState>(
     name: K,

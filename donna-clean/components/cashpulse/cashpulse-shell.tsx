@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { format, subDays } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, Activity } from "lucide-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import {
   Entry,
   PAYMENT_METHODS,
@@ -58,7 +58,6 @@ const BASE_REALTIME_DELAY_MS = 5000;
 const MAX_REALTIME_DELAY_MS = 30000;
 
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
-  const supabase = useMemo(() => createBrowserClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [historyFilters, setHistoryFilters] = useState({
@@ -123,7 +122,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       console.error("Failed to refetch entries for Cashpulse", error);
       return undefined;
     }
-  }, [supabase, userId]);
+  }, [userId]);
 
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
@@ -299,7 +298,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       }
       teardownChannel();
     };
-  }, [recalcKpis, refetchEntries, supabase, userId]);
+    }, [recalcKpis, refetchEntries, userId]);
 
   useEffect(() => {
     if (skipNextRecalc.current) {

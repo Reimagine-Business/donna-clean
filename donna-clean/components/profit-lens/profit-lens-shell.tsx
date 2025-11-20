@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { Entry, normalizeEntry } from "@/lib/entries";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,6 @@ const BASE_REALTIME_DELAY_MS = 5000;
 const MAX_REALTIME_DELAY_MS = 30000;
 
 export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps) {
-  const supabase = useMemo(() => createBrowserClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [filters, setFilters] = useState<FiltersState>({
     start_date: currentStart,
@@ -99,7 +98,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       console.error("Failed to refetch entries for Profit Lens", error);
       return undefined;
     }
-  }, [supabase, userId]);
+  }, [userId]);
 
   useEffect(() => {
     let channel: RealtimeChannel | null = null;
@@ -269,7 +268,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       }
       teardownChannel();
     };
-  }, [recalcKpis, refetchEntries, supabase, userId]);
+    }, [recalcKpis, refetchEntries, userId]);
 
   useEffect(() => {
     if (skipNextRecalc.current) {

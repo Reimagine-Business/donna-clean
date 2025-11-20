@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const supabase = createBrowserClient();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,12 +13,10 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!supabase) {
-      setError("Supabase client not initialized – check env vars");
-      return;
-    }
-
-  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
     if (signInError) {
       setError(signInError.message);
@@ -28,7 +25,7 @@ export default function LoginPage() {
 
     await supabase.auth.refreshSession(); // Refresh to persist session
 
-    router.push('/dashboard'); // Redirect to home or features
+    router.push("/dashboard"); // Redirect to home or features
   };
 
   return (
