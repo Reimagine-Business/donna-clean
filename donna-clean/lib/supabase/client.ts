@@ -1,9 +1,8 @@
 // lib/supabase/client.ts
-import { createBrowserClient as _createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/lib/supabase/types' // or wherever your types are
+import { createBrowserClient } from '@supabase/ssr'
 
 export const createBrowserClient = () =>
-  _createBrowserClient<Database>(
+  createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
