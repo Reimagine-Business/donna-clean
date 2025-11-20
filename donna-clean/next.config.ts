@@ -1,7 +1,8 @@
 // next.config.js
-// This forces Vercel to use the stable Webpack builder instead of broken Turbopack
+/** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => config,   // dummy webpack config = Turbopack disabled
+  // This empty object tells Next.js 16 "I know about Turbopack, but I want Webpack"
+  turbopack: {},
 }
 
 module.exports = nextConfig
