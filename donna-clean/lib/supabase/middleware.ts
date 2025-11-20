@@ -47,6 +47,12 @@ export async function updateSession(request: NextRequest) {
     error,
   } = await supabase.auth.getSession();
 
+    console.log("[Middleware] Session check:", {
+      hasSession: !!session,
+      userId: session?.user?.id,
+      path: request.nextUrl.pathname,
+    });
+
   if (session && error) {
     console.error("[Auth] middleware getSession warning", error);
   }
@@ -72,6 +78,11 @@ export async function updateSession(request: NextRequest) {
   }
 
   response.headers.set("x-auth-session", activeSession ? "active" : "missing");
+
+    console.log("[Middleware] Final session state:", {
+      hasActiveSession: !!activeSession,
+      headerValue: response.headers.get("x-auth-session"),
+    });
 
   return response;
 }
