@@ -143,27 +143,15 @@ const MAX_REALTIME_DELAY_MS = 30000;
       }
     };
 
-    const logCloseReason = (
-      event?: { code?: number; reason?: string },
-      payload?: unknown,
-    ) => {
-      const code = event?.code ?? "unknown";
-      const reason = (event?.reason ?? "none").trim() || "none";
-      let payloadSummary: string;
-      try {
-        payloadSummary =
-          payload === undefined
-            ? "none"
-            : JSON.stringify(payload, (_key, value) =>
-                typeof value === "bigint" ? Number(value) : value,
-              );
-      } catch {
-        payloadSummary = "unserializable";
-      }
-      console.warn(
-        `[Realtime Closed] Code ${code}: ${reason} payload ${payloadSummary} (cashpulse channel)`,
-      );
-    };
+      const logCloseReason = (event?: CloseEvent, context?: { status?: string; source?: string }) => {
+        console.log("[Realtime] Connection closed (cashpulse)", {
+          code: event?.code,
+          reason: event?.reason,
+          wasClean: event?.wasClean,
+          status: context?.status,
+          source: context?.source,
+        });
+      };
 
     const teardownChannel = () => {
       if (heartbeatTimer) {
