@@ -30,12 +30,12 @@ export default async function Page() {
 
 const client = `'use client'
 
-import { createClient } from '@/lib/supabase/client'
+import { createBrowserClient } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 
 export default function Page() {
   const [notes, setNotes] = useState<any[] | null>(null)
-  const supabase = createClient()
+  const supabase = createBrowserClient()
 
   useEffect(() => {
     const getData = async () => {
