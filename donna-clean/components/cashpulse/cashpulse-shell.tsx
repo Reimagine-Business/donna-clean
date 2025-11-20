@@ -192,27 +192,18 @@ const MAX_REALTIME_DELAY_MS = 30000;
             table: "entries",
             filter: `user_id=eq.${userId}`,
           },
-          async (payload) => {
-            console.log("REAL-TIME: payload received", payload);
+        async (payload) => {
+          try {
+            console.log("REAL-TIME: payload received");
             const latestEntries = await refetchEntries();
-            if (!latestEntries) {
-              return;
-            }
+            if (!latestEntries) return;
             console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
             const updatedStats = recalcKpis(latestEntries);
-            const realtimeSales = updatedStats.cashBreakdown
-              .filter(
-                (channelBreakdown) =>
-                  channelBreakdown.method === "Cash" || channelBreakdown.method === "Bank",
-              )
-              .reduce((sum, channelBreakdown) => sum + channelBreakdown.value, 0);
-            console.log(
-              "REAL-TIME: KPIs recalculated → inflow:",
-              updatedStats.cashInflow,
-              "sales:",
-              realtimeSales,
-            );
-          },
+            console.log("REAL-TIME: KPIs recalculated");
+          } catch (error) {
+            console.error("[Realtime] Handler error:", error);
+          }
+        },
         )
         .subscribe(async (status) => {
           console.log(`[Realtime] Status: ${status}`);

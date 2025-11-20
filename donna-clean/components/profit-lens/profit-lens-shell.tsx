@@ -168,21 +168,18 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             table: "entries",
             filter: `user_id=eq.${userId}`,
           },
-          async (payload) => {
-            console.log("REAL-TIME: payload received", payload);
+        async (payload) => {
+          try {
+            console.log("REAL-TIME: payload received");
             const latestEntries = await refetchEntries();
-            if (!latestEntries) {
-              return;
-            }
+            if (!latestEntries) return;
             console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
             const updatedStats = recalcKpis(latestEntries);
-            console.log(
-              "REAL-TIME: KPIs recalculated → net profit:",
-              updatedStats.netProfit,
-              "sales:",
-              updatedStats.sales,
-            );
-          },
+            console.log("REAL-TIME: KPIs recalculated");
+          } catch (error) {
+            console.error("[Realtime] Handler error:", error);
+          }
+        },
         )
         .subscribe(async (status) => {
           console.log(`[Realtime] Status: ${status}`);
