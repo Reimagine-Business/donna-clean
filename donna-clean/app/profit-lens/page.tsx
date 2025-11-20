@@ -2,10 +2,10 @@ import { SiteHeader } from "@/components/site-header";
 import { ProfitLensShell } from "@/components/profit-lens/profit-lens-shell";
 import { SessionExpiredNotice } from "@/components/session-expired-notice";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
-import { createSupabaseServerClient } from "@/utils/supabase/server";
+import { createSupabaseServer } from "@/lib/supabase/server";
 
 export default async function ProfitLensPage() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await createSupabaseServer();
   const ctx = "profit-lens/page";
 
   const { user, wasInitiallyNull, initialError, refreshError, didRefresh } =

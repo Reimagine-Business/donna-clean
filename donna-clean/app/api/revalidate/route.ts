@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 
-import { createSupabaseServerClient } from "@/utils/supabase/server";
+import { createSupabaseServer } from "@/lib/supabase/server";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 
 type RevalidatePayload = {
@@ -10,7 +10,7 @@ type RevalidatePayload = {
 
 export async function POST(request: Request) {
     try {
-      const supabase = await createSupabaseServerClient();
+      const supabase = await createSupabaseServer();
       const { user, wasInitiallyNull, initialError, refreshError } = await getOrRefreshUser(supabase);
 
         if (wasInitiallyNull) {
