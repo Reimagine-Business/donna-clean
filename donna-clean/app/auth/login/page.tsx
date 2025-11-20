@@ -1,13 +1,12 @@
 // app/auth/login/page.tsx
-
 "use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase/client";
+import { createSupabaseBrowser } from "@/lib/supabase/client";   // ← Updated name if you followed the last Cursor fix
 
 export default function LoginPage() {
-  const supabase = createBrowserClient(); // ← This now works perfectly
+  const supabase = createSupabaseBrowser();   // ← correct call
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -32,10 +31,8 @@ export default function LoginPage() {
       return;
     }
 
-    // Session is automatically handled by @supabase/ssr cookies
-    // No need to call refreshSession() manually anymore
     router.push("/dashboard");
-    router.refresh(); // Optional: forces Next.js to revalidate server data
+    router.refresh();
   };
 
   return (
@@ -68,4 +65,29 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#a78bfa] disabled:opacity-50"
+              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#a78bfa] disabled:opacity-50"
+            />
+            <p className="mt-1 text-xs text-slate-400">Forgot your password?</p>
+          </div>
+
+          {error && <p className="text-sm text-red-400">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-lg bg-[#a78bfa] py-2.5 text-sm font-semibold text-black transition hover:bg-[#9f78f5] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "Signing in..." : "Login"}
+          </button>
+
+          <p className="text-center text-sm text-slate-400">
+            Don't have an account?{" "}
+            <a href="/auth/signup" className="text-[#a78bfa] hover:underline">
+              Sign up
+            </a>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
