@@ -1,7 +1,6 @@
 // next.config.js
-/** @type {import('next').NextConfig} */
 const nextConfig = {
-  // This empty object tells Next.js 16 "I know about Turbopack, but I want Webpack"
+  // This is the ONLY way to disable Turbopack in Next.js 16 on Vercel right now
   turbopack: {},
 }
 
