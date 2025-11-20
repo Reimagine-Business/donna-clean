@@ -1,4 +1,3 @@
-// lib/supabase/types.ts
 export type Json =
   | string
   | number
