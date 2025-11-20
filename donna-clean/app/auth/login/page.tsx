@@ -2,23 +2,36 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createSupabaseBrowser } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const supabase = createSupabaseBrowser(); // ← Works with @supabase/ssr cookies
   const router = useRouter();
+  const supabaseRef = useRef<ReturnType<typeof createSupabaseBrowser> | null>(null);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    supabaseRef.current = createSupabaseBrowser();
+  }, []);
+
+  const getSupabase = () => {
+    if (!supabaseRef.current) {
+      supabaseRef.current = createSupabaseBrowser();
+    }
+    return supabaseRef.current;
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setLoading(true);
+
+    const supabase = getSupabase();
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
