@@ -3,12 +3,12 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { createBrowserClient } from "@/lib/supabase/client";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 
 export function LogoutButton() {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
-  const supabase = useMemo(() => createBrowserClient(), []);
+  const supabase = useMemo(() => createSupabaseBrowser(), []);
 
   const handleLogout = async () => {
     if (isPending) return;

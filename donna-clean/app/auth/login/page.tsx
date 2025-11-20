@@ -4,10 +4,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient } from "@/lib/supabase/client";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const supabase = createBrowserClient(); // ← This now works perfectly
+  const supabase = createSupabaseBrowser(); // ← This now works perfectly
   const router = useRouter();
 
   const [email, setEmail] = useState("");

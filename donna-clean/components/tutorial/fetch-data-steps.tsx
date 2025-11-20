@@ -18,10 +18,10 @@ create policy "Allow public read access" on notes
 for select
 using (true);`.trim();
 
-const server = `import { createServerClient } from '@/lib/supabase/server'
+const server = `import { createSupabaseServer } from '@/lib/supabase/server'
 
 export default async function Page() {
-  const supabase = await createServerClient()
+  const supabase = await createSupabaseServer()
   const { data: notes } = await supabase.from('notes').select()
 
   return <pre>{JSON.stringify(notes, null, 2)}</pre>
@@ -30,12 +30,12 @@ export default async function Page() {
 
 const client = `'use client'
 
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createSupabaseBrowser } from '@/lib/supabase/client'
 import { useEffect, useState } from 'react'
 
 export default function Page() {
   const [notes, setNotes] = useState<any[] | null>(null)
-  const supabase = createBrowserClient()
+  const supabase = createSupabaseBrowser()
 
   useEffect(() => {
     const getData = async () => {

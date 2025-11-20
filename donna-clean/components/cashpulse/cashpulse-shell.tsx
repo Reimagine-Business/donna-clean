@@ -5,7 +5,7 @@ import { format, subDays } from "date-fns";
 import { ArrowDownRight, ArrowUpRight, Activity } from "lucide-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "@/lib/supabase/client";
+import { createSupabaseBrowser } from "@/lib/supabase/client";
 import {
   Entry,
   PAYMENT_METHODS,
@@ -57,8 +57,8 @@ const MAX_REALTIME_RECONNECT_ATTEMPTS = 5;
 const BASE_REALTIME_DELAY_MS = 5000;
 const MAX_REALTIME_DELAY_MS = 30000;
 
-export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
-  const supabase = useMemo(() => createBrowserClient(), []);
+  export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
+    const supabase = useMemo(() => createSupabaseBrowser(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [historyFilters, setHistoryFilters] = useState({
