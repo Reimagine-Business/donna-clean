@@ -20,7 +20,7 @@ export default async function DashboardPage() {
   let sessionError: string | null = null;
   let profile: Profile | null = null;
 
-  const supabase = createSupabaseServer();
+  const supabase = await createSupabaseServer();
 
     const { user, wasInitiallyNull, initialError, refreshError } = await getOrRefreshUser(supabase);
 

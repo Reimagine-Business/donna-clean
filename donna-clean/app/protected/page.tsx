@@ -6,7 +6,7 @@ import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServer } from "@/lib/supabase/server";
 
 export default async function ProtectedPage() {
-  const supabase = createSupabaseServer();
+  const supabase = await createSupabaseServer();
 
     const { user, wasInitiallyNull, initialError, refreshError } = await getOrRefreshUser(supabase);
 
