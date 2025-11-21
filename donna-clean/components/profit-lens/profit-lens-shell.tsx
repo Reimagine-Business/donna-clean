@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import { Entry, normalizeEntry } from "@/lib/entries";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ const BASE_REALTIME_DELAY_MS = 5000;
 const MAX_REALTIME_DELAY_MS = 30000;
 
 export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps) {
-  const supabase = useMemo(() => createBrowserClient(), []);
+  const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [filters, setFilters] = useState<FiltersState>({
     start_date: currentStart,
