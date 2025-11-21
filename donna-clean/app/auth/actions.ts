@@ -22,7 +22,7 @@ const getOrigin = async () => {
 export async function loginAction(_: AuthState, formData: FormData): Promise<AuthState> {
   const email = formData.get("email");
   const password = formData.get("password");
-  console.log("=== LOGIN ACTION CALLED ===", { email });
+  console.log("🔥 LOGIN ACTION:", email);
 
   if (typeof email !== "string" || typeof password !== "string") {
     return { error: "Email and password are required" };
@@ -35,6 +35,9 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
     hasUser: !!data?.user,
     error: error?.message,
   });
+  if (data?.session) {
+    console.log("✅ Login successful, session exists");
+  }
 
   if (error) {
     return { error: "Invalid credentials" };
