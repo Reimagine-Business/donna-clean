@@ -24,13 +24,22 @@ const isUserEmailVerified = (user: User | null): boolean => {
 export async function getOrRefreshUser(
   supabase: SupabaseClient,
 ): Promise<GetOrRefreshUserResult> {
+  console.log("[getOrRefreshUser] Starting...");
   const {
     data: { user },
     error,
   } = await supabase.auth.getUser();
 
+  console.log("[getOrRefreshUser] Initial getUser result:", {
+    hasUser: !!user,
+    userId: user?.id,
+    error: error?.message,
+    errorCode: error?.status,
+  });
+
   if (user) {
     const isEmailVerified = isUserEmailVerified(user);
+    console.log("[getOrRefreshUser] User found, returning immediately");
 
     if (!isEmailVerified) {
       console.warn("[Auth] Email not verified in getUser()", { email: user.email, id: user.id });
@@ -46,7 +55,15 @@ export async function getOrRefreshUser(
     };
   }
 
+  console.log("[getOrRefreshUser] No user, attempting refresh...");
   const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+  console.log("[getOrRefreshUser] Refresh result:", {
+    hasSession: !!refreshData?.session,
+    hasUser: !!refreshData?.user,
+    error: refreshError?.message,
+    errorCode: refreshError?.status,
+  });
+
   const refreshedUser = refreshData?.user ?? refreshData?.session?.user ?? null;
   const isEmailVerified = isUserEmailVerified(refreshedUser);
 
@@ -55,6 +72,11 @@ export async function getOrRefreshUser(
       email: refreshedUser.email,
       id: refreshedUser.id,
     });
+  }
+  if (refreshedUser) {
+    console.log("[getOrRefreshUser] Refresh SUCCESS, user restored");
+  } else {
+    console.error("[getOrRefreshUser] Refresh FAILED, no user available");
   }
 
   return {

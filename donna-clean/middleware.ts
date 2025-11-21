@@ -8,6 +8,15 @@ export async function middleware(request: NextRequest) {
     },
   });
 
+  const requestCookies = request.cookies.getAll();
+  console.log("[Middleware] Request cookies:", {
+    cookieCount: requestCookies.length,
+    hasSbAccessToken: request.cookies.has("sb-access-token"),
+    hasSbRefreshToken: request.cookies.has("sb-refresh-token"),
+    allCookieNames: requestCookies.map((cookie) => cookie.name),
+    path: request.nextUrl.pathname,
+  });
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
