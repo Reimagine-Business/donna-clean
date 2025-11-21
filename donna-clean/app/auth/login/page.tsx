@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useEffect, useFormState, useFormStatus } from "react-dom";
 import { loginAction } from "@/app/auth/actions";
 
 const initialState = { error: null as string | null };
@@ -22,6 +22,10 @@ function SubmitButton() {
 export default function LoginPage() {
   const [state, formAction] = useFormState(loginAction, initialState);
 
+  useEffect(() => {
+    console.log("🔥 FORM STATE:", state);
+  }, [state]);
+
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-md space-y-6 rounded-2xl border border-white/10 bg-slate-950/50 p-8 shadow-2xl shadow-black/30">
@@ -32,7 +36,13 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <form action={formAction} className="space-y-4">
+          <form
+            action={formAction}
+            onSubmit={() => {
+              console.log("🔥 FORM SUBMITTING - form is trying to submit");
+            }}
+            className="space-y-4"
+          >
           <div>
             <label className="block text-sm font-medium text-slate-300">Email</label>
             <input
