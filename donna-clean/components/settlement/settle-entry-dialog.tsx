@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { supabase } from "@/lib/supabase/client";   // ← shared client (no createClient!)
+import { createClient } from "@/lib/supabase/client";   // ← shared client (no createClient!)
 import { Entry } from "@/lib/entries";
 import { createSettlement, type SettleEntryResult } from "@/lib/settlements";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ type SettleEntryDialogProps = {
 
 export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
   const router = useRouter();
+  const supabase = createClient();
   const [settlementDate, setSettlementDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [amount, setAmount] = useState("");
   const [isSaving, setIsSaving] = useState(false);

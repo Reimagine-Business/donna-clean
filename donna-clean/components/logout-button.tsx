@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase/client";   // ← new shared client
+import { createClient } from "@/lib/supabase/client";   // ← new shared client
 
 export function LogoutButton() {
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
+  const supabase = createClient();
 
   const handleLogout = async () => {
     if (isPending) return;
