@@ -65,7 +65,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
   }, []);
 
   const recalcKpis = useCallback(
-    (nextEntries: Entry[], nextFilters = filters) => {
+    (nextEntries: Entry[]) => {
       const nextStats = buildProfitStats(nextEntries);
       setSales(nextStats.sales);
       setCogs(nextStats.cogs);
@@ -76,7 +76,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       setNetMargin(nextStats.netMargin);
       return nextStats;
     },
-    [filters],
+    [],
   );
 
   const refetchEntries = useCallback(async () => {
@@ -160,7 +160,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
           event: "heartbeat",
           payload: {},
           topic: "heartbeat",
-        } as any);
+        } as { type: 'broadcast'; event: string; payload: Record<string, unknown>; topic: string });
       }, 30000);
     };
 
@@ -276,7 +276,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       skipNextRecalc.current = false;
       return;
     }
-    recalcKpis(entries, filters);
+    recalcKpis(entries);
   }, [entries, filters, recalcKpis]);
 
   const rangeLabel = `${format(new Date(filters.start_date), "dd MMM")} — ${format(

@@ -36,8 +36,6 @@ const numberFormatter = new Intl.NumberFormat("en-IN", {
 
 const formatDisplayDate = (date: string) => format(new Date(date), "dd MMM");
 
-const isWithinRange = (date: string, start: string, end: string) =>
-  date >= start && date <= end;
 
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
@@ -88,7 +86,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
   }, []);
 
   const recalcKpis = useCallback(
-    (nextEntries: Entry[], nextFilters = historyFilters) => {
+    (nextEntries: Entry[]) => {
       const updatedStats = buildCashpulseStats(nextEntries);
       setInflow(updatedStats.cashInflow);
       setOutflow(updatedStats.cashOutflow);
@@ -100,7 +98,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       setHistory(updatedStats.history);
       return updatedStats;
     },
-    [historyFilters],
+    [],
   );
 
   const refetchEntries = useCallback(async () => {
@@ -184,7 +182,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           event: "heartbeat",
           payload: {},
           topic: "heartbeat",
-        } as any);
+        } as { type: 'broadcast'; event: string; payload: Record<string, unknown>; topic: string });
       }, 30000);
     };
 
@@ -306,7 +304,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       skipNextRecalc.current = false;
       return;
     }
-    recalcKpis(entries, historyFilters);
+    recalcKpis(entries);
   }, [entries, historyFilters, recalcKpis]);
   const historyLabel = `${format(new Date(historyFilters.start_date), "dd MMM yyyy")} – ${format(
     new Date(historyFilters.end_date),

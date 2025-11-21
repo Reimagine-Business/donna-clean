@@ -1,6 +1,4 @@
 // next.config.js
-const nextConfig = {
-  turbopack: {},   // this disables Turbopack and forces stable Webpack
-}
+const nextConfig = {}
 
 module.exports = nextConfig
