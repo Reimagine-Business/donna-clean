@@ -66,8 +66,11 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
         return;
       }
 
-      // Server Action handles revalidation - no need for router.refresh()
+      // Close dialog first
       onClose();
+      
+      // Force page reload to update KPIs immediately
+      window.location.reload();
     } catch (err) {
       console.error("Settlement failed", err);
       setError(err instanceof Error ? err.message : "Unable to settle entry.");
