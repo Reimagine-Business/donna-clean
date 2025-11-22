@@ -1,0 +1,45 @@
+
+> build
+> next build
+
+   ▲ Next.js 16.0.3 (Turbopack)
+   - Environments: .env.local
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 4.2s
+   Running TypeScript ...
+   Collecting page data using 3 workers ...
+   Generating static pages using 3 workers (0/19) ...
+ ⚠ metadataBase property in metadata export is not set for resolving social open graph or twitter images, using "http://localhost:26053". See https://nextjs.org/docs/app/api-reference/functions/generate-metadata#metadatabase
+   Generating static pages using 3 workers (4/19) 
+   Generating static pages using 3 workers (9/19) 
+   Generating static pages using 3 workers (14/19) 
+ ✓ Generating static pages using 3 workers (19/19) in 478.3ms
+   Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /api/revalidate
+├ ƒ /auth/confirm
+├ ƒ /auth/error
+├ ○ /auth/forgot-password
+├ ○ /auth/login
+├ ○ /auth/sign-up
+├ ○ /auth/sign-up-success
+├ ○ /auth/update-password
+├ ƒ /cashpulse
+├ ƒ /daily-entries
+├ ƒ /dashboard
+├ ○ /opengraph-image.png
+├ ƒ /profit-lens
+├ ƒ /protected
+└ ○ /twitter-image.png
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

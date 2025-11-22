@@ -1,22 +1,11 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+"use server";
 
-import type { Entry, SupabaseEntry } from "@/lib/entries";
-import { normalizeEntry } from "@/lib/entries";
+import { revalidatePath } from "next/cache";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
+import { createSupabaseServerClient } from "@/utils/supabase/server";
+import { normalizeEntry, type Entry, type SupabaseEntry } from "@/lib/entries";
 
-// To fix schema errors, run the SQL in scripts/supabase-migrations/add-settlement-columns.sql in Supabase SQL Editor. This adds remaining_amount, settled, settled_at and backfills.
-
-/**
- * Heads-up: run `psql -f supabase/fix-remaining-amounts.sql` once if legacy entries need a remaining_amount backfill.
- */
-type CreateSettlementParams = {
-  supabase: SupabaseClient;
-  entryId: string;
-  amount: number;
-  settlementDate: string;
-};
-
-export type SettleEntryResult =
+type SettleEntryResult =
   | {
       success: true;
     }
@@ -25,16 +14,16 @@ export type SettleEntryResult =
       error: string;
     };
 
-const DASHBOARD_PATHS = ["/cashpulse", "/profit-lens", "/daily-entries"];
-
-export async function createSettlement({
-  supabase,
-  entryId,
-  amount,
-  settlementDate,
-}: CreateSettlementParams): Promise<SettleEntryResult> {
+export async function createSettlement(
+  entryId: string,
+  amount: number,
+  settlementDate: string
+): Promise<SettleEntryResult> {
   const ctx = "settlements/createSettlement";
+  
   try {
+    const supabase = await createSupabaseServerClient();
+    
     const settledAmount = normalizeAmount(amount, 0);
 
     if (settledAmount <= 0) {
@@ -53,7 +42,8 @@ export async function createSettlement({
       return { success: false, error: "You must be signed in to settle entries." };
     }
 
-    const latestEntry = await loadLatestEntry(supabase, entryId);
+    // Load the entry to be settled
+    const latestEntry = await loadLatestEntry(supabase, entryId, user.id);
 
     if (latestEntry.user_id && latestEntry.user_id !== user.id) {
       return { success: false, error: "You can only settle your own entries." };
@@ -72,12 +62,14 @@ export async function createSettlement({
       return { success: false, error: "Settlement amount exceeds remaining balance." };
     }
 
+    // For Credit entries, create a corresponding Cash entry
     if (latestEntry.entry_type === "Credit") {
       const isInflow = latestEntry.category === "Sales";
       const settlementPaymentMethod =
         latestEntry.payment_method === "Cash" || latestEntry.payment_method === "Bank"
           ? latestEntry.payment_method
           : "Cash";
+          
       const { error: cashEntryError } = await supabase.from("entries").insert({
         user_id: user.id,
         entry_type: isInflow ? "Cash Inflow" : "Cash Outflow",
@@ -90,10 +82,12 @@ export async function createSettlement({
       });
 
       if (cashEntryError) {
+        console.error("Failed to create cash entry for settlement", cashEntryError);
         return { success: false, error: cashEntryError.message };
       }
     }
 
+    // Update the original entry with settlement info
     const nextRemainingAmount = Number(Math.max(remainingAmount - settledAmount, 0).toFixed(2));
     const isFullySettled = nextRemainingAmount <= 0;
 
@@ -104,13 +98,18 @@ export async function createSettlement({
         settled: isFullySettled,
         settled_at: isFullySettled ? settlementDate : null,
       })
-      .eq("id", latestEntry.id);
+      .eq("id", latestEntry.id)
+      .eq("user_id", user.id); // Ensure user can only update their own entries
 
     if (updateError) {
+      console.error("Failed to update entry with settlement info", updateError);
       return { success: false, error: updateError.message };
     }
 
-    await revalidateDashboards();
+    // Revalidate all affected pages
+    revalidatePath("/daily-entries");
+    revalidatePath("/cashpulse");
+    revalidatePath("/profit-lens");
 
     return { success: true };
   } catch (error) {
@@ -123,8 +122,9 @@ export async function createSettlement({
 }
 
 async function loadLatestEntry(
-  supabase: SupabaseClient,
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   entryId: string,
+  userId: string,
 ): Promise<Entry> {
   const { data, error } = await supabase
     .from("entries")
@@ -132,6 +132,7 @@ async function loadLatestEntry(
       "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at",
     )
     .eq("id", entryId)
+    .eq("user_id", userId) // Security: Only load user's own entries
     .single();
 
   if (error || !data) {
@@ -145,27 +146,4 @@ function normalizeAmount(value: unknown, fallback: number): number {
   const candidate =
     typeof value === "number" ? value : Number.isFinite(Number(value)) ? Number(value) : fallback;
   return Number(Number(candidate).toFixed(2));
-}
-
-async function revalidateDashboards() {
-  try {
-    if (typeof window === "undefined") {
-      const { revalidatePath } = await import("next/cache");
-      revalidatePath("/cashpulse");
-      revalidatePath("/profit-lens");
-      revalidatePath("/daily-entries");
-      return;
-    }
-
-    await fetch("/api/revalidate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ paths: DASHBOARD_PATHS }),
-      credentials: "same-origin",
-    });
-  } catch (error) {
-    console.error("Failed to revalidate dashboards", error);
-  }
 }

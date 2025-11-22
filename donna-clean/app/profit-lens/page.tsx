@@ -6,30 +6,15 @@ import { createSupabaseServerClient } from "@/utils/supabase/server";
 
 export default async function ProfitLensPage() {
   const supabase = await createSupabaseServerClient();
-  const ctx = "profit-lens/page";
-
-  const { user, wasInitiallyNull, initialError, refreshError, didRefresh } =
-    await getOrRefreshUser(supabase);
-
-  if (wasInitiallyNull) {
-    console.warn(
-      `[Auth] Session null on ${ctx} – error {${
-        initialError ? initialError.message : "none"
-      }}`,
-      initialError ?? undefined,
-    );
-    if (user && didRefresh) {
-      console.info(`[Auth] Refreshed OK on ${ctx}`);
-    }
-  }
+  const { user, initialError } = await getOrRefreshUser(supabase);
 
   if (!user) {
-    if (refreshError) {
-      console.error(
-        `[Auth Fail] Refresh error {${refreshError.message}} on ${ctx}`,
-        refreshError,
-      );
-    }
+    console.error(
+      `[Auth Fail] No user in profit-lens/page${
+        initialError ? ` – error: ${initialError.message}` : ""
+      }`,
+      initialError ?? undefined,
+    );
     return (
       <main className="min-h-screen bg-slate-950 text-white">
         <div className="flex flex-col gap-10">
@@ -37,7 +22,7 @@ export default async function ProfitLensPage() {
           <section className="px-4 pb-12 md:px-8">
             <div className="mx-auto w-full max-w-6xl">
               <SessionExpiredNotice
-                message={refreshError ? "Session refresh failed – relogin" : "Session expired – relogin"}
+                message="Session expired – please login again"
               />
             </div>
           </section>

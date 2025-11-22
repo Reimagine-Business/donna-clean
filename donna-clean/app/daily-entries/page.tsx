@@ -7,24 +7,15 @@ import { createSupabaseServerClient } from "@/utils/supabase/server";
 
 export default async function DailyEntriesPage() {
   const supabase = await createSupabaseServerClient();
-  const { user, wasInitiallyNull, initialError, refreshError } = await getOrRefreshUser(supabase);
-
-  if (wasInitiallyNull) {
-    console.warn(
-      `[Auth] Session null on daily-entries/page – error {${
-        initialError ? initialError.message : "none"
-      }}`,
-      initialError ?? undefined,
-    );
-  }
+  const { user, initialError } = await getOrRefreshUser(supabase);
 
   if (!user) {
-    if (refreshError) {
-      console.error(
-        `[Auth Fail] Refresh error {${refreshError.message}} on daily-entries/page`,
-        refreshError,
-      );
-    }
+    console.error(
+      `[Auth Fail] No user in daily-entries/page${
+        initialError ? ` – error: ${initialError.message}` : ""
+      }`,
+      initialError ?? undefined,
+    );
     redirect("/auth/login");
   }
 

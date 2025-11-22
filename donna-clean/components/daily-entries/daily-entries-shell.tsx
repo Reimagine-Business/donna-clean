@@ -20,7 +20,7 @@ import {
   normalizeEntry,
 } from "@/lib/entries";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
-import { addEntry as addEntryAction } from "@/app/daily-entries/actions";
+import { addEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/daily-entries/actions";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -292,10 +292,14 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       console.log("Saving entry payload", payload);
 
       if (editingEntryId) {
-        const { error } = await supabase.from("entries").update(payload).eq("id", editingEntryId);
-        if (error) throw error;
+        // Use Server Action for update
+        const result = await updateEntryAction(editingEntryId, payload);
+        if (!result.success) {
+          throw new Error(result.error);
+        }
         setSuccessMessage("Entry updated!");
       } else {
+        // Use Server Action for insert
         const result = await addEntryAction(payload);
         if (result?.error) {
           throw new Error(result.error);
@@ -336,7 +340,18 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const handleDelete = async (entryId: string) => {
     const confirmed = window.confirm("Delete this entry?");
     if (!confirmed) return;
-    await supabase.from("entries").delete().eq("id", entryId);
+    
+    try {
+      // Use Server Action for delete
+      const result = await deleteEntryAction(entryId);
+      if (!result.success) {
+        console.error("Failed to delete entry:", result.error);
+        alert(`Failed to delete entry: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Failed to delete entry:", error);
+      alert("Failed to delete entry. Please try again.");
+    }
   };
 
   const handleReceiptChange = (fileList: FileList | null) => {

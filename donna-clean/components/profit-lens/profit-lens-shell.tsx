@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
-import { createBrowserClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import { Entry, normalizeEntry } from "@/lib/entries";
 import { cn } from "@/lib/utils";
 
@@ -38,7 +38,7 @@ const BASE_REALTIME_DELAY_MS = 5000;
 const MAX_REALTIME_DELAY_MS = 30000;
 
 export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps) {
-  const supabase = useMemo(() => createBrowserClient(), []);
+  const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [filters, setFilters] = useState<FiltersState>({
     start_date: currentStart,
@@ -76,7 +76,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       setNetMargin(nextStats.netMargin);
       return nextStats;
     },
-    [filters],
+    [], // CRITICAL: Empty deps - don't recreate on filter changes to prevent re-subscriptions
   );
 
   const refetchEntries = useCallback(async () => {
@@ -207,9 +207,8 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             logCloseReason(undefined, { status });
             console.error("[Realtime Error] Closed – scheduling retry");
             teardownChannel();
-            await supabase.auth.refreshSession().catch((error) => {
-              console.error("[Realtime Error] refreshSession failed before retry (profit-lens)", error);
-            });
+            // Note: DO NOT call refreshSession() here - it causes 429 rate limiting
+            // Middleware handles session refresh automatically
             scheduleRetry();
           }
         });
@@ -243,13 +242,13 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        supabase.auth.refreshSession().finally(() => {
-          if (!channel || channel.state !== "joined") {
-            retryAttempt = 0;
-            hasAlertedRealtimeFailure = false;
-            subscribe();
-          }
-        });
+        // Note: DO NOT call refreshSession() here - middleware handles it
+        // Just reconnect the Realtime channel if needed
+        if (!channel || channel.state !== "joined") {
+          retryAttempt = 0;
+          hasAlertedRealtimeFailure = false;
+          subscribe();
+        }
       }
     };
 

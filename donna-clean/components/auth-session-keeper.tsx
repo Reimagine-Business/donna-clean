@@ -1,48 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
+/**
+ * DEPRECATED: This component is no longer needed and should NOT be used.
+ * 
+ * Session refresh is now handled by middleware (at /middleware.ts).
+ * Client-side session refresh causes:
+ * - 429 Rate Limiting errors
+ * - Conflicts with middleware refresh logic
+ * - Unnecessary network requests
+ * 
+ * DO NOT import or use this component.
+ */
 
 export function AuthSessionKeeper() {
-  const supabase = useSupabaseClient();
-
-  useEffect(() => {
-    let intervalId: number | null = null;
-
-    const refreshSession = async () => {
-      try {
-        const { data, error } = await supabase.auth.refreshSession();
-
-        if (error) {
-          console.error("[Auth] Interval Refresh failed", error);
-          return;
-        }
-
-        if (data.session) {
-          console.info("[Auth] Interval Refresh OK");
-        } else {
-          console.warn("[Auth] Interval Refresh missing session");
-        }
-      } catch (refreshError) {
-        console.error("[Auth] Interval Refresh failed", refreshError);
-      }
-    };
-
-    const initialize = () => {
-      void refreshSession();
-      intervalId = window.setInterval(refreshSession, FIVE_MINUTES_MS);
-    };
-
-    initialize();
-
-    return () => {
-      if (intervalId !== null) {
-        window.clearInterval(intervalId);
-      }
-    };
-  }, [supabase]);
-
+  // Disabled - middleware handles all session refresh
   return null;
 }

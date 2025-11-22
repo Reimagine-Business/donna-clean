@@ -6,7 +6,6 @@ import { hasEnvVars } from "../utils";
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24; // 24 hours
 
 export async function updateSession(request: NextRequest) {
-  const ctx = "middleware";
   let response = NextResponse.next({ request });
 
   if (!hasEnvVars) {
@@ -22,9 +21,9 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
+          // CRITICAL: Set all cookies on the SAME response object
+          // Creating a new response for each cookie would lose previous cookies!
           cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value);
-            response = NextResponse.next({ request });
             response.cookies.set(name, value, {
               ...options,
               maxAge: options?.maxAge ?? SESSION_MAX_AGE_SECONDS,
@@ -35,43 +34,40 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const logSessionNull = (error: AuthError | null) => {
-    console.warn(
-      `[Auth] Session null on ${ctx} – error {${error ? error.message : "none"}}`,
-      error ?? undefined,
-    );
-  };
-
+  // IMPORTANT: Use getSession() first (doesn't make API call)
+  // This checks if we have session cookies without hitting Supabase
   const {
     data: { session },
-    error,
   } = await supabase.auth.getSession();
 
-  if (session && error) {
-    console.error("[Auth] middleware getSession warning", error);
-  }
-
-  let activeSession = session ?? null;
-
-  if (!activeSession) {
-    logSessionNull(error ?? null);
-
-    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-
-    if (refreshError) {
-      console.error(
-        `[Auth Fail] Refresh error {${refreshError.message}} on ${ctx}`,
-        refreshError,
-      );
-    } else {
-      activeSession = refreshData.session ?? null;
-      if (activeSession) {
-        console.info(`[Auth] Refreshed OK on ${ctx}`);
-      }
+  if (session) {
+    // We have a session - validate it's not expired
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = session.expires_at ?? 0;
+    
+    // If session expires in more than 5 minutes, it's good
+    if (expiresAt > now + 300) {
+      response.headers.set("x-auth-session", "active");
+      return response;
     }
+    
+    // Session is expiring soon (< 5 min), try to refresh
+    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+    
+    if (!refreshError && refreshData.session) {
+      response.headers.set("x-auth-session", "active");
+      return response;
+    }
+    
+    // Refresh failed - session will expire, but let request continue
+    // Page will redirect to login if needed
+    response.headers.set("x-auth-session", "expiring");
+    return response;
   }
 
-  response.headers.set("x-auth-session", activeSession ? "active" : "missing");
-
+  // No session at all - user is not logged in
+  // DON'T try to refresh - there's nothing to refresh!
+  // Let the request continue, page will redirect to login if needed
+  response.headers.set("x-auth-session", "missing");
   return response;
 }

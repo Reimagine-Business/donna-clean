@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase/client";   // ← new shared client
+import { createClient } from "@/lib/supabase/client";
 
 export function LogoutButton() {
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const [isPending, setIsPending] = useState(false);
 

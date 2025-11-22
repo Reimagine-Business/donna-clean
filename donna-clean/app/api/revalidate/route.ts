@@ -11,26 +11,17 @@ type RevalidatePayload = {
 export async function POST(request: Request) {
     try {
       const supabase = await createSupabaseServerClient();
-      const { user, wasInitiallyNull, initialError, refreshError } = await getOrRefreshUser(supabase);
+      const { user, initialError } = await getOrRefreshUser(supabase);
 
-        if (wasInitiallyNull) {
-          console.warn(
-            `[Auth] Session null on api/revalidate – error {${
-              initialError ? initialError.message : "none"
-            }}`,
-            initialError ?? undefined,
-          );
-        }
-
-        if (!user) {
-          if (refreshError) {
-            console.error(
-              `[Auth Fail] Refresh error {${refreshError.message}} on api/revalidate`,
-              refreshError,
-            );
-          }
-          return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-        }
+      if (!user) {
+        console.error(
+          `[Auth Fail] No user in api/revalidate${
+            initialError ? ` – error: ${initialError.message}` : ""
+          }`,
+          initialError ?? undefined,
+        );
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
 
     const body = (await request.json().catch(() => ({}))) as RevalidatePayload;
     const pathList = Array.isArray(body.paths) ? body.paths : [];

@@ -1,12 +1,12 @@
 // app/auth/login/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseBrowser } from "@/lib/supabase/client";   // ← Updated name if you followed the last Cursor fix
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const supabase = createSupabaseBrowser();   // ← correct call
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -31,8 +31,8 @@ export default function LoginPage() {
       return;
     }
 
+    // Navigate to dashboard - navigation loads fresh data automatically
     router.push("/dashboard");
-    router.refresh();
   };
 
   return (

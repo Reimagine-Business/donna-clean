@@ -1,0 +1,42 @@
+
+> build
+> next build
+
+   ▲ Next.js 16.0.3 (Turbopack)
+   - Environments: .env.local
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+Turbopack build encountered 1 warnings:
+[next]/internal/font/google/8a480f0b521d4e75-s.woff2
+Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.gstatic.com/s/geist/v4/gyByhwUxId8gMEwYGFWNOITddY4.woff2
+
+
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+[next]/internal/font/google/geist_6ee70f7.module.css:8:9
+Module not found: Can't resolve '@vercel/turbopack-next/internal/font/google/font'
+[0m [90m  6 |[39m   font[33m-[39mdisplay[33m:[39m swap[33m;[39m
+ [90m  7 |[39m   src[33m:[39m url([33m@[39mvercel[33m/[39mturbopack[33m-[39mnext[33m/[39minternal[33m/[39mfont[33m/[39mgoogle[35m/font?{%22url%22:%22https:/[39m[33m/[39mfonts[33m.[39mgstatic[33m.[39mcom[33m/[39ms[33m/[39mgeist[33m/[39mv4[33m/[39mgyByhwUxId8gMEwYGFWNOITddY4[33m.[39mwoff2[33m%[39m[35m22[39m[33m,[39m[33m%[39m[35m22[39mpreload[33m%[39m[35m22[39m[33m:[39m[36mfalse[39m[33m,[39m[33m%[39m[35m22[39mhas_size_adjust[33m%[39m[35m22[39m[33m:[39m[36mtrue[39m}) format([32m'woff2'[39m)[33m;[39m
+[31m[1m>[22m[39m[90m  8 |[39m   unicode[33m-[39mrange[33m:[39m [33mU[39m[33m+[39m[35m0301[39m[33m,[39m [33mU[39m[33m+[39m[35m0400[39m[33m-[39m[35m045[39m[33mF[39m[33m,[39m [33mU[39m[33m+[39m[35m0490[39m[33m-[39m[35m0491[39m[33m,[39m [33mU[39m[33m+[39m[35m04[39m[33mB0[39m[33m-[39m[35m04[39m[33mB1[39m[33m,[39m [33mU[39m[33m+[39m[35m2116[39m[33m;[39m
+ [90m    |[39m         [31m[1m^[22m[39m
+ [90m  9 |[39m }
+ [90m 10 |[39m [90m/* latin-ext */[39m
+ [90m 11 |[39m [33m@[39mfont[33m-[39mface {[0m
+
+Import map: Resolved by import map
+
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_6ee70f7.module.css
+    [next]/internal/font/google/geist_6ee70f7.js
+    ./app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+    at <unknown> ([next]/internal/font/google/geist_6ee70f7.module.css:8:9)
+    at <unknown> (https://nextjs.org/docs/messages/module-not-found)
