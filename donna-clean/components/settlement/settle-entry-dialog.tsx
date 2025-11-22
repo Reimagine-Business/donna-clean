@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { createClient } from "@/lib/supabase/client";
 import { Entry } from "@/lib/entries";
-import { createSettlement, type SettleEntryResult } from "@/lib/settlements";
+import { createSettlement } from "@/app/settlements/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,10 +14,6 @@ type SettleEntryDialogProps = {
 };
 
 export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
-  // Create a fresh client instance for this component
-  // CRITICAL: Don't use singleton - it has stale session
-  const supabase = useMemo(() => createClient(), []);
-  const router = useRouter();
   const [settlementDate, setSettlementDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [amount, setAmount] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -64,20 +58,15 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
     setError(null);
 
     try {
-      // Note: Middleware handles session refresh - no need to call it here
-      const result: SettleEntryResult = await createSettlement({
-        supabase,
-        entryId: entry.id,
-        amount: numericAmount,
-        settlementDate,
-      });
+      // Use Server Action for settlement (no client-side Supabase!)
+      const result = await createSettlement(entry.id, numericAmount, settlementDate);
 
       if (!result.success) {
         setError(result.error);
         return;
       }
 
-      router.refresh();   // refreshes data on the current page
+      // Server Action handles revalidation - no need for router.refresh()
       onClose();
     } catch (err) {
       console.error("Settlement failed", err);
