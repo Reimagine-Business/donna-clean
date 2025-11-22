@@ -22,9 +22,9 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
+          // CRITICAL: Set all cookies on the SAME response object
+          // Creating a new response for each cookie would lose previous cookies!
           cookiesToSet.forEach(({ name, value, options }) => {
-            request.cookies.set(name, value);
-            response = NextResponse.next({ request });
             response.cookies.set(name, value, {
               ...options,
               maxAge: options?.maxAge ?? SESSION_MAX_AGE_SECONDS,
@@ -35,43 +35,41 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const logSessionNull = (error: AuthError | null) => {
-    console.warn(
-      `[Auth] Session null on ${ctx} – error {${error ? error.message : "none"}}`,
-      error ?? undefined,
-    );
-  };
-
+  // Use getUser() instead of getSession() to validate the JWT
+  // getUser() makes an API call to verify the token is still valid
   const {
-    data: { session },
+    data: { user },
     error,
-  } = await supabase.auth.getSession();
+  } = await supabase.auth.getUser();
 
-  if (session && error) {
-    console.error("[Auth] middleware getSession warning", error);
+  if (user) {
+    // User is authenticated and JWT is valid
+    response.headers.set("x-auth-session", "active");
+    return response;
   }
 
-  let activeSession = session ?? null;
+  // No valid user, attempt to refresh the session
+  console.warn(
+    `[Auth] No user in ${ctx} – error {${error ? error.message : "none"}}. Attempting refresh...`,
+    error ?? undefined,
+  );
 
-  if (!activeSession) {
-    logSessionNull(error ?? null);
+  const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
 
-    const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-
-    if (refreshError) {
-      console.error(
-        `[Auth Fail] Refresh error {${refreshError.message}} on ${ctx}`,
-        refreshError,
-      );
-    } else {
-      activeSession = refreshData.session ?? null;
-      if (activeSession) {
-        console.info(`[Auth] Refreshed OK on ${ctx}`);
-      }
-    }
+  if (refreshError || !refreshData.session) {
+    console.error(
+      `[Auth Fail] Refresh failed in ${ctx}${
+        refreshError ? ` – error: ${refreshError.message}` : ""
+      }`,
+      refreshError ?? undefined,
+    );
+    response.headers.set("x-auth-session", "missing");
+    // Don't redirect here - let the page handle it
+    return response;
   }
 
-  response.headers.set("x-auth-session", activeSession ? "active" : "missing");
-
+  // Refresh successful
+  console.info(`[Auth] Session refreshed successfully in ${ctx}`);
+  response.headers.set("x-auth-session", "active");
   return response;
 }
