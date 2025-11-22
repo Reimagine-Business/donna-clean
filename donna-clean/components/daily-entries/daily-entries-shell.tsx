@@ -19,7 +19,6 @@ import {
   type PaymentMethod,
   normalizeEntry,
 } from "@/lib/entries";
-import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { addEntry as addEntryAction } from "@/app/daily-entries/actions";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
@@ -125,7 +124,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   const [formValues, setFormValues] = useState<EntryFormState>(buildInitialFormState);
   const [filters, setFilters] = useState<FiltersState>(buildInitialFiltersState);
-  const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {

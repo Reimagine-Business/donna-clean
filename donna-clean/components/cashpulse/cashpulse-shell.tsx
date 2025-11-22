@@ -58,7 +58,6 @@ const MAX_REALTIME_DELAY_MS = 30000;
 export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) {
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
-  const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [historyFilters, setHistoryFilters] = useState({
     start_date: format(subDays(new Date(), 30), "yyyy-MM-dd"),
     end_date: format(new Date(), "yyyy-MM-dd"),
