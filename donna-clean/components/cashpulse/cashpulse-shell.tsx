@@ -35,7 +35,6 @@ const numberFormatter = new Intl.NumberFormat("en-IN", {
 
 const formatDisplayDate = (date: string) => format(new Date(date), "dd MMM");
 
-
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
 
@@ -507,7 +506,6 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           </div>
         </section>
 
-        <SettleEntryDialog entry={settlementEntry} onClose={() => setSettlementEntry(null)} />
       </div>
     );
   }
@@ -757,7 +755,6 @@ function PendingCard({ title, description, info, accent }: PendingCardProps) {
           if (!canSettleEntry) {
             console.log(`Settle disabled for ID ${entry.id}: settled or no remaining`);
           }
-          const disabledTitle = canSettleEntry ? undefined : "Settled or no balance";
             return (
               <div
                 key={entry.id}
