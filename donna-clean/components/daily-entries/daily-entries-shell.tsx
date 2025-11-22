@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
-import { Download, Edit3, Trash2, UploadCloud, X, Handshake } from "lucide-react";
+import { Download, Edit3, Trash2, UploadCloud, X } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -810,18 +810,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                      {!entry.settled &&
-                        (entry.entry_type === "Credit" || entry.entry_type === "Advance") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-[#a78bfa] hover:text-white"
-                            onClick={() => setSettlementEntry(entry)}
-                          >
-                            <Handshake className="mr-1 h-4 w-4" />
-                            Settle
-                          </Button>
-                        )}
                     </div>
                   </td>
                 </tr>
@@ -830,7 +818,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
           </table>
         </div>
       </section>
-      <SettleEntryDialog entry={settlementEntry} onClose={() => setSettlementEntry(null)} />
     </div>
   );
 }
