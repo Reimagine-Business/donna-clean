@@ -1,25 +1,16 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { SessionContextProvider } from "@supabase/auth-helpers-react";
-import type { SupabaseClient } from "@supabase/supabase-js";
+
+// Note: This provider is deprecated with @supabase/ssr
+// We no longer need a SessionContextProvider wrapper
+// Each component creates its own client using createClient() from @/lib/supabase/client
 
 type SupabaseProviderProps = {
   children: ReactNode;
-  client: SupabaseClient;
+  client?: unknown; // kept for backwards compatibility
 };
 
-export function SupabaseProvider({ children, client }: SupabaseProviderProps) {
-  if (!client) {
-    if (process.env.NODE_ENV !== "production") {
-      console.warn("[SupabaseProvider] Supabase client missing – skipping provider render.");
-    }
-    return <>{children}</>;
-  }
-
-  return (
-    <SessionContextProvider supabaseClient={client}>
-      {children}
-    </SessionContextProvider>
-  );
+export function SupabaseProvider({ children }: SupabaseProviderProps) {
+  return <>{children}</>;
 }

@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useEffect, useMemo } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
 
 export function AuthSessionKeeper() {
-  const supabase = useSupabaseClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     let intervalId: number | null = null;
