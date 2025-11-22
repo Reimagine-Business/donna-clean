@@ -61,12 +61,9 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
     setError(null);
 
     try {
-      // Force refresh session so RLS sees the correct user_id (prevents logout!)
-      const { error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError) throw refreshError;
-
+      // Note: Middleware handles session refresh - no need to call it here
       const result: SettleEntryResult = await createSettlement({
-        supabase,                           // ← passes the freshly-refreshed client
+        supabase,
         entryId: entry.id,
         amount: numericAmount,
         settlementDate,

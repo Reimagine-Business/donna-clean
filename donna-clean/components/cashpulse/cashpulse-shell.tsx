@@ -237,9 +237,8 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
             logCloseReason(undefined, { status });
             console.error("[Realtime Error] Closed – scheduling retry");
             teardownChannel();
-            await supabase.auth.refreshSession().catch((error) => {
-              console.error("[Realtime Error] refreshSession failed before retry (cashpulse)", error);
-            });
+            // Note: DO NOT call refreshSession() here - it causes 429 rate limiting
+            // Middleware handles session refresh automatically
             scheduleRetry();
           }
         });
@@ -273,13 +272,13 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        supabase.auth.refreshSession().finally(() => {
-          if (!channel || channel.state !== "joined") {
-            retryAttempt = 0;
-            hasAlertedRealtimeFailure = false;
-            subscribe();
-          }
-        });
+        // Note: DO NOT call refreshSession() here - middleware handles it
+        // Just reconnect the Realtime channel if needed
+        if (!channel || channel.state !== "joined") {
+          retryAttempt = 0;
+          hasAlertedRealtimeFailure = false;
+          subscribe();
+        }
       }
     };
 
