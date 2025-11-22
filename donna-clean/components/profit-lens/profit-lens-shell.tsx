@@ -76,7 +76,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       setNetMargin(nextStats.netMargin);
       return nextStats;
     },
-    [filters],
+    [], // CRITICAL: Empty deps - don't recreate on filter changes to prevent re-subscriptions
   );
 
   const refetchEntries = useCallback(async () => {

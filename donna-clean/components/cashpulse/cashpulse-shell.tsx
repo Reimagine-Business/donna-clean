@@ -100,7 +100,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       setHistory(updatedStats.history);
       return updatedStats;
     },
-    [historyFilters],
+    [], // CRITICAL: Empty deps - don't recreate on filter changes to prevent re-subscriptions
   );
 
   const refetchEntries = useCallback(async () => {
