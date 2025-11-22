@@ -424,21 +424,18 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
             description="Credit sales awaiting payment."
             info={pendingCollections}
             accent="emerald"
-            onSettle={setSettlementEntry}
           />
           <PendingCard
             title="Pending Bills"
             description="Credit purchases awaiting payment."
             info={pendingBills}
             accent="rose"
-            onSettle={setSettlementEntry}
           />
           <PendingCard
             title="Advances"
             description="Advance payments to be settled."
             info={pendingAdvances}
             accent="purple"
-            onSettle={setSettlementEntry}
           />
         </section>
 
@@ -717,7 +714,6 @@ type PendingCardProps = {
   description: string;
   info: PendingList;
   accent: "emerald" | "rose" | "purple";
-  onSettle: (entry: Entry) => void;
 };
 
 const accentText: Record<PendingCardProps["accent"], string> = {
