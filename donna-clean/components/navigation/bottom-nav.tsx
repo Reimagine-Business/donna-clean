@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/home", icon: "🏠", label: "Home" },
-  { href: "/daily-entries", icon: "📝", label: "Entries" },
-  { href: "/cashpulse", icon: "💰", label: "Cashpulse" },
-  { href: "/profit-lens", icon: "📊", label: "Profit Lens" },
-  { href: "/alerts", icon: "🔔", label: "Alerts" },
+  { href: "/home", label: "Home" },
+  { href: "/daily-entries", label: "Entries" },
+  { href: "/cashpulse", label: "Cashpulse" },
+  { href: "/profit-lens", label: "Profit Lens" },
+  { href: "/alerts", label: "Alerts" },
 ];
 
 export function BottomNav() {
@@ -25,16 +25,13 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex min-h-[48px] flex-1 flex-col items-center justify-center gap-1 py-2 transition-colors",
+                "flex min-h-[48px] flex-1 items-center justify-center py-3 transition-colors",
                 isActive
                   ? "text-[#a78bfa]"
                   : "text-slate-400 hover:text-slate-300"
               )}
             >
-              <span className="text-xl" aria-hidden="true">
-                {item.icon}
-              </span>
-              <span className="text-xs font-medium">{item.label}</span>
+              <span className="text-sm font-medium">{item.label}</span>
             </Link>
           );
         })}
