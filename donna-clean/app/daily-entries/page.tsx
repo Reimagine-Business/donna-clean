@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 import { DailyEntriesShell } from "@/components/daily-entries/daily-entries-shell";
 import { normalizeEntry, type Entry } from "@/lib/entries";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
@@ -32,7 +33,7 @@ export default async function DailyEntriesPage() {
   const entries: Entry[] = data?.map((entry) => normalizeEntry(entry)) ?? [];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-slate-950 text-white pb-24 md:pb-8">
       <div className="flex flex-col gap-10">
         <SiteHeader />
         <section className="px-4 pb-12 md:px-8">
@@ -41,6 +42,7 @@ export default async function DailyEntriesPage() {
           </div>
         </section>
       </div>
+      <BottomNav />
     </main>
   );
 }
