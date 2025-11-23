@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import { markReminderDone } from "@/app/reminders/actions";
 import { EditReminderDialog } from "./edit-reminder-dialog";
 
-type FilterOption = "due_soon" | "overdue" | "completed";
+type FilterOption = "all" | "due_soon" | "overdue" | "completed";
 
 interface Reminder {
   id: string;
@@ -86,6 +86,8 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     switch (activeFilter) {
+      case "all":
+        return true;
       case "due_soon":
         return reminder.status === "pending" && diffDays >= 0 && diffDays <= 30;
       case "overdue":
@@ -115,7 +117,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
   return (
     <>
       <div className="space-y-6">
-        {/* Header with Filter Dropdown and Add Button */}
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white">Alerts & Reminders</h1>
@@ -124,35 +126,75 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Filter Dropdown */}
-            <div className="relative">
-              <select
-                value={activeFilter}
-                onChange={(e) => setActiveFilter(e.target.value as FilterOption)}
-                className="appearance-none rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 pr-10 text-sm font-medium text-white transition-colors hover:bg-slate-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-              >
-                {filterOptions.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    📅 {option.label}
-                  </option>
-                ))}
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
+          {/* Add Button */}
+          <button
+            onClick={onAddClick}
+            className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+          >
+            <span className="text-xl leading-none">+</span>
+            <span>Add Reminder</span>
+          </button>
+        </div>
 
-            {/* Add Button */}
+        {/* Tabs and Date Range Selector */}
+        <div className="flex items-center justify-between">
+          {/* Filter Tabs */}
+          <div className="flex gap-2">
             <button
-              onClick={onAddClick}
-              className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+              onClick={() => setActiveFilter("all")}
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                activeFilter === "all"
+                  ? "bg-purple-600 text-white"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              )}
             >
-              <span className="text-xl leading-none">+</span>
-              <span>Add Reminder</span>
+              All
             </button>
+            <button
+              onClick={() => setActiveFilter("due_soon")}
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                activeFilter === "due_soon"
+                  ? "bg-purple-600 text-white"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              )}
+            >
+              Due Soon
+            </button>
+            <button
+              onClick={() => setActiveFilter("overdue")}
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                activeFilter === "overdue"
+                  ? "bg-purple-600 text-white"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              )}
+            >
+              Overdue
+            </button>
+            <button
+              onClick={() => setActiveFilter("completed")}
+              className={cn(
+                "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                activeFilter === "completed"
+                  ? "bg-purple-600 text-white"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              )}
+            >
+              Completed
+            </button>
+          </div>
+
+          {/* Date Range Selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-400">Date:</span>
+            <select className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
+              <option value="this-month">📅 This Month</option>
+              <option value="last-month">Last Month</option>
+              <option value="this-year">This Year</option>
+              <option value="custom">Customize</option>
+            </select>
           </div>
         </div>
 
