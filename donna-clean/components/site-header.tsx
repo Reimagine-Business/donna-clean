@@ -12,17 +12,20 @@ export function SiteHeader() {
         <div className="flex items-center gap-6 font-semibold">
           <Link href="/">Donna Clean</Link>
           <div className="flex items-center gap-4 text-sm font-normal">
-            <Link className="hover:underline" href="/dashboard">
-              Dashboard
+            <Link className="hover:underline" href="/home">
+              Home
             </Link>
             <Link className="hover:underline" href="/daily-entries">
-              Daily entries
+              Entries
             </Link>
               <Link className="hover:underline" href="/cashpulse">
                 Cashpulse
               </Link>
               <Link className="hover:underline" href="/profit-lens">
                 Profit Lens
+              </Link>
+              <Link className="hover:underline" href="/alerts">
+                Alerts
               </Link>
           </div>
         </div>

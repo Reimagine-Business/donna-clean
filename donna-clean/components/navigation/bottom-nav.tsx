@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/home", icon: "🏠", label: "Home" },
-  { href: "/daily-entries", icon: "📝", label: "Entry" },
-  { href: "/cashpulse", icon: "💰", label: "Cash" },
-  { href: "/profit-lens", icon: "📊", label: "Profit" },
-  { href: "/alerts", icon: "🔔", label: "Alert" },
+  { href: "/daily-entries", icon: "📝", label: "Entries" },
+  { href: "/cashpulse", icon: "💰", label: "Cashpulse" },
+  { href: "/profit-lens", icon: "📊", label: "Profit Lens" },
+  { href: "/alerts", icon: "🔔", label: "Alerts" },
 ];
 
 export function BottomNav() {
