@@ -1,9 +1,11 @@
 import { format } from "date-fns";
 
 export const ENTRY_TYPES = ["Cash Inflow", "Cash Outflow", "Credit", "Advance"] as const;
-export const CATEGORIES = ["Sales", "COGS", "Opex", "Assets"] as const;
+export const CATEGORIES = ["Sales", "COGS", "Opex", "Assets", "Collection", "Payment"] as const;
 export const PAYMENT_METHODS = ["Cash", "Bank"] as const;
+
 const PAYMENT_METHOD_OPTIONS = [...PAYMENT_METHODS, "None"] as const;
+
 export const CASH_FLOW_ENTRY_TYPES = ["Cash Inflow", "Cash Outflow"] as const;
 
 export type EntryType = (typeof ENTRY_TYPES)[number];
@@ -70,7 +72,9 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
     typeof entry.remaining_amount === "number"
       ? entry.remaining_amount
       : Number(entry.remaining_amount ?? amount);
+
   const fallbackDate = format(new Date(), "yyyy-MM-dd");
+
   const safeId =
     typeof entry.id === "string" && entry.id.length > 0
       ? entry.id
