@@ -1,4 +1,5 @@
 import { SiteHeader } from "@/components/site-header";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 import { CashpulseShell } from "@/components/cashpulse/cashpulse-shell";
 import { SessionExpiredNotice } from "@/components/session-expired-notice";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
@@ -42,7 +43,7 @@ export default async function CashpulsePage() {
   if (error) throw error;
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-slate-950 text-white pb-24 md:pb-8">
       <div className="flex flex-col gap-10">
         <SiteHeader />
         <section className="px-4 pb-12 md:px-8">
@@ -51,6 +52,7 @@ export default async function CashpulsePage() {
           </div>
         </section>
       </div>
+      <BottomNav />
     </main>
   );
 }
