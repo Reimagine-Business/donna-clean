@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { HamburgerMenu } from "@/components/navigation/hamburger-menu";
 import { AlertsShell } from "@/components/alerts/alerts-shell";
@@ -21,7 +22,10 @@ export default async function AlertsPage() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-10">
+        {/* Desktop Header */}
+        <SiteHeader />
+
         {/* Mobile Header */}
         <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-900 md:hidden">
           <div className="flex items-center justify-between px-4 py-3">
@@ -34,7 +38,7 @@ export default async function AlertsPage() {
         </header>
 
         {/* Main Content */}
-        <section className="px-4 pb-24 pt-6 md:px-8 md:pb-8">
+        <section className="px-4 pb-24 md:px-8 md:pb-8">
           <div className="mx-auto w-full max-w-6xl">
             <AlertsShell />
           </div>
