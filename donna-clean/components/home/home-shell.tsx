@@ -1,9 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { markReminderDone } from "@/app/reminders/actions";
+import { AddReminderDialog } from "@/components/alerts/add-reminder-dialog";
 
 interface Reminder {
   id: string;
@@ -63,6 +64,7 @@ const getCategoryIcon = (category: string) => {
 export function HomeShell({ initialReminders }: HomeShellProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   // Filter for Due Soon (next 7 days, pending only)
   const dueSoonReminders = initialReminders.filter((reminder) => {
@@ -89,6 +91,10 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
     router.push("/alerts");
   };
 
+  const handleAddSuccess = () => {
+    // The page will be revalidated by the server action
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -105,12 +111,21 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
           <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
             Due Soon (Next 7 Days)
           </h2>
-          <button
-            onClick={handleViewAll}
-            className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
-          >
-            View All →
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsAddDialogOpen(true)}
+              className="flex items-center gap-1.5 rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+            >
+              <span className="text-lg leading-none">+</span>
+              <span>Add Reminder</span>
+            </button>
+            <button
+              onClick={handleViewAll}
+              className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+            >
+              View All →
+            </button>
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -175,6 +190,13 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
           )}
         </div>
       </section>
+
+      {/* Add Dialog */}
+      <AddReminderDialog
+        isOpen={isAddDialogOpen}
+        onClose={() => setIsAddDialogOpen(false)}
+        onSuccess={handleAddSuccess}
+      />
     </div>
   );
 }

@@ -36,7 +36,10 @@ export function AlertsPageClient({ userEmail, initialReminders }: AlertsPageClie
       {/* Main Content */}
       <section className="px-4 pb-24 md:px-8 md:pb-8">
         <div className="mx-auto w-full max-w-6xl">
-          <AlertsShell initialReminders={initialReminders} />
+          <AlertsShell
+            initialReminders={initialReminders}
+            onAddClick={() => setIsAddDialogOpen(true)}
+          />
         </div>
       </section>
 

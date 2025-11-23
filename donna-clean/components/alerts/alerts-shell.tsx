@@ -20,6 +20,7 @@ interface Reminder {
 
 interface AlertsShellProps {
   initialReminders: Reminder[];
+  onAddClick?: () => void;
 }
 
 const formatCurrency = (amount: number): string => {
@@ -71,7 +72,7 @@ const getCategoryIcon = (category: string) => {
   }
 };
 
-export function AlertsShell({ initialReminders }: AlertsShellProps) {
+export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) {
   const [activeFilter, setActiveFilter] = useState<FilterOption>("due_soon");
   const [isPending, startTransition] = useTransition();
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
@@ -123,7 +124,7 @@ export function AlertsShell({ initialReminders }: AlertsShellProps) {
   return (
     <>
       <div className="space-y-6">
-        {/* Header with Filter Dropdown */}
+        {/* Header with Filter Dropdown and Add Button */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white">Alerts & Reminders</h1>
@@ -132,24 +133,35 @@ export function AlertsShell({ initialReminders }: AlertsShellProps) {
             </p>
           </div>
 
-          {/* Filter Dropdown */}
-          <div className="relative">
-            <select
-              value={activeFilter}
-              onChange={(e) => setActiveFilter(e.target.value as FilterOption)}
-              className="appearance-none rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 pr-10 text-sm font-medium text-white transition-colors hover:bg-slate-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-            >
-              {filterOptions.map((option) => (
-                <option key={option.id} value={option.id}>
-                  📅 {option.label}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
+          <div className="flex items-center gap-3">
+            {/* Filter Dropdown */}
+            <div className="relative">
+              <select
+                value={activeFilter}
+                onChange={(e) => setActiveFilter(e.target.value as FilterOption)}
+                className="appearance-none rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 pr-10 text-sm font-medium text-white transition-colors hover:bg-slate-700 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              >
+                {filterOptions.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    📅 {option.label}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
             </div>
+
+            {/* Add Button */}
+            <button
+              onClick={onAddClick}
+              className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+            >
+              <span className="text-xl leading-none">+</span>
+              <span>Add Reminder</span>
+            </button>
           </div>
         </div>
 
