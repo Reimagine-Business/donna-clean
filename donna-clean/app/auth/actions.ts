@@ -47,7 +47,7 @@ export async function loginAction(_: AuthState, formData: FormData): Promise<Aut
     return { error: "Verify email" };
   }
 
-  redirect("/dashboard");
+  redirect("/home");
 }
 
 export async function signUpAction(_: AuthState, formData: FormData): Promise<AuthState> {
