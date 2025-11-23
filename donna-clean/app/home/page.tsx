@@ -20,6 +20,17 @@ export default async function HomePage() {
     redirect("/auth/login");
   }
 
+  // Fetch reminders from database
+  const { data: reminders, error } = await supabase
+    .from("reminders")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("due_date", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching reminders:", error);
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <div className="flex flex-col gap-10">
@@ -40,7 +51,7 @@ export default async function HomePage() {
         {/* Main Content */}
         <section className="px-4 pb-24 md:px-8 md:pb-8">
           <div className="mx-auto w-full max-w-6xl">
-            <HomeShell />
+            <HomeShell initialReminders={reminders || []} />
           </div>
         </section>
 
