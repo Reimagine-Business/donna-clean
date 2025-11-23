@@ -7,7 +7,6 @@ CREATE TABLE reminders (
   title TEXT NOT NULL,
   description TEXT,
   due_date DATE NOT NULL,
-  amount DECIMAL(10,2),
 
   -- Category (4 options)
   category TEXT NOT NULL CHECK (category IN ('bills', 'task', 'advance_settlement', 'others')),

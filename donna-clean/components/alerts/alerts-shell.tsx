@@ -12,7 +12,6 @@ interface Reminder {
   title: string;
   description: string | null;
   due_date: string;
-  amount: number | null;
   status: string;
   category: string;
   frequency: string;
@@ -22,14 +21,6 @@ interface AlertsShellProps {
   initialReminders: Reminder[];
   onAddClick?: () => void;
 }
-
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -187,34 +178,25 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
                     {getCategoryIcon(reminder.category)}
                   </span>
                   <div className="flex-1">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <h3
-                          className={cn(
-                            "font-semibold",
-                            reminder.status === "completed"
-                              ? "text-slate-500 line-through"
-                              : "text-white"
-                          )}
-                        >
-                          {reminder.title}
-                        </h3>
-                        {reminder.description && (
-                          <p className="mt-1 text-sm text-slate-400">
-                            {reminder.description}
-                          </p>
+                    <div>
+                      <h3
+                        className={cn(
+                          "font-semibold",
+                          reminder.status === "completed"
+                            ? "text-slate-500 line-through"
+                            : "text-white"
                         )}
-                        <p className="mt-2 text-sm font-medium text-slate-300">
-                          Due: {formatDate(reminder.due_date)}
+                      >
+                        {reminder.title}
+                      </h3>
+                      {reminder.description && (
+                        <p className="mt-1 text-sm text-slate-400">
+                          {reminder.description}
                         </p>
-                      </div>
-                      {reminder.amount && (
-                        <div className="text-right">
-                          <p className="text-lg font-semibold text-white">
-                            {formatCurrency(reminder.amount)}
-                          </p>
-                        </div>
                       )}
+                      <p className="mt-2 text-sm font-medium text-slate-300">
+                        Due: {formatDate(reminder.due_date)}
+                      </p>
                     </div>
 
                     {/* Action Buttons */}

@@ -16,7 +16,6 @@ export function AddReminderDialog({ isOpen, onClose, onSuccess }: AddReminderDia
     title: "",
     description: "",
     due_date: "",
-    amount: "",
     category: "bills",
     frequency: "one_time",
   });
@@ -39,7 +38,6 @@ export function AddReminderDialog({ isOpen, onClose, onSuccess }: AddReminderDia
           title: "",
           description: "",
           due_date: "",
-          amount: "",
           category: "bills",
           frequency: "one_time",
         });
@@ -147,27 +145,6 @@ export function AddReminderDialog({ isOpen, onClose, onSuccess }: AddReminderDia
               <option value="quarterly">Quarterly</option>
               <option value="annually">Annually</option>
             </select>
-          </div>
-
-          {/* Amount */}
-          <div>
-            <label htmlFor="amount" className="mb-1 block text-sm font-medium text-slate-300">
-              Amount (optional)
-            </label>
-            <div className="flex items-center gap-2">
-              <span className="text-slate-400">₹</span>
-              <input
-                type="number"
-                id="amount"
-                name="amount"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                placeholder="0"
-                min="0"
-                step="0.01"
-              />
-            </div>
           </div>
 
           {/* Description */}
