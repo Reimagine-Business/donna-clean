@@ -85,7 +85,7 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
       {/* Due Soon Section */}
       <section>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Due Soon (Next 7 Days)
           </h2>
           <button
@@ -98,8 +98,8 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
 
         <div className="space-y-3">
           {dueSoonReminders.length === 0 ? (
-            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-8 text-center">
-              <p className="text-slate-400">No upcoming reminders</p>
+            <div className="rounded-lg border border-slate-800 bg-card/50 p-8 text-center">
+              <p className="text-muted-foreground">No upcoming reminders</p>
               <button
                 onClick={handleViewAll}
                 className="mt-3 text-sm text-purple-400 hover:text-purple-300 transition-colors"
@@ -111,7 +111,7 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
             dueSoonReminders.map((reminder) => (
               <div
                 key={reminder.id}
-                className="rounded-lg border border-slate-700 bg-slate-900/50 p-4 transition-colors hover:bg-slate-900"
+                className="rounded-lg border border-border bg-card/50 p-4 transition-colors hover:bg-card"
               >
                 <div className="flex items-start gap-3">
                   <span className="text-2xl" aria-hidden="true">
@@ -123,7 +123,7 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
                         {reminder.title}
                       </h3>
                       {reminder.description && (
-                        <p className="mt-1 text-sm text-slate-400">
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {reminder.description}
                         </p>
                       )}

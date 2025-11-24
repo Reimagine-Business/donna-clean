@@ -81,16 +81,16 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-950 p-6 shadow-2xl">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-slate-950 p-6 shadow-2xl">
         <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Settle Entry</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Settle Entry</p>
           <h3 className="text-2xl font-semibold text-white">{modalTitle}</h3>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted-foreground">
             Category: <span className="text-white">{entry.category}</span> · Amount:{" "}
             <span className="text-white">₹{entry.amount.toLocaleString("en-IN")}</span>
           </p>
           {entry.remaining_amount !== undefined && entry.remaining_amount !== entry.amount && (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Remaining: ₹{remainingAmount.toLocaleString("en-IN")}
             </p>
           )}
@@ -98,25 +98,25 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
 
         <div className="mt-6 space-y-4">
           <div className="space-y-2">
-            <Label className="text-xs uppercase text-slate-400">Settlement date</Label>
+            <Label className="text-xs uppercase text-muted-foreground">Settlement date</Label>
             <Input
               type="date"
               value={settlementDate}
               max={format(new Date(), "yyyy-MM-dd")}
               onChange={(e) => setSettlementDate(e.target.value)}
-              className="border-white/10 bg-slate-900 text-white"
+              className="border-border bg-card text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <Label className="text-xs uppercase text-slate-400">Amount</Label>
+            <Label className="text-xs uppercase text-muted-foreground">Amount</Label>
             <Input
               type="number"
               min={0}
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="border-white/10 bg-slate-900 text-white"
+              className="border-border bg-card text-white"
             />
           </div>
 
@@ -128,14 +128,14 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
             variant="ghost"
             onClick={onClose}
             disabled={isSaving}
-            className="text-slate-300 hover:text-white"
+            className="text-foreground/70 hover:text-white"
           >
             Cancel
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={isSaving}
-            className="bg-[#a78bfa] text-white hover:bg-[#9770ff]"
+            className="bg-primary text-white hover:bg-primary/90"
           >
             {isSaving ? "Settling..." : "Confirm"}
           </Button>

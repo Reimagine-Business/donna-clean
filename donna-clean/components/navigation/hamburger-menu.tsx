@@ -33,7 +33,7 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
       {/* Hamburger Button */}
       <button
         onClick={toggleMenu}
-        className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-lg transition-colors hover:bg-slate-800"
+        className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-lg transition-colors hover:bg-secondary"
         aria-label="Menu"
       >
         <span
@@ -68,7 +68,7 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
       {/* Slide-out Menu */}
       <div
         className={cn(
-          "fixed left-0 top-0 z-50 h-full w-80 bg-slate-900 shadow-xl transition-transform duration-300",
+          "fixed left-0 top-0 z-50 h-full w-80 bg-card shadow-xl transition-transform duration-300",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -79,12 +79,12 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
               <div>
                 <h2 className="text-lg font-semibold text-white">{businessName}</h2>
                 {userEmail && (
-                  <p className="mt-1 text-sm text-slate-400">{userEmail}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{userEmail}</p>
                 )}
               </div>
               <button
                 onClick={closeMenu}
-                className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-white"
                 aria-label="Close menu"
               >
                 ✕
@@ -105,8 +105,8 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
                       className={cn(
                         "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
                         isActive
-                          ? "bg-[#a78bfa]/10 text-[#a78bfa]"
-                          : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                          ? "bg-primary/10 text-primary"
+                          : "text-foreground/70 hover:bg-secondary hover:text-white"
                       )}
                     >
                       <span className="text-lg" aria-hidden="true">

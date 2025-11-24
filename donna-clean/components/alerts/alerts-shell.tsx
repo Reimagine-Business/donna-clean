@@ -128,7 +128,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-white">Alerts & Reminders</h1>
-            <p className="mt-1 text-sm text-slate-400">
+            <p className="mt-1 text-sm text-muted-foreground">
               Manage your payment reminders and alerts
             </p>
           </div>
@@ -136,7 +136,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
           {/* Add Button */}
           <button
             onClick={onAddClick}
-            className="flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
           >
             <span className="text-xl leading-none">+</span>
             <span>Add Reminder</span>
@@ -152,8 +152,8 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
               className={cn(
                 "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
                 activeFilter === "all"
-                  ? "bg-purple-600 text-white"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  ? "bg-primary text-white"
+                  : "bg-secondary text-foreground/70 hover:bg-primary/80"
               )}
             >
               All
@@ -163,8 +163,8 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
               className={cn(
                 "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
                 activeFilter === "due_soon"
-                  ? "bg-purple-600 text-white"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  ? "bg-primary text-white"
+                  : "bg-secondary text-foreground/70 hover:bg-primary/80"
               )}
             >
               Due Soon
@@ -174,8 +174,8 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
               className={cn(
                 "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
                 activeFilter === "overdue"
-                  ? "bg-purple-600 text-white"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  ? "bg-primary text-white"
+                  : "bg-secondary text-foreground/70 hover:bg-primary/80"
               )}
             >
               Overdue
@@ -185,8 +185,8 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
               className={cn(
                 "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
                 activeFilter === "completed"
-                  ? "bg-purple-600 text-white"
-                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                  ? "bg-primary text-white"
+                  : "bg-secondary text-foreground/70 hover:bg-primary/80"
               )}
             >
               Completed
@@ -195,14 +195,14 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
 
           {/* Date Range Selector */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400">Date:</span>
+            <span className="text-sm text-muted-foreground">Date:</span>
             <select
               value={dateFilter}
               onChange={(e) => {
                 setDateFilter(e.target.value);
                 setShowCustomDatePickers(e.target.value === "customize");
               }}
-              className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             >
               <option value="this-month">📅 This Month</option>
               <option value="last-month">Last Month</option>
@@ -215,7 +215,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
               <>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                    <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                       {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                     </button>
                   </PopoverTrigger>
@@ -229,11 +229,11 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
                   </PopoverContent>
                 </Popover>
 
-                <span className="text-sm text-slate-400">to</span>
+                <span className="text-sm text-muted-foreground">to</span>
 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                    <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                       {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                     </button>
                   </PopoverTrigger>
@@ -254,18 +254,18 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
         {/* Reminders List */}
         <div className="space-y-3">
           {filteredReminders.length === 0 ? (
-            <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-8 text-center">
-              <p className="text-slate-400">No reminders found</p>
+            <div className="rounded-lg border border-slate-800 bg-card/50 p-8 text-center">
+              <p className="text-muted-foreground">No reminders found</p>
             </div>
           ) : (
             filteredReminders.map((reminder) => (
               <div
                 key={reminder.id}
                 className={cn(
-                  "rounded-lg border bg-slate-900/50 p-4 transition-colors hover:bg-slate-900",
+                  "rounded-lg border bg-card/50 p-4 transition-colors hover:bg-card",
                   reminder.status === "completed"
                     ? "border-slate-800 opacity-60"
-                    : "border-slate-700"
+                    : "border-border"
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -278,18 +278,18 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
                         className={cn(
                           "font-semibold",
                           reminder.status === "completed"
-                            ? "text-slate-500 line-through"
+                            ? "text-muted-foreground line-through"
                             : "text-white"
                         )}
                       >
                         {reminder.title}
                       </h3>
                       {reminder.description && (
-                        <p className="mt-1 text-sm text-slate-400">
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {reminder.description}
                         </p>
                       )}
-                      <p className="mt-2 text-sm font-medium text-slate-300">
+                      <p className="mt-2 text-sm font-medium text-foreground/70">
                         Due: {formatDate(reminder.due_date)}
                       </p>
                     </div>

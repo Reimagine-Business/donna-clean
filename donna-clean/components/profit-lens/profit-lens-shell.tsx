@@ -301,20 +301,20 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       <div className="flex flex-col gap-8 text-white">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Donna · Profit Lens</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Donna · Profit Lens</p>
           <h1 className="text-4xl font-semibold">Profit Lens</h1>
-          <p className="text-sm text-slate-400">Accrual basis for {rangeLabel}</p>
+          <p className="text-sm text-muted-foreground">Accrual basis for {rangeLabel}</p>
         </div>
         {/* Date Range Selector */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-400">Date:</span>
+          <span className="text-sm text-muted-foreground">Date:</span>
           <select
             value={dateFilter}
             onChange={(e) => {
               setDateFilter(e.target.value);
               setShowCustomDatePickers(e.target.value === "customize");
             }}
-            className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           >
             <option value="this-month">📅 This Month</option>
             <option value="last-month">Last Month</option>
@@ -327,7 +327,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             <>
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                  <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                     {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                   </button>
                 </PopoverTrigger>
@@ -341,11 +341,11 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
                 </PopoverContent>
               </Popover>
 
-              <span className="text-sm text-slate-400">to</span>
+              <span className="text-sm text-muted-foreground">to</span>
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                  <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                     {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                   </button>
                 </PopoverTrigger>
@@ -363,17 +363,17 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
         </div>
       </div>
 
-      <section className="rounded-3xl border border-white/10 bg-slate-900/40 p-6 shadow-2xl shadow-black/40">
+      <section className="rounded-3xl border border-border bg-card/40 p-6 shadow-2xl shadow-black/40">
         <div className="space-y-4">
           {plRows.map((row, index) => (
             <div
               key={row.label}
               className={cn(
-                "flex flex-col gap-2 rounded-2xl border border-white/5 bg-slate-950/30 p-4 md:flex-row md:items-center md:justify-between",
+                "flex flex-col gap-2 rounded-2xl border border-border/50 bg-slate-950/30 p-4 md:flex-row md:items-center md:justify-between",
                 index === plRows.length - 1 ? "shadow-[0_0_25px_rgba(167,139,250,0.2)]" : "",
               )}
             >
-              <p className="text-sm uppercase tracking-[0.3em] text-slate-400">{row.label}</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">{row.label}</p>
                 <p className={cn("text-3xl font-semibold", rowColor(row.variant))}>
                 {currencyFormatter.format(row.value)}
               </p>
@@ -398,7 +398,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       <section className="space-y-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Top Expense Breakdown</p>
+            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Top Expense Breakdown</p>
             <h2 className="text-2xl font-semibold text-white">Where cash is leaving</h2>
           </div>
         </div>
@@ -416,7 +416,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
           </div>
       </section>
 
-        <section className="rounded-3xl border border-white/10 bg-gradient-to-br from-[#a78bfa]/30 to-[#a78bfa]/10 p-6 text-white shadow-[0_0_35px_rgba(167,139,250,0.25)]">
+        <section className="rounded-3xl border border-border bg-gradient-to-br from-[#a78bfa]/30 to-[#a78bfa]/10 p-6 text-white shadow-[0_0_35px_rgba(167,139,250,0.25)]">
           <p className="text-xs uppercase tracking-[0.3em] text-white/80">Total Sales</p>
           <p className="mt-4 text-4xl font-semibold">{currencyFormatter.format(sales)}</p>
           <p className="mt-2 text-sm text-white/70">
@@ -448,10 +448,10 @@ type MetricCardProps = {
 
 function MetricCard({ title, value, subtitle }: MetricCardProps) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5 shadow-lg shadow-black/40">
-      <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{title}</p>
+    <div className="rounded-2xl border border-border bg-card/60 p-5 shadow-lg shadow-black/40">
+      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{title}</p>
       <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
-      <p className="mt-2 text-sm text-slate-400">{subtitle}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
     </div>
   );
 }
@@ -464,7 +464,7 @@ type BreakdownCardProps = {
 
 function BreakdownCard({ title, value, description }: BreakdownCardProps) {
   return (
-    <div className="rounded-2xl border border-[#a78bfa]/30 bg-gradient-to-br from-[#a78bfa]/20 to-transparent p-5 shadow-lg shadow-[#a78bfa]/20">
+    <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-[#a78bfa]/20 to-transparent p-5 shadow-lg shadow-primary/20">
       <p className="text-xs uppercase tracking-[0.3em] text-[#c4b5fd]">{title}</p>
       <p className="mt-3 text-3xl font-semibold text-white">{value}</p>
       <p className="mt-2 text-sm text-[#c4b5fd]">{description}</p>

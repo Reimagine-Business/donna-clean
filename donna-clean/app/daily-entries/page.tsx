@@ -36,7 +36,7 @@ export default async function DailyEntriesPage() {
   const entries: Entry[] = data?.map((entry) => normalizeEntry(entry)) ?? [];
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white pb-24 md:pb-8">
+    <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <div className="flex flex-col gap-10">
         <SiteHeader />
         <section className="px-4 pb-12 md:px-8">

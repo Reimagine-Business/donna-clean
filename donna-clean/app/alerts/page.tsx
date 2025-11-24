@@ -34,7 +34,7 @@ export default async function AlertsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="flex flex-col gap-10">
         {/* Desktop Header */}
         <SiteHeader />

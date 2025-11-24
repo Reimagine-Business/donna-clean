@@ -32,17 +32,17 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-background text-foreground">
       <div className="flex flex-col gap-10">
         {/* Desktop Header */}
         <SiteHeader />
 
         {/* Mobile Header */}
-        <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-900 md:hidden">
+        <header className="sticky top-0 z-30 border-b border-slate-800 bg-card md:hidden">
           <div className="flex items-center justify-between px-4 py-3">
             <HamburgerMenu businessName="Donna Clean" userEmail={user.email || undefined} />
             <h1 className="text-lg font-semibold">Home</h1>
-            <button className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white">
+            <button className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-white">
               <span className="text-xl">🔔</span>
             </button>
           </div>
