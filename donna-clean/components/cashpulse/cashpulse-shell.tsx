@@ -422,23 +422,23 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
   };
 
   return (
-    <div className="flex flex-col gap-8 text-white">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+    <div className="flex flex-col gap-4 md:gap-8 text-white">
+      <div className="flex flex-col gap-2 md:gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Donna · Cashpulse</p>
-          <h1 className="text-4xl font-semibold">Cashpulse</h1>
-          <p className="text-sm text-muted-foreground">Accrual basis for {historyLabel}</p>
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">Donna · Cashpulse</p>
+          <h1 className="text-xl md:text-4xl font-semibold">Cashpulse</h1>
+          <p className="text-xs md:text-sm text-muted-foreground">Accrual basis for {historyLabel}</p>
         </div>
         {/* Date Range Selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Date:</span>
+        <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+          <span className="text-[10px] md:text-sm text-muted-foreground">Date:</span>
           <select
             value={dateFilter}
             onChange={(e) => {
               setDateFilter(e.target.value);
               setShowCustomDatePickers(e.target.value === "customize");
             }}
-            className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
           >
             <option value="this-month">📅 This Month</option>
             <option value="last-month">Last Month</option>
@@ -451,7 +451,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
             <>
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                  <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                     {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                   </button>
                 </PopoverTrigger>
@@ -465,11 +465,11 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
                 </PopoverContent>
               </Popover>
 
-              <span className="text-sm text-muted-foreground">to</span>
+              <span className="text-[10px] md:text-sm text-muted-foreground">to</span>
 
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                  <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                     {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                   </button>
                 </PopoverTrigger>
@@ -487,7 +487,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
         </div>
         </div>
 
-        <section className="grid gap-4 md:grid-cols-3">
+        <section className="grid gap-2 md:gap-4 md:grid-cols-3">
           <StatCard
             title="Total Cash Inflow"
             value={currencyFormatter.format(inflow)}
@@ -508,7 +508,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           />
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-2 md:gap-4 md:grid-cols-2">
           {cashBreakdown.map((channel) => (
             <ChannelCard
               key={channel.method}
@@ -518,7 +518,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           ))}
         </section>
 
-        <section className="grid gap-6 md:grid-cols-3">
+        <section className="grid gap-3 md:gap-6 md:grid-cols-3">
           <PendingCard
             title="Pending Collections"
             description="Credit sales awaiting payment."
@@ -542,24 +542,24 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           />
         </section>
 
-        <section className="rounded-3xl border border-border bg-card/40 p-6 shadow-2xl shadow-black/40">
-          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <section className="rounded-xl md:rounded-3xl border border-border bg-card/40 p-3 md:p-6 shadow-2xl shadow-black/40">
+          <div className="mb-3 md:mb-4 flex flex-col gap-2 md:gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Settlement History</p>
-              <h2 className="text-2xl font-semibold text-white">Cash vs profit reconciled</h2>
+              <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">Settlement History</p>
+              <h2 className="text-base md:text-2xl font-semibold text-white">Cash vs profit reconciled</h2>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 md:gap-3">
               {/* Date Range Selector */}
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Date:</span>
+              <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+                <span className="text-[10px] md:text-sm text-muted-foreground">Date:</span>
                 <select
                   value={dateFilter}
                   onChange={(e) => {
                     setDateFilter(e.target.value);
                     setShowCustomDatePickers(e.target.value === "customize");
                   }}
-                  className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                  className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
                 >
                   <option value="this-month">This Month</option>
                   <option value="last-month">Last Month</option>
@@ -572,7 +572,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
                   <>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                        <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                           {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                         </button>
                       </PopoverTrigger>
@@ -586,11 +586,11 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
                       </PopoverContent>
                     </Popover>
 
-                    <span className="text-sm text-muted-foreground">to</span>
+                    <span className="text-[10px] md:text-sm text-muted-foreground">to</span>
 
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                        <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                           {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                         </button>
                       </PopoverTrigger>
@@ -611,30 +611,30 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
               <button
                 onClick={handleExportHistory}
                 disabled={filteredHistory.length === 0}
-                className="flex items-center gap-2 px-4 py-2 bg-secondary/80 text-white rounded-lg hover:bg-primary/70 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1 md:py-2 bg-secondary/80 text-white rounded-lg hover:bg-primary/70 text-[10px] md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span>📥</span>
+                <span className="text-xs md:text-base">📥</span>
                 <span>Export CSV</span>
               </button>
             </div>
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
+            <table className="min-w-full text-xs md:text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-widest text-muted-foreground">
-                  <th className="px-3 py-2">Date</th>
-                  <th className="px-3 py-2">Entry Type</th>
-                  <th className="px-3 py-2">Category</th>
-                  <th className="px-3 py-2">Amount</th>
-                  <th className="px-3 py-2">Payment Method</th>
-                  <th className="px-3 py-2">Notes</th>
-                  <th className="px-3 py-2 text-right">Actions</th>
+                <tr className="text-left text-[10px] md:text-xs uppercase tracking-widest text-muted-foreground">
+                  <th className="px-2 md:px-3 py-1.5 md:py-2">Date</th>
+                  <th className="px-2 md:px-3 py-1.5 md:py-2">Entry Type</th>
+                  <th className="px-2 md:px-3 py-1.5 md:py-2">Category</th>
+                  <th className="px-2 md:px-3 py-1.5 md:py-2">Amount</th>
+                  <th className="px-2 md:px-3 py-1.5 md:py-2 hidden md:table-cell">Payment Method</th>
+                  <th className="px-2 md:px-3 py-1.5 md:py-2 hidden md:table-cell">Notes</th>
+                  <th className="px-2 md:px-3 py-1.5 md:py-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredHistory.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-3 py-8 text-center text-muted-foreground">
+                    <td colSpan={7} className="px-2 md:px-3 py-6 md:py-8 text-center text-xs md:text-sm text-muted-foreground">
                       No settlements match your date filter.
                     </td>
                   </tr>
@@ -644,17 +644,17 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
                       key={entry.id}
                       className="border-t border-border/50 bg-white/5 text-slate-100 transition hover:bg-white/10"
                     >
-                      <td className="px-3 py-3 font-medium">
+                      <td className="px-2 md:px-3 py-2 md:py-3 font-medium text-[10px] md:text-sm">
                         {format(new Date(entry.settled_at ?? entry.entry_date), "dd MMM yyyy")}
                       </td>
-                      <td className="px-3 py-3">{entry.entry_type}</td>
-                      <td className="px-3 py-3">{entry.category}</td>
-                      <td className="px-3 py-3 font-semibold text-white">
+                      <td className="px-2 md:px-3 py-2 md:py-3 text-[10px] md:text-sm">{entry.entry_type}</td>
+                      <td className="px-2 md:px-3 py-2 md:py-3 text-[10px] md:text-sm">{entry.category}</td>
+                      <td className="px-2 md:px-3 py-2 md:py-3 font-semibold text-white text-xs md:text-sm">
                         {currencyFormatter.format(entry.amount)}
                       </td>
-                      <td className="px-3 py-3">{entry.payment_method}</td>
-                      <td className="px-3 py-3 max-w-[220px] truncate">{entry.notes ?? "—"}</td>
-                      <td className="px-3 py-3 text-right text-xs uppercase tracking-[0.2em] text-emerald-300">
+                      <td className="px-3 py-3 text-sm hidden md:table-cell">{entry.payment_method}</td>
+                      <td className="px-3 py-3 max-w-[220px] truncate text-sm hidden md:table-cell">{entry.notes ?? "—"}</td>
+                      <td className="px-2 md:px-3 py-2 md:py-3 text-right text-[9px] md:text-xs uppercase tracking-[0.2em] text-emerald-300">
                         Settled
                       </td>
                     </tr>
@@ -841,16 +841,16 @@ function StatCard({ title, value, subtitle, variant }: StatCardProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl border bg-gradient-to-br p-5 shadow-xl shadow-black/40",
+        "rounded-lg md:rounded-2xl border bg-gradient-to-br p-3 md:p-5 shadow-xl shadow-black/40",
         colorMap[variant],
       )}
     >
-      <div className="mb-4 flex items-center justify-between text-sm uppercase tracking-widest text-white/70">
+      <div className="mb-2 md:mb-4 flex items-center justify-between text-[10px] md:text-sm uppercase tracking-widest text-white/70">
         <span>{title}</span>
-        <Icon className="h-4 w-4 text-white/70" />
+        <Icon className="h-3 w-3 md:h-4 md:w-4 text-white/70" />
       </div>
-      <p className="text-3xl font-semibold text-white">{value}</p>
-      <p className="mt-2 text-xs text-white/70">{subtitle}</p>
+      <p className="text-xl md:text-3xl font-semibold text-white">{value}</p>
+      <p className="mt-1 md:mt-2 text-[10px] md:text-xs text-white/70">{subtitle}</p>
     </div>
   );
 }
@@ -862,10 +862,10 @@ type ChannelCardProps = {
 
 function ChannelCard({ method, value }: ChannelCardProps) {
   return (
-    <div className="rounded-2xl border border-border bg-card/60 p-5 shadow-lg shadow-black/30">
-      <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Channel</p>
-      <p className="mt-2 text-lg font-semibold text-white">{method}</p>
-      <p className={cn("mt-3 text-2xl font-semibold", value.startsWith("-") ? "text-rose-300" : "text-primary")}>
+    <div className="rounded-lg md:rounded-2xl border border-border bg-card/60 p-3 md:p-5 shadow-lg shadow-black/30">
+      <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">Channel</p>
+      <p className="mt-1 md:mt-2 text-sm md:text-lg font-semibold text-white">{method}</p>
+      <p className={cn("mt-1.5 md:mt-3 text-base md:text-2xl font-semibold", value.startsWith("-") ? "text-rose-300" : "text-primary")}>
         {value}
       </p>
     </div>
@@ -896,19 +896,19 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
     }
   }, [info.entries.length, title]);
   return (
-    <div className="rounded-2xl border border-border bg-card/40 p-5">
-      <p className={cn("text-xs uppercase tracking-widest", accentColor)}>{title}</p>
-      <h3 className="mt-2 text-2xl font-semibold text-white">
+    <div className="rounded-lg md:rounded-2xl border border-border bg-card/40 p-3 md:p-5">
+      <p className={cn("text-[10px] md:text-xs uppercase tracking-widest", accentColor)}>{title}</p>
+      <h3 className="mt-1 md:mt-2 text-lg md:text-2xl font-semibold text-white">
         {numberFormatter.format(info.count)}{" "}
-        <span className="text-base font-normal text-muted-foreground">open</span>
+        <span className="text-xs md:text-base font-normal text-muted-foreground">open</span>
       </h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
-      <p className="mt-4 text-lg font-semibold text-white">
+      <p className="text-xs md:text-sm text-muted-foreground">{description}</p>
+      <p className="mt-2 md:mt-4 text-base md:text-lg font-semibold text-white">
         {currencyFormatter.format(info.total)}
       </p>
-      <div className="mt-4 space-y-3">
+      <div className="mt-2 md:mt-4 space-y-2 md:space-y-3">
         {info.entries.length === 0 && (
-          <p className="text-sm text-muted-foreground">All settled. You&apos;re in control.</p>
+          <p className="text-xs md:text-sm text-muted-foreground">All settled. You&apos;re in control.</p>
         )}
         {info.entries.slice(0, 3).map((entry) => {
           const canSettleEntry = !entry.settled && entry.remaining_amount > 0;
@@ -919,20 +919,20 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
             return (
               <div
                 key={entry.id}
-                className="flex items-center justify-between rounded-xl border border-border/50 bg-slate-950/40 px-3 py-2 text-sm"
+                className="flex items-center justify-between rounded-lg md:rounded-xl border border-border/50 bg-slate-950/40 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm"
               >
                 <div>
-                  <p className="font-medium text-white">
+                  <p className="font-medium text-white text-xs md:text-sm">
                     ₹{entry.amount.toLocaleString("en-IN")}{" "}
-                    <span className="text-xs uppercase text-muted-foreground">{entry.category}</span>
+                    <span className="text-[10px] md:text-xs uppercase text-muted-foreground">{entry.category}</span>
                   </p>
-                  <p className="text-xs text-muted-foreground">{formatDisplayDate(entry.entry_date)}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground">{formatDisplayDate(entry.entry_date)}</p>
                 </div>
               <Button
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "border-primary/40 text-primary hover:text-white",
+                  "border-primary/40 text-primary hover:text-white text-[10px] md:text-sm px-2 md:px-3 py-1 md:py-1.5",
                   !canSettleEntry &&
                     "border-border/50 text-muted-foreground hover:text-muted-foreground disabled:pointer-events-auto",
                 )}
@@ -950,7 +950,7 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
             );
           })}
         {info.entries.length > 3 && (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[10px] md:text-xs text-muted-foreground">
             +{info.entries.length - 3} more waiting. Use Daily Entries to manage all.
           </p>
         )}

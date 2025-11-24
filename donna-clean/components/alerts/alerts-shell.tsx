@@ -123,12 +123,12 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-3 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
           <div>
-            <h1 className="text-2xl font-bold text-white">Alerts & Reminders</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <h1 className="text-base md:text-2xl font-bold text-white">Alerts & Reminders</h1>
+            <p className="mt-0.5 md:mt-1 text-xs md:text-sm text-muted-foreground">
               Manage your payment reminders and alerts
             </p>
           </div>
@@ -136,7 +136,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
           {/* Add Button */}
           <button
             onClick={onAddClick}
-            className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+            className="hidden md:flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
           >
             <span className="text-xl leading-none">+</span>
             <span>Add Reminder</span>
@@ -144,13 +144,13 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
         </div>
 
         {/* Tabs and Date Range Selector */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
           {/* Filter Tabs */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-1.5 md:gap-2">
             <button
               onClick={() => setActiveFilter("all")}
               className={cn(
-                "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                "px-2 md:px-4 py-1 md:py-2 rounded-lg font-medium text-[10px] md:text-sm transition-colors",
                 activeFilter === "all"
                   ? "bg-primary text-white"
                   : "bg-secondary text-foreground/70 hover:bg-primary/80"
@@ -161,7 +161,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
             <button
               onClick={() => setActiveFilter("due_soon")}
               className={cn(
-                "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                "px-2 md:px-4 py-1 md:py-2 rounded-lg font-medium text-[10px] md:text-sm transition-colors",
                 activeFilter === "due_soon"
                   ? "bg-primary text-white"
                   : "bg-secondary text-foreground/70 hover:bg-primary/80"
@@ -172,7 +172,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
             <button
               onClick={() => setActiveFilter("overdue")}
               className={cn(
-                "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                "px-2 md:px-4 py-1 md:py-2 rounded-lg font-medium text-[10px] md:text-sm transition-colors",
                 activeFilter === "overdue"
                   ? "bg-primary text-white"
                   : "bg-secondary text-foreground/70 hover:bg-primary/80"
@@ -183,7 +183,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
             <button
               onClick={() => setActiveFilter("completed")}
               className={cn(
-                "px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                "px-2 md:px-4 py-1 md:py-2 rounded-lg font-medium text-[10px] md:text-sm transition-colors",
                 activeFilter === "completed"
                   ? "bg-primary text-white"
                   : "bg-secondary text-foreground/70 hover:bg-primary/80"
@@ -194,15 +194,15 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
           </div>
 
           {/* Date Range Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Date:</span>
+          <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
+            <span className="text-[10px] md:text-sm text-muted-foreground">Date:</span>
             <select
               value={dateFilter}
               onChange={(e) => {
                 setDateFilter(e.target.value);
                 setShowCustomDatePickers(e.target.value === "customize");
               }}
-              className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             >
               <option value="this-month">📅 This Month</option>
               <option value="last-month">Last Month</option>
@@ -215,7 +215,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
               <>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                    <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                       {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                     </button>
                   </PopoverTrigger>
@@ -229,11 +229,11 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
                   </PopoverContent>
                 </Popover>
 
-                <span className="text-sm text-muted-foreground">to</span>
+                <span className="text-[10px] md:text-sm text-muted-foreground">to</span>
 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                    <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                       {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                     </button>
                   </PopoverTrigger>
@@ -252,31 +252,31 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
         </div>
 
         {/* Reminders List */}
-        <div className="space-y-3">
+        <div className="space-y-2 md:space-y-3">
           {filteredReminders.length === 0 ? (
-            <div className="rounded-lg border border-slate-800 bg-card/50 p-8 text-center">
-              <p className="text-muted-foreground">No reminders found</p>
+            <div className="rounded-lg border border-slate-800 bg-card/50 p-4 md:p-8 text-center">
+              <p className="text-xs md:text-sm text-muted-foreground">No reminders found</p>
             </div>
           ) : (
             filteredReminders.map((reminder) => (
               <div
                 key={reminder.id}
                 className={cn(
-                  "rounded-lg border bg-card/50 p-4 transition-colors hover:bg-card",
+                  "rounded-lg border bg-card/50 p-2 md:p-4 transition-colors hover:bg-card",
                   reminder.status === "completed"
                     ? "border-slate-800 opacity-60"
                     : "border-border"
                 )}
               >
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl" aria-hidden="true">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <span className="text-base md:text-2xl" aria-hidden="true">
                     {getCategoryIcon(reminder.category)}
                   </span>
                   <div className="flex-1">
                     <div>
                       <h3
                         className={cn(
-                          "font-semibold",
+                          "font-semibold text-sm md:text-base",
                           reminder.status === "completed"
                             ? "text-muted-foreground line-through"
                             : "text-white"
@@ -285,29 +285,29 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
                         {reminder.title}
                       </h3>
                       {reminder.description && (
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-0.5 md:mt-1 text-[10px] md:text-sm text-muted-foreground">
                           {reminder.description}
                         </p>
                       )}
-                      <p className="mt-2 text-sm font-medium text-foreground/70">
+                      <p className="mt-1 md:mt-2 text-[10px] md:text-sm font-medium text-foreground/70">
                         Due: {formatDate(reminder.due_date)}
                       </p>
                     </div>
 
                     {/* Action Buttons */}
                     {reminder.status !== "completed" && (
-                      <div className="mt-4 flex flex-wrap gap-2">
+                      <div className="mt-2 md:mt-4 flex flex-wrap gap-1.5 md:gap-2">
                         <button
                           onClick={() => handleMarkDone(reminder.id)}
                           disabled={isPending}
-                          className="rounded-md bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-400 transition-colors hover:bg-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="rounded-md bg-green-500/10 px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-xs font-medium text-green-400 transition-colors hover:bg-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {isPending ? "Marking..." : "Mark Done"}
                         </button>
                         <button
                           onClick={() => handleEdit(reminder)}
                           disabled={isPending}
-                          className="rounded-md bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="rounded-md bg-blue-500/10 px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-xs font-medium text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           Edit
                         </button>

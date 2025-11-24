@@ -25,13 +25,13 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex min-h-[48px] flex-1 items-center justify-center py-3 transition-colors",
+                "flex min-h-[40px] flex-1 items-center justify-center py-2 transition-colors",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground/70"
               )}
             >
-              <span className="text-sm font-medium">{item.label}</span>
+              <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );
         })}
