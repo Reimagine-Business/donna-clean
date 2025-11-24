@@ -484,25 +484,25 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         : "Use Cash or Bank to match how money moved";
 
   return (
-    <div className="flex flex-col gap-10 text-white">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Daily Entries</h1>
-        <p className="text-sm text-foreground/70">
+    <div className="flex flex-col gap-4 md:gap-10 text-white">
+      <div className="space-y-1 md:space-y-2">
+        <h1 className="text-xl md:text-3xl font-semibold tracking-tight">Daily Entries</h1>
+        <p className="text-xs md:text-sm text-foreground/70">
           Record every inflow/outflow with supporting receipts to keep Donna in sync.
         </p>
       </div>
 
-      <section className="rounded-2xl border border-border bg-card/60 p-6 shadow-2xl shadow-black/40">
-        <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-5 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label className="text-sm uppercase text-muted-foreground">Entry Type</Label>
+      <section className="rounded-xl md:rounded-2xl border border-border bg-card/60 p-3 md:p-6 shadow-2xl shadow-black/40">
+        <form onSubmit={handleSubmit} className="space-y-3 md:space-y-6">
+            <div className="grid gap-3 md:gap-5 md:grid-cols-2">
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-xs md:text-sm uppercase text-muted-foreground">Entry Type</Label>
                 <select
                   value={formValues.entry_type}
                   onChange={(event) =>
                     handleInputChange("entry_type", event.target.value as EntryType)
                   }
-                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-1.5 md:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {ENTRY_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -510,18 +510,18 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                   </option>
                 ))}
               </select>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[10px] md:text-xs text-muted-foreground">
                   Sales entries are saved as inflows; expenses default to outflows.
                 </p>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm uppercase text-muted-foreground">Category</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-xs md:text-sm uppercase text-muted-foreground">Category</Label>
               <select
                 value={formValues.category}
                 onChange={(event) =>
                   handleInputChange("category", event.target.value as CategoryType)
                 }
-                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-1.5 md:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {CATEGORIES.map((category) => (
                   <option key={category} value={category}>
@@ -530,8 +530,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm uppercase text-muted-foreground">Payment Method</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-xs md:text-sm uppercase text-muted-foreground">Payment Method</Label>
               <select
                 value={formValues.payment_method}
                 onChange={(event) =>
@@ -540,7 +540,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 disabled={isCreditEntry}
                 aria-disabled={isCreditEntry}
                 className={cn(
-                  "w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring",
+                  "w-full rounded-lg border border-border bg-secondary/50 px-3 py-1.5 md:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring",
                   isCreditEntry && "cursor-not-allowed opacity-60",
                 )}
               >
@@ -555,8 +555,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 <p className="text-xs text-rose-400">{paymentMethodError}</p>
               )}
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm uppercase text-muted-foreground">Amount</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-xs md:text-sm uppercase text-muted-foreground">Amount</Label>
               <Input
                 type="text"
                 inputMode="decimal"
@@ -569,35 +569,79 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 }
                 onBlur={handleAmountBlur}
                 placeholder="0.00"
-                className="border-border bg-secondary/50 text-base"
+                className="border-border bg-secondary/50 text-sm md:text-base py-1.5 md:py-2"
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm uppercase text-muted-foreground">Date</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-xs md:text-sm uppercase text-muted-foreground">Date</Label>
               <Input
                 type="date"
                 value={formValues.entry_date}
                 onChange={(event) => handleInputChange("entry_date", event.target.value)}
-                className="border-border bg-secondary/50"
+                className="border-border bg-secondary/50 text-sm py-1.5 md:py-2"
                 max={today}
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-sm uppercase text-muted-foreground">Notes</Label>
+            <div className="space-y-1.5 md:space-y-2">
+              <Label className="text-xs md:text-sm uppercase text-muted-foreground">Notes</Label>
               <textarea
                 value={formValues.notes}
                 onChange={(event) => handleInputChange("notes", event.target.value)}
                 placeholder="Add quick context"
-                className="min-h-[80px] w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="min-h-[60px] md:min-h-[80px] w-full rounded-lg border border-border bg-secondary/50 px-3 py-1.5 md:py-2 text-xs md:text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label className="text-sm uppercase text-muted-foreground">Receipt / Image</Label>
-            <div className="flex flex-col gap-4 rounded-xl border border-dashed border-primary/40 p-4">
+          <div className="space-y-1.5 md:space-y-2">
+            <Label className="text-xs md:text-sm uppercase text-muted-foreground">Receipt / Image</Label>
+
+            {/* Compact mobile version */}
+            <div className="md:hidden">
+              <label
+                htmlFor="receipt-upload-mobile"
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-2 text-xs text-accent transition hover:bg-primary/20"
+              >
+                <UploadCloud className="h-4 w-4" />
+                <span>Upload Receipt</span>
+              </label>
+              <Input
+                id="receipt-upload-mobile"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => handleReceiptChange(event.target.files)}
+              />
+              {(receiptPreview || existingImageUrl) && (
+                <div className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/50 p-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={receiptPreview || existingImageUrl || ""}
+                    alt="Receipt preview"
+                    className="h-10 w-10 rounded object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="text-[10px] text-red-300 hover:text-red-200 p-1"
+                    onClick={() => {
+                      setReceiptFile(null);
+                      setReceiptPreview(null);
+                      setExistingImageUrl(null);
+                    }}
+                  >
+                    <X className="mr-1 h-3 w-3" />
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Full desktop version */}
+            <div className="hidden md:flex md:flex-col gap-4 rounded-xl border border-dashed border-primary/40 p-4">
               <label
                 htmlFor="receipt-upload"
                 className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm transition hover:border-primary/80"
@@ -616,7 +660,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 onChange={(event) => handleReceiptChange(event.target.files)}
               />
               {(receiptPreview || existingImageUrl) && (
-                <div className="flex items-center gap-3 rounded-lg border border-border bg-slate-950/50 p-3">
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-secondary/50 p-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={receiptPreview || existingImageUrl || ""}
@@ -642,14 +686,14 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
             </div>
           </div>
 
-          {formError && <p className="text-sm text-red-400">{formError}</p>}
-          {successMessage && <p className="text-sm text-emerald-400">{successMessage}</p>}
+          {formError && <p className="text-xs md:text-sm text-red-400">{formError}</p>}
+          {successMessage && <p className="text-xs md:text-sm text-emerald-400">{successMessage}</p>}
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3">
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-primary px-6 py-2 text-base font-semibold text-white shadow-lg shadow-primary/30 hover:bg-primary/90"
+              className="bg-primary px-4 md:px-6 py-1.5 md:py-2 text-sm md:text-base font-semibold text-white shadow-lg shadow-primary/30 hover:bg-primary/90"
             >
               {isSubmitting
                 ? "Saving..."
@@ -661,7 +705,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
               <Button
                 type="button"
                 variant="ghost"
-                className="text-foreground/70 hover:text-white"
+                className="text-xs md:text-sm text-foreground/70 hover:text-white px-3 md:px-4 py-1.5 md:py-2"
                 onClick={resetForm}
               >
                 Cancel edit
@@ -671,18 +715,18 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         </form>
       </section>
 
-      <section className="rounded-2xl border border-border bg-card/40 p-6">
-        <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 className="text-xl font-bold">Transaction History</h2>
+      <section className="rounded-xl md:rounded-2xl border border-border bg-card/40 p-3 md:p-6">
+        <div className="mb-3 md:mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-4">
+          <h2 className="text-base md:text-xl font-bold">Transaction History</h2>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full md:w-auto">
             {/* Date Range Selector */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Date:</span>
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <span className="text-[10px] md:text-sm text-muted-foreground">Date:</span>
               <select
                 value={dateFilter}
                 onChange={handleDateFilterChange}
-                className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
               >
                 <option value="this-month">This Month</option>
                 <option value="last-month">Last Month</option>
@@ -695,7 +739,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 <>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                      <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                         {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                       </button>
                     </PopoverTrigger>
@@ -709,11 +753,11 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                     </PopoverContent>
                   </Popover>
 
-                  <span className="text-sm text-muted-foreground">to</span>
+                  <span className="text-[10px] md:text-sm text-muted-foreground">to</span>
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                      <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                         {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                       </button>
                     </PopoverTrigger>
@@ -734,31 +778,31 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
             <button
               onClick={handleExportToExcel}
               disabled={filteredEntries.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1 md:py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-[10px] md:text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>📥</span>
+              <span className="text-xs md:text-base">📥</span>
               <span>Export to Excel</span>
             </button>
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
+          <table className="min-w-full text-xs md:text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase text-muted-foreground">
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">Entry Type</th>
-                <th className="px-3 py-2">Category</th>
-                <th className="px-3 py-2">Amount</th>
-                <th className="px-3 py-2">Payment</th>
-                <th className="px-3 py-2">Notes</th>
-                <th className="px-3 py-2">Image</th>
-                <th className="px-3 py-2 text-right">Actions</th>
+              <tr className="text-left text-[10px] md:text-xs uppercase text-muted-foreground">
+                <th className="px-2 md:px-3 py-1.5 md:py-2">Date</th>
+                <th className="px-2 md:px-3 py-1.5 md:py-2">Entry Type</th>
+                <th className="px-2 md:px-3 py-1.5 md:py-2">Category</th>
+                <th className="px-2 md:px-3 py-1.5 md:py-2">Amount</th>
+                <th className="px-2 md:px-3 py-1.5 md:py-2">Payment</th>
+                <th className="px-2 md:px-3 py-1.5 md:py-2 hidden md:table-cell">Notes</th>
+                <th className="px-2 md:px-3 py-1.5 md:py-2 hidden md:table-cell">Image</th>
+                <th className="px-2 md:px-3 py-1.5 md:py-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredEntries.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-10 text-center text-muted-foreground">
+                  <td colSpan={8} className="px-2 md:px-3 py-6 md:py-10 text-center text-xs md:text-sm text-muted-foreground">
                     No entries match your filters yet.
                   </td>
                 </tr>
@@ -768,11 +812,11 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                   key={entry.id}
                   className="border-t border-border/50 bg-white/5 text-slate-100 transition hover:bg-white/10"
                 >
-                  <td className="px-3 py-3 font-medium">{format(new Date(entry.entry_date), "dd MMM")}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 md:px-3 py-2 md:py-3 font-medium text-[10px] md:text-sm">{format(new Date(entry.entry_date), "dd MMM")}</td>
+                  <td className="px-2 md:px-3 py-2 md:py-3">
                     <span
                       className={cn(
-                        "rounded-full px-2 py-1 text-xs font-semibold",
+                        "rounded-full px-1.5 md:px-2 py-0.5 md:py-1 text-[9px] md:text-xs font-semibold",
                         entry.entry_type === "Cash Inflow" && "bg-emerald-500/20 text-emerald-300",
                         entry.entry_type === "Cash Outflow" && "bg-rose-500/20 text-rose-300",
                         entry.entry_type === "Credit" && "bg-primary/20 text-accent",
@@ -782,13 +826,13 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                       {entry.entry_type}
                     </span>
                   </td>
-                  <td className="px-3 py-3">{entry.category}</td>
-                  <td className="px-3 py-3 font-semibold text-white">
+                  <td className="px-2 md:px-3 py-2 md:py-3 text-[10px] md:text-sm">{entry.category}</td>
+                  <td className="px-2 md:px-3 py-2 md:py-3 font-semibold text-white text-xs md:text-sm">
                     {currencyFormatter.format(entry.amount)}
                   </td>
-                  <td className="px-3 py-3">{entry.payment_method}</td>
-                  <td className="px-3 py-3 max-w-[200px] truncate">{entry.notes ?? "—"}</td>
-                  <td className="px-3 py-3">
+                  <td className="px-2 md:px-3 py-2 md:py-3 text-[10px] md:text-sm">{entry.payment_method}</td>
+                  <td className="px-3 py-3 max-w-[200px] truncate text-sm hidden md:table-cell">{entry.notes ?? "—"}</td>
+                  <td className="px-3 py-3 hidden md:table-cell">
                     {entry.image_url ? (
                       <a
                         href={entry.image_url}
@@ -807,33 +851,33 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                       <span className="text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-3 py-3 text-right">
-                    <div className="flex flex-wrap justify-end gap-2">
+                  <td className="px-2 md:px-3 py-2 md:py-3 text-right">
+                    <div className="flex flex-wrap justify-end gap-1 md:gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-foreground/70 hover:text-white"
+                        className="text-foreground/70 hover:text-white h-7 w-7 md:h-9 md:w-9"
                         onClick={() => handleEdit(entry)}
                       >
-                        <Edit3 className="h-4 w-4" />
+                        <Edit3 className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-rose-300 hover:text-rose-200"
+                        className="text-rose-300 hover:text-rose-200 h-7 w-7 md:h-9 md:w-9"
                         onClick={() => handleDelete(entry.id)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                       </Button>
                       {!entry.settled &&
                         (entry.entry_type === "Credit" || entry.entry_type === "Advance") && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-primary hover:text-white"
+                            className="text-primary hover:text-white text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5"
                             onClick={() => setSettlementEntry(entry)}
                           >
-                            <Handshake className="mr-1 h-4 w-4" />
+                            <Handshake className="mr-0.5 md:mr-1 h-3 w-3 md:h-4 md:w-4" />
                             Settle
                           </Button>
                         )}
