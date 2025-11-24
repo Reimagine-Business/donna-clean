@@ -318,8 +318,72 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     "dd MMM yyyy",
   )}`;
 
+  // Function to get date range for settlement history filter
+  const getSettlementDateRange = useMemo(() => {
+    const now = new Date();
+
+    switch (dateFilter) {
+      case "this-month":
+        return {
+          from: new Date(now.getFullYear(), now.getMonth(), 1),
+          to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+        };
+
+      case "last-month":
+        return {
+          from: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+          to: new Date(now.getFullYear(), now.getMonth(), 0),
+        };
+
+      case "this-year":
+        return {
+          from: new Date(now.getFullYear(), 0, 1),
+          to: new Date(now.getFullYear(), 11, 31),
+        };
+
+      case "customize":
+        if (customFromDate && customToDate) {
+          return {
+            from: customFromDate,
+            to: customToDate,
+          };
+        }
+        // Default to this month if custom dates not set
+        return {
+          from: new Date(now.getFullYear(), now.getMonth(), 1),
+          to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+        };
+
+      default:
+        return {
+          from: new Date(now.getFullYear(), now.getMonth(), 1),
+          to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+        };
+    }
+  }, [dateFilter, customFromDate, customToDate]);
+
+  // Filter settlement history based on date range
+  const filteredHistory = useMemo(() => {
+    return history.filter((entry) => {
+      const settlementDate = new Date(entry.settled_at ?? entry.entry_date);
+      const fromDate = new Date(getSettlementDateRange.from);
+      const toDate = new Date(getSettlementDateRange.to);
+
+      // Set time to start/end of day for accurate comparison
+      fromDate.setHours(0, 0, 0, 0);
+      toDate.setHours(23, 59, 59, 999);
+      settlementDate.setHours(0, 0, 0, 0);
+
+      return settlementDate >= fromDate && settlementDate <= toDate;
+    });
+  }, [history, getSettlementDateRange]);
+
   const handleExportHistory = () => {
-    if (!history.length) return;
+    if (!filteredHistory.length) {
+      alert("No settlements to export for the selected date range.");
+      return;
+    }
+
     const headers = [
       "Date",
       "Entry Type",
@@ -328,22 +392,31 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       "Payment Method",
       "Notes",
     ];
-    const rows = history.map((entry) => [
-      entry.entry_date,
+
+    const rows = filteredHistory.map((entry) => [
+      format(new Date(entry.settled_at ?? entry.entry_date), "MMM dd, yyyy"),
       entry.entry_type,
       entry.category,
-      entry.amount.toString(),
+      `₹${entry.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       entry.payment_method,
-      entry.notes?.replace(/"/g, '""') ?? "",
+      (entry.notes || "-").replace(/"/g, '""'),
     ]);
+
     const csvContent = [headers, ...rows]
       .map((line) => line.map((cell) => `"${cell}"`).join(","))
       .join("\n");
+
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
+
+    // Generate filename with date range
+    const fromDate = format(getSettlementDateRange.from, "yyyy-MM-dd");
+    const toDate = format(getSettlementDateRange.to, "yyyy-MM-dd");
+    const filename = `settlement-history-${fromDate}-to-${toDate}.csv`;
+
     link.href = url;
-    link.download = `cashpulse-settlement-history-${historyFilters.end_date}.csv`;
+    link.download = filename;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -475,16 +548,75 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
               <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Settlement History</p>
               <h2 className="text-2xl font-semibold text-white">Cash vs profit reconciled</h2>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-[#a78bfa]/50 text-[#a78bfa]"
-              disabled={!history.length}
-              onClick={handleExportHistory}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
+
+            <div className="flex items-center gap-3">
+              {/* Date Range Selector */}
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-400">Date:</span>
+                <select
+                  value={dateFilter}
+                  onChange={(e) => {
+                    setDateFilter(e.target.value);
+                    setShowCustomDatePickers(e.target.value === "customize");
+                  }}
+                  className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                >
+                  <option value="this-month">This Month</option>
+                  <option value="last-month">Last Month</option>
+                  <option value="this-year">This Year</option>
+                  <option value="customize">Customize</option>
+                </select>
+
+                {/* Show calendar pickers when Customize is selected */}
+                {showCustomDatePickers && (
+                  <>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                          {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customFromDate}
+                          onSelect={setCustomFromDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    <span className="text-sm text-slate-400">to</span>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                          {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customToDate}
+                          onSelect={setCustomToDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </>
+                )}
+              </div>
+
+              {/* Export CSV Button */}
+              <button
+                onClick={handleExportHistory}
+                disabled={filteredHistory.length === 0}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span>📥</span>
+                <span>Export CSV</span>
+              </button>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
@@ -500,14 +632,14 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
                 </tr>
               </thead>
               <tbody>
-                {history.length === 0 ? (
+                {filteredHistory.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
-                      No settlements in this range.
+                      No settlements match your date filter.
                     </td>
                   </tr>
                 ) : (
-                  history.map((entry) => (
+                  filteredHistory.map((entry) => (
                     <tr
                       key={entry.id}
                       className="border-t border-white/5 bg-white/5 text-slate-100 transition hover:bg-white/10"
