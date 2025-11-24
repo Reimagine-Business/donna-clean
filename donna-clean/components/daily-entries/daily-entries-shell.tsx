@@ -49,14 +49,7 @@ type EntryFormState = {
   notes: string;
 };
 
-type FiltersState = {
-  entry_type: EntryType | "All";
-  category: CategoryType | "All";
-  payment_method: PaymentMethod | "All";
-  start_date: string;
-  end_date: string;
-  search: string;
-};
+type DateFilterOption = "this-month" | "last-month" | "this-year" | "customize";
 
 const today = format(new Date(), "yyyy-MM-dd");
 const defaultStart = format(subDays(new Date(), 30), "yyyy-MM-dd");
@@ -70,14 +63,6 @@ const buildInitialFormState = (): EntryFormState => ({
   notes: "",
 });
 
-const buildInitialFiltersState = (): FiltersState => ({
-  entry_type: "All",
-  category: "All",
-  payment_method: "All",
-  start_date: defaultStart,
-  end_date: today,
-  search: "",
-});
 
 const CREDIT_PAYMENT_METHOD: PaymentMethod = "None";
 const CREDIT_METHOD_OPTIONS = [CREDIT_PAYMENT_METHOD] as const;
@@ -130,7 +115,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const [customToDate, setCustomToDate] = useState<Date>();
 
   const [formValues, setFormValues] = useState<EntryFormState>(buildInitialFormState);
-  const [filters, setFilters] = useState<FiltersState>(buildInitialFiltersState);
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -371,56 +355,122 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     setReceiptPreview(URL.createObjectURL(file));
   };
 
+  // Function to get date range based on filter
+  const getDateRange = useMemo(() => {
+    const now = new Date();
+
+    switch (dateFilter) {
+      case "this-month":
+        return {
+          from: new Date(now.getFullYear(), now.getMonth(), 1),
+          to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+        };
+
+      case "last-month":
+        return {
+          from: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+          to: new Date(now.getFullYear(), now.getMonth(), 0),
+        };
+
+      case "this-year":
+        return {
+          from: new Date(now.getFullYear(), 0, 1),
+          to: new Date(now.getFullYear(), 11, 31),
+        };
+
+      case "customize":
+        if (customFromDate && customToDate) {
+          return {
+            from: customFromDate,
+            to: customToDate,
+          };
+        }
+        // Default to this month if custom dates not set
+        return {
+          from: new Date(now.getFullYear(), now.getMonth(), 1),
+          to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+        };
+
+      default:
+        return {
+          from: new Date(now.getFullYear(), now.getMonth(), 1),
+          to: new Date(now.getFullYear(), now.getMonth() + 1, 0),
+        };
+    }
+  }, [dateFilter, customFromDate, customToDate]);
+
+  // Filter entries based on date range
   const filteredEntries = useMemo(() => {
     return entries
       .filter((entry) => {
-        const matchesType = filters.entry_type === "All" || entry.entry_type === filters.entry_type;
-        const matchesCategory = filters.category === "All" || entry.category === filters.category;
-        const matchesPayment =
-          filters.payment_method === "All" || entry.payment_method === filters.payment_method;
-        const matchesDate =
-          (!filters.start_date || entry.entry_date >= filters.start_date) &&
-          (!filters.end_date || entry.entry_date <= filters.end_date);
-        const matchesSearch =
-          !filters.search ||
-          (entry.notes ?? "")
-            .toLowerCase()
-            .includes(filters.search.trim().toLowerCase());
-        return matchesType && matchesCategory && matchesPayment && matchesDate && matchesSearch;
+        const entryDate = new Date(entry.entry_date);
+        const fromDate = new Date(getDateRange.from);
+        const toDate = new Date(getDateRange.to);
+
+        // Set time to start/end of day for accurate comparison
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(23, 59, 59, 999);
+        entryDate.setHours(0, 0, 0, 0);
+
+        return entryDate >= fromDate && entryDate <= toDate;
       })
       .sort((a, b) => b.entry_date.localeCompare(a.entry_date));
-  }, [entries, filters]);
+  }, [entries, getDateRange]);
 
-  const handleExportCsv = () => {
-    if (!filteredEntries.length) return;
+  const handleExportToExcel = () => {
+    if (filteredEntries.length === 0) {
+      alert("No entries to export for the selected date range.");
+      return;
+    }
+
+    // Format data for Excel
     const headers = [
       "Date",
       "Entry Type",
       "Category",
-      "Payment Method",
       "Amount",
+      "Payment Method",
+      "Is Settled",
       "Notes",
-      "Image URL",
     ];
+
     const rows = filteredEntries.map((entry) => [
-      entry.entry_date,
+      format(new Date(entry.entry_date), "MMM dd, yyyy"),
       entry.entry_type,
-      entry.category,
-      entry.payment_method,
-      entry.amount.toString(),
-      entry.notes?.replace(/"/g, '""') ?? "",
-      entry.image_url ?? "",
+      entry.category || "-",
+      `₹${entry.amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      entry.payment_method || "-",
+      entry.settled ? "Yes" : "No",
+      (entry.notes || "-").replace(/"/g, '""'),
     ]);
+
     const csvContent = [headers, ...rows]
       .map((line) => line.map((cell) => `"${cell}"`).join(","))
       .join("\n");
+
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
+
+    // Generate filename with date range
+    const fromDate = format(getDateRange.from, "yyyy-MM-dd");
+    const toDate = format(getDateRange.to, "yyyy-MM-dd");
+    const filename = `daily-entries-${fromDate}-to-${toDate}.csv`;
+
     anchor.href = url;
-    anchor.download = `donna-daily-entries-${today}.csv`;
+    anchor.download = filename;
+    anchor.style.visibility = "hidden";
+    document.body.appendChild(anchor);
     anchor.click();
+    document.body.removeChild(anchor);
     URL.revokeObjectURL(url);
+  };
+
+  // Handle date filter change
+  const handleDateFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value as DateFilterOption;
+    setDateFilter(value);
+    setShowCustomDatePickers(value === "customize");
   };
 
     const isCreditEntry = entryTypeIsCredit(formValues.entry_type);
@@ -622,157 +672,73 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-slate-900/40 p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div className="grid flex-1 gap-4 md:grid-cols-4">
-            <div>
-              <Label className="text-xs uppercase text-slate-400">Entry Type</Label>
-              <select
-                value={filters.entry_type}
-                onChange={(event) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    entry_type: event.target.value as FiltersState["entry_type"],
-                  }))
-                }
-                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm"
-              >
-                <option>All</option>
-                {ENTRY_TYPES.map((type) => (
-                  <option key={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label className="text-xs uppercase text-slate-400">Category</Label>
-              <select
-                value={filters.category}
-                onChange={(event) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    category: event.target.value as FiltersState["category"],
-                  }))
-                }
-                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm"
-              >
-                <option>All</option>
-                {CATEGORIES.map((category) => (
-                  <option key={category}>{category}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label className="text-xs uppercase text-slate-400">Payment Method</Label>
-              <select
-                value={filters.payment_method}
-                onChange={(event) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    payment_method: event.target.value as FiltersState["payment_method"],
-                  }))
-                }
-                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm"
-              >
-                <option>All</option>
-                {PAYMENT_METHODS.map((method) => (
-                  <option key={method}>{method}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label className="text-xs uppercase text-slate-400">Search notes</Label>
-              <Input
-                type="text"
-                placeholder="Search by note keywords"
-                value={filters.search}
-                onChange={(event) =>
-                  setFilters((prev) => ({ ...prev, search: event.target.value }))
-                }
-                className="border-white/10 bg-slate-950/80"
-              />
-            </div>
-          </div>
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-slate-300 hover:text-white"
-              onClick={() => setFilters(buildInitialFiltersState())}
-            >
-              Reset
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-[#a78bfa]/60 text-[#a78bfa]"
-              disabled={!filteredEntries.length}
-              onClick={handleExportCsv}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-white/10 bg-slate-900/40 p-6">
         <div className="mb-4 flex items-center justify-between gap-4">
-          <h2 className="text-lg font-semibold">Transaction History</h2>
+          <h2 className="text-xl font-bold">Transaction History</h2>
 
-          {/* Date Range Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-400">Date:</span>
-            <select
-              value={dateFilter}
-              onChange={(e) => {
-                setDateFilter(e.target.value);
-                setShowCustomDatePickers(e.target.value === "customize");
-              }}
-              className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+          <div className="flex items-center gap-3">
+            {/* Date Range Selector */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-400">Date:</span>
+              <select
+                value={dateFilter}
+                onChange={handleDateFilterChange}
+                className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              >
+                <option value="this-month">This Month</option>
+                <option value="last-month">Last Month</option>
+                <option value="this-year">This Year</option>
+                <option value="customize">Customize</option>
+              </select>
+
+              {/* Show calendar pickers when Customize is selected */}
+              {showCustomDatePickers && (
+                <>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                        {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={customFromDate}
+                        onSelect={setCustomFromDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  <span className="text-sm text-slate-400">to</span>
+
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                        {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={customToDate}
+                        onSelect={setCustomToDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </>
+              )}
+            </div>
+
+            {/* Export to Excel Button */}
+            <button
+              onClick={handleExportToExcel}
+              disabled={filteredEntries.length === 0}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <option value="this-month">This Month</option>
-              <option value="last-month">Last Month</option>
-              <option value="this-year">This Year</option>
-              <option value="customize">Customize</option>
-            </select>
-
-            {/* Show calendar pickers when Customize is selected */}
-            {showCustomDatePickers && (
-              <>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
-                      {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={customFromDate}
-                      onSelect={setCustomFromDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-
-                <span className="text-sm text-slate-400">to</span>
-
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
-                      {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={customToDate}
-                      onSelect={setCustomToDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </>
-            )}
+              <span>📥</span>
+              <span>Export to Excel</span>
+            </button>
           </div>
         </div>
         <div className="overflow-x-auto">
