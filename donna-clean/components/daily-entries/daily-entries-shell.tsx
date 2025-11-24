@@ -435,70 +435,11 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   return (
     <div className="flex flex-col gap-10 text-white">
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">Daily Entries</h1>
-          <p className="text-sm text-slate-300">
-            Record every inflow/outflow with supporting receipts to keep Donna in sync.
-          </p>
-        </div>
-
-        {/* Date Range Selector */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-400">Date:</span>
-          <select
-            value={dateFilter}
-            onChange={(e) => {
-              setDateFilter(e.target.value);
-              setShowCustomDatePickers(e.target.value === "customize");
-            }}
-            className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-          >
-            <option value="this-month">📅 This Month</option>
-            <option value="last-month">Last Month</option>
-            <option value="this-year">This Year</option>
-            <option value="customize">Customize</option>
-          </select>
-
-          {/* Show calendar pickers when Customize is selected */}
-          {showCustomDatePickers && (
-            <>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
-                    {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={customFromDate}
-                    onSelect={setCustomFromDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-
-              <span className="text-sm text-slate-400">to</span>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
-                    {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={customToDate}
-                    onSelect={setCustomToDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </>
-          )}
-        </div>
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold tracking-tight">Daily Entries</h1>
+        <p className="text-sm text-slate-300">
+          Record every inflow/outflow with supporting receipts to keep Donna in sync.
+        </p>
       </div>
 
       <section className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40">
@@ -684,30 +625,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div className="grid flex-1 gap-4 md:grid-cols-4">
             <div>
-              <Label className="text-xs uppercase text-slate-400">From</Label>
-              <Input
-                type="date"
-                value={filters.start_date}
-                onChange={(event) =>
-                  setFilters((prev) => ({ ...prev, start_date: event.target.value }))
-                }
-                className="border-white/10 bg-slate-950/80"
-                max={filters.end_date || today}
-              />
-            </div>
-            <div>
-              <Label className="text-xs uppercase text-slate-400">To</Label>
-              <Input
-                type="date"
-                value={filters.end_date}
-                onChange={(event) =>
-                  setFilters((prev) => ({ ...prev, end_date: event.target.value }))
-                }
-                className="border-white/10 bg-slate-950/80"
-                max={today}
-              />
-            </div>
-            <div>
               <Label className="text-xs uppercase text-slate-400">Entry Type</Label>
               <select
                 value={filters.entry_type}
@@ -743,6 +660,36 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 ))}
               </select>
             </div>
+            <div>
+              <Label className="text-xs uppercase text-slate-400">Payment Method</Label>
+              <select
+                value={filters.payment_method}
+                onChange={(event) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    payment_method: event.target.value as FiltersState["payment_method"],
+                  }))
+                }
+                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm"
+              >
+                <option>All</option>
+                {PAYMENT_METHODS.map((method) => (
+                  <option key={method}>{method}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label className="text-xs uppercase text-slate-400">Search notes</Label>
+              <Input
+                type="text"
+                placeholder="Search by note keywords"
+                value={filters.search}
+                onChange={(event) =>
+                  setFilters((prev) => ({ ...prev, search: event.target.value }))
+                }
+                className="border-white/10 bg-slate-950/80"
+              />
+            </div>
           </div>
           <div className="flex gap-3">
             <Button
@@ -765,48 +712,68 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
             </Button>
           </div>
         </div>
-
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <div>
-            <Label className="text-xs uppercase text-slate-400">Payment Method</Label>
-            <select
-              value={filters.payment_method}
-              onChange={(event) =>
-                setFilters((prev) => ({
-                  ...prev,
-                  payment_method: event.target.value as FiltersState["payment_method"],
-                }))
-              }
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm"
-            >
-              <option>All</option>
-              {PAYMENT_METHODS.map((method) => (
-                <option key={method}>{method}</option>
-              ))}
-            </select>
-          </div>
-          <div className="md:col-span-2">
-            <Label className="text-xs uppercase text-slate-400">Search notes</Label>
-            <Input
-              type="text"
-              placeholder="Search by note keywords"
-              value={filters.search}
-              onChange={(event) =>
-                setFilters((prev) => ({ ...prev, search: event.target.value }))
-              }
-              className="mt-1 border-white/10 bg-slate-950/80"
-            />
-          </div>
-        </div>
       </section>
 
       <section className="rounded-2xl border border-white/10 bg-slate-900/40 p-6">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-lg font-semibold">Transaction History</h2>
-          <p className="text-sm text-slate-400">
-            Showing <span className="font-semibold text-white">{filteredEntries.length}</span>{" "}
-            {filteredEntries.length === 1 ? "entry" : "entries"}
-          </p>
+
+          {/* Date Range Selector */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-400">Date:</span>
+            <select
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setShowCustomDatePickers(e.target.value === "customize");
+              }}
+              className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            >
+              <option value="this-month">This Month</option>
+              <option value="last-month">Last Month</option>
+              <option value="this-year">This Year</option>
+              <option value="customize">Customize</option>
+            </select>
+
+            {/* Show calendar pickers when Customize is selected */}
+            {showCustomDatePickers && (
+              <>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                      {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customFromDate}
+                      onSelect={setCustomFromDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <span className="text-sm text-slate-400">to</span>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                      {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customToDate}
+                      onSelect={setCustomToDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </>
+            )}
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
