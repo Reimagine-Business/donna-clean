@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { User } from '@supabase/supabase-js'
 import { format, startOfMonth, endOfMonth, subMonths, startOfYear, endOfYear } from 'date-fns'
 
@@ -22,7 +22,11 @@ export default function ProfitLens() {
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([])
   const [dateRange, setDateRange] = useState<DateRange>('this_month')
   const [loading, setLoading] = useState(true)
-  const supabase = createClientComponentClient()
+
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   // Get date range boundaries
   const getDateBoundaries = (range: DateRange): { start: Date; end: Date } | null => {
@@ -63,7 +67,7 @@ export default function ProfitLens() {
       setUser(user)
     }
     getUser()
-  }, [supabase.auth])
+  }, [supabase])
 
   // Fetch all transactions
   useEffect(() => {
