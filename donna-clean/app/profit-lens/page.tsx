@@ -5,6 +5,9 @@ import { SessionExpiredNotice } from "@/components/session-expired-notice";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
 
+// Force dynamic rendering to prevent caching
+export const dynamic = 'force-dynamic';
+
 export default async function ProfitLensPage() {
   const supabase = await createSupabaseServerClient();
   const { user, initialError } = await getOrRefreshUser(supabase);

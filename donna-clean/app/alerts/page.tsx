@@ -5,6 +5,9 @@ import { AlertsPageClient } from "@/components/alerts/alerts-page-client";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
 
+// Force dynamic rendering to prevent caching
+export const dynamic = 'force-dynamic';
+
 export default async function AlertsPage() {
   const supabase = await createSupabaseServerClient();
   const { user, initialError } = await getOrRefreshUser(supabase);
