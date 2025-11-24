@@ -20,13 +20,13 @@ export function AlertsPageClient({ userEmail, initialReminders }: AlertsPageClie
   return (
     <>
       {/* Mobile Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-900 md:hidden">
+      <header className="sticky top-0 z-30 border-b border-slate-800 bg-card md:hidden">
         <div className="flex items-center justify-between px-4 py-3">
           <HamburgerMenu businessName="Donna Clean" userEmail={userEmail} />
           <h1 className="text-lg font-semibold">Alerts</h1>
           <button
             onClick={() => setIsAddDialogOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-white"
           >
             <span className="text-xl">➕</span>
           </button>

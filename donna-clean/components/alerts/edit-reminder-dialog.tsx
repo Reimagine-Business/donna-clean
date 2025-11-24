@@ -83,13 +83,13 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-slate-900 p-6">
+      <div className="w-full max-w-md rounded-lg bg-card p-6">
         {/* Header */}
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-white">Edit Reminder</h2>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors"
+            className="text-muted-foreground hover:text-white transition-colors"
             type="button"
           >
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,7 +109,7 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
-            <label htmlFor="edit-title" className="mb-1 block text-sm font-medium text-slate-300">
+            <label htmlFor="edit-title" className="mb-1 block text-sm font-medium text-foreground/70">
               Title *
             </label>
             <input
@@ -118,7 +118,7 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
               name="title"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
               placeholder="e.g., Electricity Bill"
               required
             />
@@ -126,7 +126,7 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
 
           {/* Category */}
           <div>
-            <label htmlFor="edit-category" className="mb-1 block text-sm font-medium text-slate-300">
+            <label htmlFor="edit-category" className="mb-1 block text-sm font-medium text-foreground/70">
               Category *
             </label>
             <select
@@ -134,7 +134,7 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
               name="category"
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             >
               <option value="bills">Bills</option>
               <option value="task">Task</option>
@@ -145,7 +145,7 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
 
           {/* Due Date */}
           <div>
-            <label htmlFor="edit-due_date" className="mb-1 block text-sm font-medium text-slate-300">
+            <label htmlFor="edit-due_date" className="mb-1 block text-sm font-medium text-foreground/70">
               Due Date *
             </label>
             <input
@@ -154,14 +154,14 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
               name="due_date"
               value={formData.due_date}
               onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
               required
             />
           </div>
 
           {/* Frequency */}
           <div>
-            <label htmlFor="edit-frequency" className="mb-1 block text-sm font-medium text-slate-300">
+            <label htmlFor="edit-frequency" className="mb-1 block text-sm font-medium text-foreground/70">
               Frequency *
             </label>
             <select
@@ -169,7 +169,7 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
               name="frequency"
               value={formData.frequency}
               onChange={(e) => setFormData({ ...formData, frequency: e.target.value })}
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
             >
               <option value="one_time">One Time</option>
               <option value="weekly">Weekly</option>
@@ -181,7 +181,7 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
 
           {/* Description */}
           <div>
-            <label htmlFor="edit-description" className="mb-1 block text-sm font-medium text-slate-300">
+            <label htmlFor="edit-description" className="mb-1 block text-sm font-medium text-foreground/70">
               Description (optional)
             </label>
             <textarea
@@ -189,7 +189,7 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
               name="description"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+              className="w-full rounded-lg border border-border bg-secondary px-3 py-2 text-white placeholder-slate-400 focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
               rows={3}
               placeholder="Add notes..."
             />
@@ -208,14 +208,14 @@ export function EditReminderDialog({ isOpen, onClose, onSuccess, reminder }: Edi
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border border-slate-700 px-4 py-2 text-slate-300 transition-colors hover:bg-slate-800"
+              className="flex-1 rounded-lg border border-border px-4 py-2 text-foreground/70 transition-colors hover:bg-secondary"
               disabled={isPending}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 rounded-lg bg-purple-600 px-4 py-2 text-white transition-colors hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 rounded-lg bg-primary px-4 py-2 text-white transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isPending}
             >
               {isPending ? "Saving..." : "Save Changes"}

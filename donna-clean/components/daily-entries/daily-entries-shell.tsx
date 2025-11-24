@@ -487,22 +487,22 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     <div className="flex flex-col gap-10 text-white">
       <div className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight">Daily Entries</h1>
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-foreground/70">
           Record every inflow/outflow with supporting receipts to keep Donna in sync.
         </p>
       </div>
 
-      <section className="rounded-2xl border border-white/10 bg-slate-900/60 p-6 shadow-2xl shadow-black/40">
+      <section className="rounded-2xl border border-border bg-card/60 p-6 shadow-2xl shadow-black/40">
         <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid gap-5 md:grid-cols-2">
             <div className="space-y-2">
-              <Label className="text-sm uppercase text-slate-400">Entry Type</Label>
+              <Label className="text-sm uppercase text-muted-foreground">Entry Type</Label>
                 <select
                   value={formValues.entry_type}
                   onChange={(event) =>
                     handleInputChange("entry_type", event.target.value as EntryType)
                   }
-                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {ENTRY_TYPES.map((type) => (
                   <option key={type} value={type}>
@@ -510,18 +510,18 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                   </option>
                 ))}
               </select>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Sales entries are saved as inflows; expenses default to outflows.
                 </p>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm uppercase text-slate-400">Category</Label>
+              <Label className="text-sm uppercase text-muted-foreground">Category</Label>
               <select
                 value={formValues.category}
                 onChange={(event) =>
                   handleInputChange("category", event.target.value as CategoryType)
                 }
-                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
+                className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {CATEGORIES.map((category) => (
                   <option key={category} value={category}>
@@ -531,7 +531,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
               </select>
             </div>
             <div className="space-y-2">
-              <Label className="text-sm uppercase text-slate-400">Payment Method</Label>
+              <Label className="text-sm uppercase text-muted-foreground">Payment Method</Label>
               <select
                 value={formValues.payment_method}
                 onChange={(event) =>
@@ -540,7 +540,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 disabled={isCreditEntry}
                 aria-disabled={isCreditEntry}
                 className={cn(
-                  "w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]",
+                  "w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring",
                   isCreditEntry && "cursor-not-allowed opacity-60",
                 )}
               >
@@ -550,13 +550,13 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                   </option>
                 ))}
               </select>
-              <p className="text-xs text-slate-500">{paymentMethodHelperText}</p>
+              <p className="text-xs text-muted-foreground">{paymentMethodHelperText}</p>
               {paymentMethodError && (
                 <p className="text-xs text-rose-400">{paymentMethodError}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label className="text-sm uppercase text-slate-400">Amount</Label>
+              <Label className="text-sm uppercase text-muted-foreground">Amount</Label>
               <Input
                 type="text"
                 inputMode="decimal"
@@ -569,43 +569,43 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 }
                 onBlur={handleAmountBlur}
                 placeholder="0.00"
-                className="border-white/10 bg-slate-950/80 text-base"
+                className="border-border bg-secondary/50 text-base"
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm uppercase text-slate-400">Date</Label>
+              <Label className="text-sm uppercase text-muted-foreground">Date</Label>
               <Input
                 type="date"
                 value={formValues.entry_date}
                 onChange={(event) => handleInputChange("entry_date", event.target.value)}
-                className="border-white/10 bg-slate-950/80"
+                className="border-border bg-secondary/50"
                 max={today}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-sm uppercase text-slate-400">Notes</Label>
+              <Label className="text-sm uppercase text-muted-foreground">Notes</Label>
               <textarea
                 value={formValues.notes}
                 onChange={(event) => handleInputChange("notes", event.target.value)}
                 placeholder="Add quick context"
-                className="min-h-[80px] w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
+                className="min-h-[80px] w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm uppercase text-slate-400">Receipt / Image</Label>
-            <div className="flex flex-col gap-4 rounded-xl border border-dashed border-[#a78bfa]/40 p-4">
+            <Label className="text-sm uppercase text-muted-foreground">Receipt / Image</Label>
+            <div className="flex flex-col gap-4 rounded-xl border border-dashed border-primary/40 p-4">
               <label
                 htmlFor="receipt-upload"
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/10 px-4 py-3 text-sm transition hover:border-[#a78bfa]/80"
+                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm transition hover:border-primary/80"
               >
-                <UploadCloud className="h-5 w-5 text-[#a78bfa]" />
+                <UploadCloud className="h-5 w-5 text-primary" />
                 <div>
                   <p className="font-medium">Upload receipt</p>
-                  <p className="text-xs text-slate-400">PNG, JPG up to 5 MB</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG up to 5 MB</p>
                 </div>
               </label>
               <Input
@@ -616,7 +616,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 onChange={(event) => handleReceiptChange(event.target.files)}
               />
               {(receiptPreview || existingImageUrl) && (
-                <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-slate-950/50 p-3">
+                <div className="flex items-center gap-3 rounded-lg border border-border bg-slate-950/50 p-3">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={receiptPreview || existingImageUrl || ""}
@@ -649,7 +649,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-[#a78bfa] px-6 py-2 text-base font-semibold text-white shadow-lg shadow-[#a78bfa]/30 hover:bg-[#9770ff]"
+              className="bg-primary px-6 py-2 text-base font-semibold text-white shadow-lg shadow-primary/30 hover:bg-primary/90"
             >
               {isSubmitting
                 ? "Saving..."
@@ -661,7 +661,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
               <Button
                 type="button"
                 variant="ghost"
-                className="text-slate-300 hover:text-white"
+                className="text-foreground/70 hover:text-white"
                 onClick={resetForm}
               >
                 Cancel edit
@@ -671,18 +671,18 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         </form>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-slate-900/40 p-6">
+      <section className="rounded-2xl border border-border bg-card/40 p-6">
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="text-xl font-bold">Transaction History</h2>
 
           <div className="flex items-center gap-3">
             {/* Date Range Selector */}
             <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-400">Date:</span>
+              <span className="text-sm text-muted-foreground">Date:</span>
               <select
                 value={dateFilter}
                 onChange={handleDateFilterChange}
-                className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+                className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
               >
                 <option value="this-month">This Month</option>
                 <option value="last-month">Last Month</option>
@@ -695,7 +695,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 <>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                      <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                         {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                       </button>
                     </PopoverTrigger>
@@ -709,11 +709,11 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                     </PopoverContent>
                   </Popover>
 
-                  <span className="text-sm text-slate-400">to</span>
+                  <span className="text-sm text-muted-foreground">to</span>
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                      <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
                         {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                       </button>
                     </PopoverTrigger>
@@ -734,7 +734,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
             <button
               onClick={handleExportToExcel}
               disabled={filteredEntries.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>📥</span>
               <span>Export to Excel</span>
@@ -744,7 +744,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase text-slate-400">
+              <tr className="text-left text-xs uppercase text-muted-foreground">
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">Entry Type</th>
                 <th className="px-3 py-2">Category</th>
@@ -758,7 +758,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
             <tbody>
               {filteredEntries.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-3 py-10 text-center text-slate-400">
+                  <td colSpan={8} className="px-3 py-10 text-center text-muted-foreground">
                     No entries match your filters yet.
                   </td>
                 </tr>
@@ -766,7 +766,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
               {filteredEntries.map((entry) => (
                 <tr
                   key={entry.id}
-                  className="border-t border-white/5 bg-white/5 text-slate-100 transition hover:bg-white/10"
+                  className="border-t border-border/50 bg-white/5 text-slate-100 transition hover:bg-white/10"
                 >
                   <td className="px-3 py-3 font-medium">{format(new Date(entry.entry_date), "dd MMM")}</td>
                   <td className="px-3 py-3">
@@ -775,8 +775,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                         "rounded-full px-2 py-1 text-xs font-semibold",
                         entry.entry_type === "Cash Inflow" && "bg-emerald-500/20 text-emerald-300",
                         entry.entry_type === "Cash Outflow" && "bg-rose-500/20 text-rose-300",
-                        entry.entry_type === "Credit" && "bg-amber-500/20 text-amber-200",
-                        entry.entry_type === "Advance" && "bg-sky-500/20 text-sky-200",
+                        entry.entry_type === "Credit" && "bg-primary/20 text-accent",
+                        entry.entry_type === "Advance" && "bg-primary/20 text-accent",
                       )}
                     >
                       {entry.entry_type}
@@ -794,7 +794,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                         href={entry.image_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-block rounded border border-white/10"
+                        className="inline-block rounded border border-border"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -804,7 +804,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                         />
                       </a>
                     ) : (
-                      <span className="text-slate-500">—</span>
+                      <span className="text-muted-foreground">—</span>
                     )}
                   </td>
                   <td className="px-3 py-3 text-right">
@@ -812,7 +812,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-slate-300 hover:text-white"
+                        className="text-foreground/70 hover:text-white"
                         onClick={() => handleEdit(entry)}
                       >
                         <Edit3 className="h-4 w-4" />
@@ -830,7 +830,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-[#a78bfa] hover:text-white"
+                            className="text-primary hover:text-white"
                             onClick={() => setSettlementEntry(entry)}
                           >
                             <Handshake className="mr-1 h-4 w-4" />
