@@ -4,6 +4,9 @@ import { useState, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { markReminderDone } from "@/app/reminders/actions";
 import { EditReminderDialog } from "./edit-reminder-dialog";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format } from "date-fns";
 
 type FilterOption = "all" | "due_soon" | "overdue" | "completed";
 
@@ -68,6 +71,10 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
   const [isPending, startTransition] = useTransition();
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [dateFilter, setDateFilter] = useState("this-month");
+  const [showCustomDatePickers, setShowCustomDatePickers] = useState(false);
+  const [customFromDate, setCustomFromDate] = useState<Date>();
+  const [customToDate, setCustomToDate] = useState<Date>();
 
   const filterOptions: { id: FilterOption; label: string }[] = [
     { id: "due_soon", label: "Due Soon" },
@@ -189,12 +196,58 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
           {/* Date Range Selector */}
           <div className="flex items-center gap-2">
             <span className="text-sm text-slate-400">Date:</span>
-            <select className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500">
+            <select
+              value={dateFilter}
+              onChange={(e) => {
+                setDateFilter(e.target.value);
+                setShowCustomDatePickers(e.target.value === "customize");
+              }}
+              className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            >
               <option value="this-month">📅 This Month</option>
               <option value="last-month">Last Month</option>
               <option value="this-year">This Year</option>
-              <option value="custom">Customize</option>
+              <option value="customize">Customize</option>
             </select>
+
+            {/* Show calendar pickers when Customize is selected */}
+            {showCustomDatePickers && (
+              <>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                      {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customFromDate}
+                      onSelect={setCustomFromDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                <span className="text-sm text-slate-400">to</span>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button className="px-3 py-2 border border-slate-700 bg-slate-800 rounded-lg text-sm text-white hover:bg-slate-700 focus:border-purple-500 focus:outline-none">
+                      {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={customToDate}
+                      onSelect={setCustomToDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </>
+            )}
           </div>
         </div>
 
