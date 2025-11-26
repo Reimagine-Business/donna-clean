@@ -49,7 +49,7 @@ type EntryFormState = {
   notes: string;
 };
 
-type DateFilterOption = "this-month" | "last-month" | "this-year" | "customize";
+type DateFilterOption = "this-month" | "last-month" | "this-year" | "last-year" | "all-time" | "customize";
 
 const today = format(new Date(), "yyyy-MM-dd");
 const defaultStart = format(subDays(new Date(), 30), "yyyy-MM-dd");
@@ -376,6 +376,18 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         return {
           from: new Date(now.getFullYear(), 0, 1),
           to: new Date(now.getFullYear(), 11, 31),
+        };
+
+      case "last-year":
+        return {
+          from: new Date(now.getFullYear() - 1, 0, 1),
+          to: new Date(now.getFullYear() - 1, 11, 31),
+        };
+
+      case "all-time":
+        return {
+          from: new Date(2000, 0, 1), // Far past date
+          to: new Date(2099, 11, 31), // Far future date
         };
 
       case "customize":
@@ -728,9 +740,11 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 onChange={handleDateFilterChange}
                 className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
               >
-                <option value="this-month">This Month</option>
+                <option value="this-month">📅 This Month</option>
                 <option value="last-month">Last Month</option>
                 <option value="this-year">This Year</option>
+                <option value="last-year">Last Year</option>
+                <option value="all-time">All Time</option>
                 <option value="customize">Customize</option>
               </select>
 
