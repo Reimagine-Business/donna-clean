@@ -435,7 +435,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       .sort((a, b) => b.entry_date.localeCompare(a.entry_date));
 
     return filtered;
-  }, [entries, getDateRange, dateFilter]);
+  }, [entries, getDateRange]); // Fixed: Removed redundant dateFilter dependency
 
   const handleExportToExcel = () => {
     if (filteredEntries.length === 0) {
