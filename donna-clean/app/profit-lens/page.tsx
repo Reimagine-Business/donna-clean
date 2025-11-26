@@ -21,118 +21,30 @@ export default async function ProfitLensPage() {
       initialError ?? undefined,
     );
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0f0f1e]">
-        <div className="text-purple-400">Loading...</div>
-      </div>
-    )
+      <main className="min-h-screen bg-background text-foreground">
+        <div className="flex flex-col gap-10">
+          <SiteHeader />
+          <section className="px-4 pb-12 md:px-8">
+            <div className="mx-auto w-full max-w-6xl">
+              <SessionExpiredNotice
+                message="Session expired – please login again"
+              />
+            </div>
+          </section>
+        </div>
+      </main>
+    );
   }
 
-  return (
-    <div className="min-h-screen bg-[#0f0f1e] pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-purple-900 to-purple-800 px-4 py-6 md:px-6 md:py-8">
-        <h1 className="text-xl md:text-2xl font-bold text-white mb-4">📊 Profit Lens</h1>
-        
-        {/* Date Filter Dropdown */}
-        <select
-          value={dateRange}
-          onChange={(e) => setDateRange(e.target.value as DateRange)}
-          className="w-full md:w-auto px-3 py-2 bg-purple-800/50 text-white text-sm md:text-base rounded-lg border border-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-500"
-        >
-          <option value="this_month">This Month</option>
-          <option value="last_month">Last Month</option>
-          <option value="this_year">This Year</option>
-          <option value="last_year">Last Year</option>
-          <option value="all_time">All Time</option>
-        </select>
-        
-        <div className="text-purple-200 text-xs md:text-sm mt-2">
-          P&L Statement: {getDateRangeLabel()}
-        </div>
-      </div>
+  // Then continue with your queries using this supabase client
 
-      {/* P&L Summary */}
-      <div className="px-4 py-6 md:px-6 space-y-3">
-        {/* Revenue */}
-        <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 rounded-xl p-4 border border-green-700/30">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-green-300 text-xs md:text-sm font-medium">Total Revenue</p>
-              <p className="text-white text-xl md:text-2xl font-bold mt-1">
-                ₹{revenue.toLocaleString('en-IN')}
-              </p>
-            </div>
-            <div className="text-2xl md:text-3xl">💰</div>
-          </div>
-        </div>
+  const { data: entries, error } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
 
-        {/* Expenses */}
-        <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 rounded-xl p-4 border border-red-700/30">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <p className="text-red-300 text-xs md:text-sm font-medium">Total Expenses</p>
-              <p className="text-white text-xl md:text-2xl font-bold mt-1">
-                ₹{expenses.toLocaleString('en-IN')}
-              </p>
-            </div>
-            <div className="text-2xl md:text-3xl">💸</div>
-          </div>
-        </div>
-
-        {/* Gross Profit */}
-        <div className={`bg-gradient-to-br ${
-          grossProfit >= 0 
-            ? 'from-purple-900/40 to-purple-800/30 border-purple-700/40' 
-            : 'from-red-900/40 to-red-800/30 border-red-700/40'
-        } rounded-xl p-4 border`}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex-1">
-              <p className={`${grossProfit >= 0 ? 'text-purple-300' : 'text-red-300'} text-xs md:text-sm font-medium`}>
-                Gross Profit
-              </p>
-              <p className="text-white text-xl md:text-2xl font-bold mt-1">
-                ₹{grossProfit.toLocaleString('en-IN')}
-              </p>
-            </div>
-            <div className="text-2xl md:text-3xl">
-              {grossProfit >= 0 ? '✅' : '⚠️'}
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-purple-700/30">
-            <span className="text-purple-400 text-[10px] md:text-xs">Gross Margin</span>
-            <span className={`text-xs md:text-sm font-semibold ${grossProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {grossMargin.toFixed(1)}%
-            </span>
-          </div>
-        </div>
-
-        {/* Net Profit */}
-        <div className={`bg-gradient-to-br ${
-          netProfit >= 0 
-            ? 'from-purple-900/40 to-purple-800/30 border-purple-700/40' 
-            : 'from-red-900/40 to-red-800/30 border-red-700/40'
-        } rounded-xl p-4 border`}>
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex-1">
-              <p className={`${netProfit >= 0 ? 'text-purple-300' : 'text-red-300'} text-xs md:text-sm font-medium`}>
-                Net Profit
-              </p>
-              <p className="text-white text-xl md:text-2xl font-bold mt-1">
-                ₹{netProfit.toLocaleString('en-IN')}
-              </p>
-            </div>
-            <div className="text-2xl md:text-3xl">
-              {netProfit >= 0 ? '🎯' : '📉'}
-            </div>
-          </div>
-          <div className="flex items-center justify-between mt-2 pt-2 border-t border-purple-700/30">
-            <span className="text-purple-400 text-[10px] md:text-xs">Net Margin</span>
-            <span className={`text-xs md:text-sm font-semibold ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              {netMargin.toFixed(1)}%
-            </span>
-          </div>
-        </div>
-      </div>
+  if (error) throw error;
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
@@ -145,6 +57,7 @@ export default async function ProfitLensPage() {
           </div>
         </section>
       </div>
-    </div>
-  )
+      <BottomNav />
+    </main>
+  );
 }
