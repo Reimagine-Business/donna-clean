@@ -26,7 +26,7 @@ export default async function DailyEntriesPage() {
 
   // Then continue with your queries using this supabase client
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("entries")
       .select(
         "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at",
@@ -35,6 +35,15 @@ export default async function DailyEntriesPage() {
     .order("entry_date", { ascending: false });
 
   const entries: Entry[] = data?.map((entry) => normalizeEntry(entry)) ?? [];
+
+  // === CHECKPOINT 1: Parent Page Data Fetch ===
+  console.log('🔥 PARENT PAGE - Data Fetch:');
+  console.log('  Raw data count:', data?.length);
+  console.log('  Normalized entries count:', entries.length);
+  console.log('  Error:', error);
+  console.log('  First 2 raw entries:', data?.slice(0, 2));
+  console.log('  First 2 normalized entries:', entries.slice(0, 2));
+  console.log('  ==================');
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">

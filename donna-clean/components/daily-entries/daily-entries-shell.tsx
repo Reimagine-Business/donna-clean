@@ -100,6 +100,13 @@ const paymentMethodRuleViolation = (
 };
 
 export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellProps) {
+  // === CHECKPOINT 2: Component Received Props ===
+  console.log('🔥 COMPONENT - Received Props:');
+  console.log('  initialEntries length:', initialEntries?.length);
+  console.log('  First entry:', initialEntries?.[0]);
+  console.log('  userId:', userId);
+  console.log('  ==================');
+
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
 
@@ -414,6 +421,23 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   // Filter entries based on date range
   const filteredEntries = useMemo(() => {
+    // === CHECKPOINT 3: Filtering ===
+    console.log('🔥 FILTERING:');
+    console.log('  entries.length:', entries.length);
+    console.log('  dateFilter:', dateFilter);
+    console.log('  getDateRange:', getDateRange);
+
+    // TEMPORARILY DISABLE FILTERING TO TEST
+    console.log('  ⚠️ TEMP: Showing ALL entries (no filter)');
+    const result = entries.sort((a, b) =>
+      b.entry_date.localeCompare(a.entry_date)
+    );
+    console.log('  Result length:', result.length);
+    console.log('  First result entry:', result[0]);
+    console.log('  ==================');
+    return result;
+
+    /* ORIGINAL FILTERING CODE - TEMPORARILY DISABLED
     const filtered = entries
       .filter((entry) => {
         // Parse entry_date explicitly in local time to avoid timezone issues
@@ -435,7 +459,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       .sort((a, b) => b.entry_date.localeCompare(a.entry_date));
 
     return filtered;
-  }, [entries, getDateRange]); // Fixed: Removed redundant dateFilter dependency
+    */
+  }, [entries]); // Simplified dependencies for debugging
 
   const handleExportToExcel = () => {
     if (filteredEntries.length === 0) {
