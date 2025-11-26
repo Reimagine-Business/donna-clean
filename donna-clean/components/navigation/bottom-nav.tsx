@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Home, Edit3, TrendingUp, Search, Bell } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/home", label: "Home" },
-  { href: "/daily-entries", label: "Entries" },
-  { href: "/cashpulse", label: "Cashpulse" },
-  { href: "/profit-lens", label: "Profit Lens" },
-  { href: "/alerts", label: "Alerts" },
+  { href: "/home", label: "Home", icon: Home },
+  { href: "/daily-entries", label: "Entries", icon: Edit3 },
+  { href: "/cashpulse", label: "Cashpulse", icon: TrendingUp },
+  { href: "/profit-lens", label: "Profit Lens", icon: Search },
+  { href: "/alerts", label: "Alerts", icon: Bell },
 ];
 
 export function BottomNav() {
@@ -17,21 +18,41 @@ export function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-800 bg-card md:hidden">
-      <div className="flex items-center justify-around">
+      <div className="flex items-center justify-evenly py-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
+          const Icon = item.icon;
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={cn(
-                "flex min-h-[40px] flex-1 items-center justify-center py-2 transition-colors",
-                isActive
-                  ? "text-primary"
-                  : "text-muted-foreground hover:text-foreground/70"
-              )}
+              className="flex flex-col items-center gap-1 transition-all"
             >
-              <span className="text-[10px] font-medium">{item.label}</span>
+              <div
+                className={cn(
+                  "flex h-14 w-14 items-center justify-center rounded-lg border-2 transition-colors",
+                  isActive
+                    ? "border-[#673AB7] bg-[#673AB7]"
+                    : "border-[#673AB7] bg-[#1a1a2e]"
+                )}
+              >
+                <Icon
+                  size={24}
+                  strokeWidth={2}
+                  className={cn(
+                    "transition-colors",
+                    isActive ? "text-white" : "text-[#B39DDB]"
+                  )}
+                />
+              </div>
+              <span
+                className={cn(
+                  "text-[10px] md:text-[11px] font-medium transition-colors",
+                  isActive ? "text-white" : "text-[#B39DDB]"
+                )}
+              >
+                {item.label}
+              </span>
             </Link>
           );
         })}

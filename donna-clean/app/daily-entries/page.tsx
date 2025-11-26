@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
+import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
 import { DailyEntriesShell } from "@/components/daily-entries/daily-entries-shell";
 import { normalizeEntry, type Entry } from "@/lib/entries";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
@@ -39,6 +40,7 @@ export default async function DailyEntriesPage() {
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <div className="flex flex-col gap-10">
         <SiteHeader />
+        <TopNavMobile pageTitle="Daily Entries" userEmail={user.email || undefined} />
         <section className="px-4 pb-12 md:px-8">
           <div className="mx-auto w-full max-w-6xl">
             <DailyEntriesShell initialEntries={entries} userId={user.id} />

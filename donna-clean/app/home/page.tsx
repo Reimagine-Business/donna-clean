@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
-import { HamburgerMenu } from "@/components/navigation/hamburger-menu";
+import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
 import { HomeShell } from "@/components/home/home-shell";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
@@ -38,15 +38,7 @@ export default async function HomePage() {
         <SiteHeader />
 
         {/* Mobile Header */}
-        <header className="sticky top-0 z-30 border-b border-slate-800 bg-card md:hidden">
-          <div className="flex items-center justify-between px-4 py-3">
-            <HamburgerMenu businessName="Donna Clean" userEmail={user.email || undefined} />
-            <h1 className="text-lg font-semibold">Home</h1>
-            <button className="flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-white">
-              <span className="text-xl">🔔</span>
-            </button>
-          </div>
-        </header>
+        <TopNavMobile pageTitle="Home" userEmail={user.email || undefined} />
 
         {/* Main Content */}
         <section className="px-4 pb-24 md:px-8 md:pb-8">
