@@ -369,7 +369,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             <div
               key={row.label}
               className={cn(
-                "flex flex-col gap-1 md:gap-2 rounded-lg md:rounded-2xl border border-border/50 bg-slate-950/30 p-2 md:p-4 md:flex-row md:items-center md:justify-between",
+                "flex items-center justify-between rounded-lg md:rounded-2xl border border-border/50 bg-slate-950/30 p-2 md:p-4",
                 index === plRows.length - 1 ? "shadow-[0_0_25px_rgba(167,139,250,0.2)]" : "",
               )}
             >
@@ -449,9 +449,13 @@ type MetricCardProps = {
 function MetricCard({ title, value, subtitle }: MetricCardProps) {
   return (
     <div className="rounded-lg md:rounded-2xl border border-border bg-card/60 p-3 md:p-5 shadow-lg shadow-black/40">
-      <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">{title}</p>
-      <p className="mt-1.5 md:mt-3 text-xl md:text-3xl font-semibold text-white">{value}</p>
-      <p className="mt-1 md:mt-2 text-xs md:text-sm text-muted-foreground">{subtitle}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">{title}</p>
+          <p className="mt-1 text-xs md:text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        <p className="text-xl md:text-3xl font-semibold text-white">{value}</p>
+      </div>
     </div>
   );
 }
@@ -465,9 +469,13 @@ type BreakdownCardProps = {
 function BreakdownCard({ title, value, description }: BreakdownCardProps) {
   return (
     <div className="rounded-lg md:rounded-2xl border border-primary/30 bg-gradient-to-br from-[#a78bfa]/20 to-transparent p-3 md:p-5 shadow-lg shadow-primary/20">
-      <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#c4b5fd]">{title}</p>
-      <p className="mt-1.5 md:mt-3 text-xl md:text-3xl font-semibold text-white">{value}</p>
-      <p className="mt-1 md:mt-2 text-xs md:text-sm text-[#c4b5fd]">{description}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#c4b5fd]">{title}</p>
+          <p className="mt-1 text-xs md:text-sm text-[#c4b5fd]">{description}</p>
+        </div>
+        <p className="text-xl md:text-3xl font-semibold text-white">{value}</p>
+      </div>
     </div>
   );
 }

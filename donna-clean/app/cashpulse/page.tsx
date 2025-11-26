@@ -1,5 +1,6 @@
 import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
+import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
 import { CashpulseShell } from "@/components/cashpulse/cashpulse-shell";
 import { SessionExpiredNotice } from "@/components/session-expired-notice";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
@@ -49,6 +50,7 @@ export default async function CashpulsePage() {
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <div className="flex flex-col gap-10">
         <SiteHeader />
+        <TopNavMobile pageTitle="Cashpulse" userEmail={user.email || undefined} />
         <section className="px-4 pb-12 md:px-8">
           <div className="mx-auto w-full max-w-6xl">
             <CashpulseShell initialEntries={entries || []} userId={user.id} />

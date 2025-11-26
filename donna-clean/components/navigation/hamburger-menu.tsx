@@ -12,13 +12,19 @@ interface HamburgerMenuProps {
   userEmail?: string;
 }
 
-const menuItems = [
+const navigationItems = [
   { href: "/home", label: "Home", icon: "🏠" },
   { href: "/daily-entries", label: "Daily Entries", icon: "📝" },
   { href: "/cashpulse", label: "Cashpulse", icon: "💰" },
   { href: "/profit-lens", label: "Profit Lens", icon: "📊" },
   { href: "/alerts", label: "Alerts", icon: "🔔" },
   { href: "/dashboard", label: "Dashboard", icon: "📈" },
+];
+
+const settingsItems = [
+  { href: "/profile", label: "Profile", icon: "👤" },
+  { href: "/settings", label: "Settings", icon: "⚙️" },
+  { href: "/user-management", label: "User Management", icon: "👥", adminOnly: true },
 ];
 
 export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: HamburgerMenuProps) {
@@ -94,30 +100,66 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
 
           {/* Navigation Links */}
           <nav className="flex-1 overflow-y-auto p-4">
-            <ul className="space-y-2">
-              {menuItems.map((item) => {
-                const isActive = pathname === item.href;
-                return (
-                  <li key={item.href}>
-                    <Link
-                      href={item.href}
-                      onClick={closeMenu}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-foreground/70 hover:bg-secondary hover:text-white"
-                      )}
-                    >
-                      <span className="text-lg" aria-hidden="true">
-                        {item.icon}
-                      </span>
-                      {item.label}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="mb-4">
+              <h3 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Navigation
+              </h3>
+              <ul className="space-y-2">
+                {navigationItems.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={closeMenu}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/70 hover:bg-secondary hover:text-white"
+                        )}
+                      >
+                        <span className="text-lg" aria-hidden="true">
+                          {item.icon}
+                        </span>
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+
+            <div>
+              <h3 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Settings
+              </h3>
+              <ul className="space-y-2">
+                {settingsItems.map((item) => {
+                  // For now, show all items. Admin filtering can be added later
+                  const isActive = pathname === item.href;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={closeMenu}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-foreground/70 hover:bg-secondary hover:text-white"
+                        )}
+                      >
+                        <span className="text-lg" aria-hidden="true">
+                          {item.icon}
+                        </span>
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           </nav>
 
           {/* Footer */}

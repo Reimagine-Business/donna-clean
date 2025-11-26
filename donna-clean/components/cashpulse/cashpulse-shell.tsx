@@ -845,12 +845,13 @@ function StatCard({ title, value, subtitle, variant }: StatCardProps) {
         colorMap[variant],
       )}
     >
-      <div className="mb-2 md:mb-4 flex items-center justify-between text-[10px] md:text-sm uppercase tracking-widest text-white/70">
-        <span>{title}</span>
-        <Icon className="h-3 w-3 md:h-4 md:w-4 text-white/70" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 md:gap-3">
+          <Icon className="h-3 w-3 md:h-4 md:w-4 text-white/70" />
+          <span className="text-[10px] md:text-sm uppercase tracking-widest text-white/70">{title}</span>
+        </div>
+        <p className="text-xl md:text-3xl font-semibold text-white">{value}</p>
       </div>
-      <p className="text-xl md:text-3xl font-semibold text-white">{value}</p>
-      <p className="mt-1 md:mt-2 text-[10px] md:text-xs text-white/70">{subtitle}</p>
     </div>
   );
 }
@@ -863,11 +864,15 @@ type ChannelCardProps = {
 function ChannelCard({ method, value }: ChannelCardProps) {
   return (
     <div className="rounded-lg md:rounded-2xl border border-border bg-card/60 p-3 md:p-5 shadow-lg shadow-black/30">
-      <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">Channel</p>
-      <p className="mt-1 md:mt-2 text-sm md:text-lg font-semibold text-white">{method}</p>
-      <p className={cn("mt-1.5 md:mt-3 text-base md:text-2xl font-semibold", value.startsWith("-") ? "text-rose-300" : "text-primary")}>
-        {value}
-      </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">Channel</p>
+          <p className="mt-1 text-sm md:text-lg font-semibold text-white">{method}</p>
+        </div>
+        <p className={cn("text-base md:text-2xl font-semibold", value.startsWith("-") ? "text-rose-300" : "text-primary")}>
+          {value}
+        </p>
+      </div>
     </div>
   );
 }
@@ -897,15 +902,19 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
   }, [info.entries.length, title]);
   return (
     <div className="rounded-lg md:rounded-2xl border border-border bg-card/40 p-3 md:p-5">
-      <p className={cn("text-[10px] md:text-xs uppercase tracking-widest", accentColor)}>{title}</p>
-      <h3 className="mt-1 md:mt-2 text-lg md:text-2xl font-semibold text-white">
-        {numberFormatter.format(info.count)}{" "}
-        <span className="text-xs md:text-base font-normal text-muted-foreground">open</span>
-      </h3>
-      <p className="text-xs md:text-sm text-muted-foreground">{description}</p>
-      <p className="mt-2 md:mt-4 text-base md:text-lg font-semibold text-white">
-        {currencyFormatter.format(info.total)}
-      </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <p className={cn("text-[10px] md:text-xs uppercase tracking-widest", accentColor)}>{title}</p>
+          <h3 className="mt-1 md:mt-2 text-lg md:text-2xl font-semibold text-white">
+            {numberFormatter.format(info.count)}{" "}
+            <span className="text-xs md:text-base font-normal text-muted-foreground">open</span>
+          </h3>
+          <p className="text-xs md:text-sm text-muted-foreground">{description}</p>
+        </div>
+        <p className="text-base md:text-lg font-semibold text-white">
+          {currencyFormatter.format(info.total)}
+        </p>
+      </div>
       <div className="mt-2 md:mt-4 space-y-2 md:space-y-3">
         {info.entries.length === 0 && (
           <p className="text-xs md:text-sm text-muted-foreground">All settled. You&apos;re in control.</p>
