@@ -3,6 +3,7 @@ import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
 import { DailyEntriesShell } from "@/components/daily-entries/daily-entries-shell";
+import { DebugPanel } from "@/components/daily-entries/debug-panel";
 import { normalizeEntry, type Entry } from "@/lib/entries";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
@@ -58,6 +59,8 @@ export default async function DailyEntriesPage() {
         </section>
       </div>
       <BottomNav />
+      {/* Debug panel to verify data is being passed from server */}
+      <DebugPanel entries={entries} userId={user.id} />
     </main>
   );
 }
