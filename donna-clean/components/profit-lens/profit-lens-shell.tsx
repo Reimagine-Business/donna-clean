@@ -501,7 +501,7 @@ function buildProfitStats(entries: Entry[]): ProfitStats {
     } else if (entry.entry_type === "Cash Outflow") {
       if (entry.category === "COGS") {
         cogs += entry.amount;
-      } else if (entry.category === "Operating Expenses" || entry.category === "Opex") {
+      } else if (entry.category === "Opex") {
         opex += entry.amount;
       }
     }
