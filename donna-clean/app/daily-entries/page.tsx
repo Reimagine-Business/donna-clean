@@ -9,6 +9,7 @@ import { createSupabaseServerClient } from "@/utils/supabase/server";
 
 // Force dynamic rendering to prevent caching
 export const dynamic = 'force-dynamic';
+export const revalidate = 0; // Never cache - always fetch fresh data
 
 export default async function DailyEntriesPage() {
   const supabase = await createSupabaseServerClient();
