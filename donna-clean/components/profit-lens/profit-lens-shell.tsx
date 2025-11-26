@@ -479,3 +479,46 @@ function BreakdownCard({ title, value, description }: BreakdownCardProps) {
     </div>
   );
 }
+
+type ProfitStats = {
+  sales: number;
+  cogs: number;
+  opex: number;
+  grossProfit: number;
+  netProfit: number;
+  grossMargin: number;
+  netMargin: number;
+};
+
+function buildProfitStats(entries: Entry[]): ProfitStats {
+  let sales = 0;
+  let cogs = 0;
+  let opex = 0;
+
+  entries.forEach((entry) => {
+    if (entry.entry_type === "Income" && entry.category === "Sales") {
+      sales += entry.amount;
+    } else if (entry.entry_type === "Expense") {
+      if (entry.category === "COGS") {
+        cogs += entry.amount;
+      } else if (entry.category === "Operating Expenses") {
+        opex += entry.amount;
+      }
+    }
+  });
+
+  const grossProfit = sales - cogs;
+  const netProfit = grossProfit - opex;
+  const grossMargin = sales > 0 ? grossProfit / sales : 0;
+  const netMargin = sales > 0 ? netProfit / sales : 0;
+
+  return {
+    sales,
+    cogs,
+    opex,
+    grossProfit,
+    netProfit,
+    grossMargin,
+    netMargin,
+  };
+}
