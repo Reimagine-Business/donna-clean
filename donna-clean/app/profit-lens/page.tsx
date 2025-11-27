@@ -46,7 +46,7 @@ export default function ProfitLensPage() {
   if (userLoading || entriesLoading) {
     return (
       <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col">
           <SiteHeader />
           <TopNavMobile />
           <section className="px-4 pb-12 md:px-8">
@@ -64,7 +64,7 @@ export default function ProfitLensPage() {
   if (!userData) {
     return (
       <main className="min-h-screen bg-background text-foreground">
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col">
           <SiteHeader />
           <section className="px-4 pb-12 md:px-8">
             <div className="mx-auto w-full max-w-6xl">
@@ -80,7 +80,7 @@ export default function ProfitLensPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col">
         <SiteHeader />
         <TopNavMobile />
         <section className="px-4 pb-12 md:px-8">
