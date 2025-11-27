@@ -15,6 +15,7 @@ import {
 } from "@/lib/entries";
 import { cn } from "@/lib/utils";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
+import { SettlementSummaryCard } from "@/components/settlements/settlement-summary-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
@@ -571,29 +572,29 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           ))}
         </section>
 
-        <section className="grid gap-3 md:gap-6 md:grid-cols-3">
-          <PendingCard
-            title="Pending Collections"
-            description="Credit sales awaiting payment."
-            info={pendingCollections}
-            accent="emerald"
-            buttonText="Settle Collections"
+        {/* Settlement Summary Cards - Compact View Only */}
+        <section className="space-y-4 mt-6">
+          <SettlementSummaryCard
+            type="collections"
+            count={pendingCollections.count}
+            amount={pendingCollections.total}
+            items={pendingCollections.entries}
             onSettle={setSettlementEntry}
           />
-          <PendingCard
-            title="Pending Bills"
-            description="Credit purchases awaiting payment."
-            info={pendingBills}
-            accent="rose"
-            buttonText="Settle Bills"
+
+          <SettlementSummaryCard
+            type="bills"
+            count={pendingBills.count}
+            amount={pendingBills.total}
+            items={pendingBills.entries}
             onSettle={setSettlementEntry}
           />
-          <PendingCard
-            title="Advances"
-            description="Advance payments to be settled."
-            info={pendingAdvances}
-            accent="purple"
-            buttonText="Settle Advance"
+
+          <SettlementSummaryCard
+            type="advances"
+            count={pendingAdvances.count}
+            amount={pendingAdvances.total}
+            items={pendingAdvances.entries}
             onSettle={setSettlementEntry}
           />
         </section>
@@ -935,130 +936,3 @@ function ChannelCard({ method, value }: ChannelCardProps) {
   );
 }
 
-type PendingCardProps = {
-  title: string;
-  description: string;
-  info: PendingList;
-  accent: "emerald" | "rose" | "purple";
-  buttonText: string;
-  onSettle: (entry: Entry) => void;
-};
-
-const accentText: Record<PendingCardProps["accent"], string> = {
-  emerald: "text-emerald-300",
-  rose: "text-rose-300",
-  purple: "text-primary",
-};
-
-function PendingCard({ title, description, info, accent, buttonText, onSettle }: PendingCardProps) {
-  const accentColor = accentText[accent];
-  const [showAll, setShowAll] = useState(false);
-
-  useEffect(() => {
-    if (info.entries.length === 0) {
-      console.log(
-        `[Pending Empty] ${title}: filter unsettled Credit/Advance with remaining >0 by category (Sales=Collections, COGS/Opex=Bills, all for Advances).`,
-      );
-    }
-  }, [info.entries.length, title]);
-
-  const displayEntries = showAll ? info.entries : info.entries.slice(0, 3);
-
-  return (
-    <div className="rounded-lg md:rounded-2xl border border-border bg-card/40 p-3 md:p-5">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className={cn("text-[10px] md:text-xs uppercase tracking-widest", accentColor)}>{title}</p>
-          <h3 className="mt-1 md:mt-2 text-lg md:text-2xl font-semibold text-white">
-            {numberFormatter.format(info.count)}{" "}
-            <span className="text-xs md:text-base font-normal text-muted-foreground">pending</span>
-          </h3>
-          <p className="text-xs md:text-sm text-muted-foreground">{description}</p>
-        </div>
-        <p className="text-base md:text-lg font-semibold text-white">
-          {currencyFormatter.format(info.total)}
-        </p>
-      </div>
-      <div className="mt-3 md:mt-4 space-y-2">
-        {info.entries.length === 0 && (
-          <p className="text-xs md:text-sm text-muted-foreground">All settled. You&apos;re in control.</p>
-        )}
-        {displayEntries.map((entry) => {
-          const canSettleEntry = !entry.settled && entry.remaining_amount > 0;
-          if (!canSettleEntry) {
-            console.log(`Settle disabled for ID ${entry.id}: settled or no remaining`);
-          }
-          const disabledTitle = canSettleEntry ? undefined : "Settled or no balance";
-            return (
-              <div
-                key={entry.id}
-                className="flex items-center justify-between rounded-lg md:rounded-xl border border-border/50 bg-slate-950/40 px-2 md:px-3 py-1.5 md:py-2 text-xs md:text-sm"
-              >
-                <div>
-                  <p className="font-medium text-white text-xs md:text-sm">
-                    ₹{entry.amount.toLocaleString("en-IN")}{" "}
-                    <span className="text-[10px] md:text-xs uppercase text-muted-foreground">{entry.category}</span>
-                  </p>
-                  <p className="text-[10px] md:text-xs text-muted-foreground">{formatDisplayDate(entry.entry_date)}</p>
-                </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "border-primary/40 text-primary hover:text-white text-[10px] md:text-sm px-2 md:px-3 py-1 md:py-1.5",
-                  !canSettleEntry &&
-                    "border-border/50 text-muted-foreground hover:text-muted-foreground disabled:pointer-events-auto",
-                )}
-                disabled={!canSettleEntry}
-                title={disabledTitle}
-                onClick={() => {
-                  if (canSettleEntry) {
-                    onSettle(entry);
-                  }
-                }}
-              >
-                  Settle
-                </Button>
-              </div>
-            );
-          })}
-        {info.entries.length > 3 && !showAll && (
-          <button
-            onClick={() => setShowAll(true)}
-            className="w-full text-xs md:text-sm text-purple-400 hover:text-purple-300 transition-colors py-1"
-          >
-            +{info.entries.length - 3} more • Click to view all
-          </button>
-        )}
-        {showAll && info.entries.length > 3 && (
-          <button
-            onClick={() => setShowAll(false)}
-            className="w-full text-xs md:text-sm text-purple-400 hover:text-purple-300 transition-colors py-1"
-          >
-            Show less
-          </button>
-        )}
-      </div>
-
-      {/* Primary Action Button */}
-      {info.entries.length > 0 && (
-        <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-border/50">
-          <button
-            onClick={() => {
-              // Select first settleable entry
-              const firstSettleable = info.entries.find(e => !e.settled && e.remaining_amount > 0);
-              if (firstSettleable) {
-                onSettle(firstSettleable);
-              }
-            }}
-            disabled={info.count === 0}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900/50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
-          >
-            {buttonText}
-            <ArrowUpRight className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
