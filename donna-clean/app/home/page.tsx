@@ -38,7 +38,7 @@ export default async function HomePage() {
         <SiteHeader />
 
         {/* Mobile Header */}
-        <TopNavMobile pageTitle="Home" userEmail={user.email || undefined} />
+        <TopNavMobile />
 
         {/* Main Content */}
         <section className="px-4 pb-24 md:px-8 md:pb-8">

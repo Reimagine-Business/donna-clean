@@ -474,69 +474,71 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
 
   return (
     <div className="flex flex-col gap-4 md:gap-8 text-white">
-      <div className="flex flex-col gap-2 md:gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h1 className="text-xl md:text-4xl font-semibold">Cashpulse</h1>
-        </div>
-        {/* Date Range Selector */}
-        <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
-          <span className="text-[10px] md:text-sm text-muted-foreground">Date:</span>
+      {/* Page Header - Title and Date Filter on Same Line */}
+      <div className="flex items-center justify-between mt-2 mb-4">
+        <h1 className="text-2xl md:text-3xl font-bold text-white">
+          Cashpulse
+        </h1>
+
+        {/* Date Filter */}
+        <div className="flex items-center gap-2">
+          <label className="text-purple-300 text-sm hidden md:inline">Date:</label>
           <select
             value={dateFilter}
             onChange={(e) => {
               setDateFilter(e.target.value);
               setShowCustomDatePickers(e.target.value === "customize");
             }}
-            className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            className="px-3 py-2 bg-[#1a1a2e] border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:border-purple-500"
           >
-            <option value="this-month">📅 This Month</option>
+            <option value="this-month">This Month</option>
             <option value="last-month">Last Month</option>
             <option value="this-year">This Year</option>
             <option value="last-year">Last Year</option>
             <option value="all-time">All Time</option>
             <option value="customize">Customize</option>
           </select>
-
-          {/* Show calendar pickers when Customize is selected */}
-          {showCustomDatePickers && (
-            <>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
-                    {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={customFromDate}
-                    onSelect={setCustomFromDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-
-              <span className="text-[10px] md:text-sm text-muted-foreground">to</span>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button className="px-2 md:px-3 py-1 md:py-2 border border-border bg-secondary rounded-lg text-[10px] md:text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
-                    {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={customToDate}
-                    onSelect={setCustomToDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </>
-          )}
         </div>
+      </div>
+
+      {/* Custom Date Pickers */}
+      {showCustomDatePickers && (
+        <div className="flex flex-wrap items-center gap-2 -mt-2 mb-2">
+          <span className="text-sm text-muted-foreground">From:</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "Select date"}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={customFromDate}
+                onSelect={setCustomFromDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          <span className="text-sm text-muted-foreground">To:</span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="px-3 py-2 border border-border bg-secondary rounded-lg text-sm text-white hover:bg-primary/80 focus:border-purple-500 focus:outline-none">
+                {customToDate ? format(customToDate, "MMM dd, yyyy") : "Select date"}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={customToDate}
+                onSelect={setCustomToDate}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
+      )}
 
         <section className="grid gap-2 md:gap-4 md:grid-cols-3">
           <StatCard

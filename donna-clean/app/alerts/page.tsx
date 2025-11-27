@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
+import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
 import { AlertsPageClient } from "@/components/alerts/alerts-page-client";
 import { createClient } from "@/lib/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -57,6 +58,7 @@ export default function AlertsPage() {
       <main className="min-h-screen bg-background text-foreground">
         <div className="flex flex-col gap-10">
           <SiteHeader />
+          <TopNavMobile />
           <section className="px-4 pb-12 md:px-8">
             <div className="mx-auto w-full max-w-6xl">
               <div className="animate-pulse space-y-4">
@@ -77,11 +79,11 @@ export default function AlertsPage() {
         {/* Desktop Header */}
         <SiteHeader />
 
-        {/* Client Component with Mobile Header and Content */}
-        <AlertsPageClient
-          userEmail={userData?.email || ""}
-          initialReminders={reminders || []}
-        />
+        {/* Mobile Header */}
+        <TopNavMobile />
+
+        {/* Client Component with Content */}
+        <AlertsPageClient initialReminders={reminders || []} />
 
         {/* Bottom Navigation */}
         <BottomNav />

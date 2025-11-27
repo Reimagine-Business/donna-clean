@@ -82,6 +82,13 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
 
   return (
     <div className="space-y-6">
+      {/* Page Header */}
+      <div className="mt-2 mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-white">
+          Home
+        </h1>
+      </div>
+
       {/* Due Soon Section */}
       <section>
         <div className="mb-3 flex items-center justify-between">

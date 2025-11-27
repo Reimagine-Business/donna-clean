@@ -48,7 +48,7 @@ export default function CashpulsePage() {
       <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
         <div className="flex flex-col gap-10">
           <SiteHeader />
-          <TopNavMobile pageTitle="Cashpulse" />
+          <TopNavMobile />
           <section className="px-4 pb-12 md:px-8">
             <div className="mx-auto w-full max-w-6xl">
               <CashpulseSkeletonLoading />
@@ -82,7 +82,7 @@ export default function CashpulsePage() {
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <div className="flex flex-col gap-10">
         <SiteHeader />
-        <TopNavMobile pageTitle="Cashpulse" userEmail={userData.email || undefined} />
+        <TopNavMobile />
         <section className="px-4 pb-12 md:px-8">
           <div className="mx-auto w-full max-w-6xl">
             <CashpulseShell initialEntries={entries || []} userId={userData.id} />

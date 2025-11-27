@@ -24,10 +24,13 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-[#0f0f1e] pb-24 md:pb-8">
       <SiteHeader />
-      <TopNavMobile pageTitle="Settings" userEmail={user?.email} />
+      <TopNavMobile />
 
-      <div className="container mx-auto p-6 max-w-3xl">
-        <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
+      <div className="container mx-auto px-4 pt-2 pb-24 md:p-6 max-w-3xl">
+        {/* Page Header */}
+        <div className="mt-2 mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Settings</h1>
+        </div>
 
         <div className="space-y-6">
           {/* Coming Soon Notice */}

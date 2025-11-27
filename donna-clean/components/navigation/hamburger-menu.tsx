@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -10,6 +9,7 @@ import { User, Settings, Users } from "lucide-react";
 interface HamburgerMenuProps {
   businessName?: string;
   userEmail?: string;
+  onClose: () => void;
 }
 
 const settingsItems = [
@@ -18,57 +18,20 @@ const settingsItems = [
   { href: "/admin/users", label: "User Management", icon: Users, adminOnly: true },
 ];
 
-export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: HamburgerMenuProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function HamburgerMenu({ businessName = "Donna Clean", userEmail, onClose }: HamburgerMenuProps) {
   const pathname = usePathname();
-
-  const toggleMenu = () => setIsOpen(!isOpen);
-  const closeMenu = () => setIsOpen(false);
 
   return (
     <>
-      {/* Hamburger Button */}
-      <button
-        onClick={toggleMenu}
-        className="flex h-10 w-10 flex-col items-center justify-center gap-1.5 rounded-lg transition-colors hover:bg-secondary"
-        aria-label="Menu"
-      >
-        <span
-          className={cn(
-            "h-0.5 w-5 bg-white transition-all",
-            isOpen && "translate-y-2 rotate-45"
-          )}
-        />
-        <span
-          className={cn(
-            "h-0.5 w-5 bg-white transition-all",
-            isOpen && "opacity-0"
-          )}
-        />
-        <span
-          className={cn(
-            "h-0.5 w-5 bg-white transition-all",
-            isOpen && "-translate-y-2 -rotate-45"
-          )}
-        />
-      </button>
-
       {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50"
-          onClick={closeMenu}
-          aria-hidden="true"
-        />
-      )}
+      <div
+        className="fixed inset-0 z-40 bg-black/50"
+        onClick={onClose}
+        aria-hidden="true"
+      />
 
       {/* Slide-out Menu */}
-      <div
-        className={cn(
-          "fixed left-0 top-0 z-50 h-full w-80 bg-card shadow-xl transition-transform duration-300",
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        )}
-      >
+      <div className="fixed left-0 top-0 z-50 h-full w-80 bg-card shadow-xl transition-transform duration-300 translate-x-0">
         <div className="flex h-full flex-col">
           {/* Header */}
           <div className="border-b border-purple-500/30 p-6">
@@ -83,7 +46,7 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
                 )}
               </div>
               <button
-                onClick={closeMenu}
+                onClick={onClose}
                 className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-white"
                 aria-label="Close menu"
               >
@@ -106,7 +69,7 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        onClick={closeMenu}
+                        onClick={onClose}
                         className={cn(
                           "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
                           isActive

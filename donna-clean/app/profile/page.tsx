@@ -84,9 +84,14 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[#0f0f1e] pb-24 md:pb-8">
       <SiteHeader />
-      <TopNavMobile pageTitle="Profile" userEmail={user?.email} />
+      <TopNavMobile />
 
-      <div className="container mx-auto p-6 max-w-3xl">
+      <div className="container mx-auto px-4 pt-2 pb-24 md:p-6 max-w-3xl">
+        {/* Page Header */}
+        <div className="mt-2 mb-4">
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Profile</h1>
+        </div>
+
         {/* Header with Logo */}
         <div className="bg-gradient-to-r from-purple-900/40 to-purple-800/40 rounded-lg p-8 mb-6 text-center border border-purple-500/30">
           <div className="flex flex-col items-center gap-4">

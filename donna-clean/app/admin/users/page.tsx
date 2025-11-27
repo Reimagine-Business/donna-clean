@@ -66,7 +66,7 @@ export default function AdminUsersPage() {
       <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
         <div className="flex flex-col gap-10">
           <SiteHeader />
-          <TopNavMobile pageTitle="Admin - Users" />
+          <TopNavMobile />
           <section className="px-4 pb-12 md:px-8">
             <div className="mx-auto w-full max-w-4xl">
               <p className="text-muted-foreground">Loading...</p>
@@ -82,7 +82,7 @@ export default function AdminUsersPage() {
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <div className="flex flex-col gap-10">
         <SiteHeader />
-        <TopNavMobile pageTitle="Admin - Users" userEmail={userData.email || undefined} />
+        <TopNavMobile />
 
         <section className="px-4 pb-12 md:px-8">
           <div className="mx-auto w-full max-w-4xl space-y-6">

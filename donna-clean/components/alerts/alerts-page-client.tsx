@@ -1,16 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { HamburgerMenu } from "@/components/navigation/hamburger-menu";
 import { AlertsShell } from "./alerts-shell";
 import { AddReminderDialog } from "./add-reminder-dialog";
 
 interface AlertsPageClientProps {
-  userEmail: string;
   initialReminders: any[];
 }
 
-export function AlertsPageClient({ userEmail, initialReminders }: AlertsPageClientProps) {
+export function AlertsPageClient({ initialReminders }: AlertsPageClientProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const handleAddSuccess = () => {
@@ -19,30 +17,6 @@ export function AlertsPageClient({ userEmail, initialReminders }: AlertsPageClie
 
   return (
     <>
-      {/* Mobile Header */}
-      <header className="sticky top-0 z-30 border-b border-slate-800 bg-card md:hidden">
-        <div className="flex items-center justify-between px-4 py-3">
-          <h1 className="text-lg md:text-xl font-bold text-white">Alerts</h1>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsAddDialogOpen(true)}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-secondary hover:text-white"
-            >
-              <span className="text-base">➕</span>
-            </button>
-            <div className="flex flex-col items-end">
-              {userEmail && (
-                <span className="text-xs text-muted-foreground">{userEmail}</span>
-              )}
-              <span className="text-[9px] md:text-[10px] text-muted-foreground">
-                Powered by The Donna
-              </span>
-            </div>
-            <HamburgerMenu businessName="Donna Clean" userEmail={userEmail} />
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <section className="px-4 pb-24 md:px-8 md:pb-8">
         <div className="mx-auto w-full max-w-6xl">
