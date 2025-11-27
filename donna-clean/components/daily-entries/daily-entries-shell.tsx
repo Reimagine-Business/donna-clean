@@ -537,11 +537,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   return (
     <div className="flex flex-col gap-4 md:gap-10 text-white">
-      <div className="space-y-1 md:space-y-2">
+      <div>
         <h1 className="text-xl md:text-3xl font-semibold tracking-tight">Daily Entries</h1>
-        <p className="text-xs md:text-sm text-foreground/70">
-          Record every inflow/outflow with supporting receipts to keep Donna in sync.
-        </p>
       </div>
 
       <section className="rounded-xl md:rounded-2xl border border-border bg-card/60 p-3 md:p-6 shadow-2xl shadow-black/40">

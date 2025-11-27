@@ -142,9 +142,6 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-2 md:gap-0">
           <div>
             <h1 className="text-base md:text-2xl font-bold text-white">Alerts & Reminders</h1>
-            <p className="mt-0.5 md:mt-1 text-xs md:text-sm text-muted-foreground">
-              Manage your payment reminders and alerts
-            </p>
           </div>
 
           {/* Add Button */}
