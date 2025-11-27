@@ -38,14 +38,12 @@ export default async function DailyEntriesPage() {
 
   const entries: Entry[] = data?.map((entry) => normalizeEntry(entry)) ?? [];
 
-  // === CHECKPOINT 1: Parent Page Data Fetch ===
-  console.log('🔥 PARENT PAGE - Data Fetch:');
-  console.log('  Raw data count:', data?.length);
-  console.log('  Normalized entries count:', entries.length);
-  console.log('  Error:', error);
-  console.log('  First 2 raw entries:', data?.slice(0, 2));
-  console.log('  First 2 normalized entries:', entries.slice(0, 2));
-  console.log('  ==================');
+  // === DEBUG: Server-side Data Fetch ===
+  console.log('🔵 SERVER: Daily Entries Page');
+  console.log('  Fetched:', data?.length || 0, 'raw entries');
+  console.log('  Normalized:', entries.length, 'entries');
+  if (error) console.error('  Error:', error);
+  if (entries.length > 0) console.log('  First entry:', entries[0]);
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">

@@ -100,31 +100,23 @@ const paymentMethodRuleViolation = (
 };
 
 export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellProps) {
-  // === CHECKPOINT 2: Component Received Props ===
-  console.log('🔥 COMPONENT - Received Props:');
+  // === DEBUG: Component Received Props ===
+  console.log('✅ DailyEntriesShell - Received Props:');
   console.log('  initialEntries length:', initialEntries?.length);
   console.log('  First entry:', initialEntries?.[0]);
   console.log('  userId:', userId);
-  console.log('  ==================');
 
   const supabase = useMemo(() => createClient(), []);
 
-  // CRITICAL FIX: Initialize with empty array, then sync via useEffect
-  // This ensures state updates when initialEntries changes
-  const [entries, setEntries] = useState<Entry[]>([]);
+  // Initialize state with server-fetched entries for immediate display
+  // useEffect below will sync when initialEntries changes (page revalidation)
+  const [entries, setEntries] = useState<Entry[]>(initialEntries);
 
-  // Sync initialEntries to state whenever it changes
+  // Sync initialEntries to state whenever it changes (e.g., page revalidation)
   useEffect(() => {
-    console.log('🔥 SYNCING initialEntries to state:');
-    console.log('  initialEntries.length:', initialEntries.length);
-    console.log('  First entry (already normalized):', initialEntries[0]);
-
+    console.log('🔄 Syncing initialEntries to state:', initialEntries.length, 'entries');
     // initialEntries are already normalized by the parent page
-    // No need to normalize again
     setEntries(initialEntries);
-
-    console.log('  ✅ State updated with', initialEntries.length, 'entries');
-    console.log('  ==================');
   }, [initialEntries]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -438,10 +430,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   // Filter entries based on date range
   const filteredEntries = useMemo(() => {
-    console.log('🔥 FILTERING:');
-    console.log('  entries.length:', entries.length);
-    console.log('  dateFilter:', dateFilter);
-    console.log('  getDateRange:', getDateRange);
+    console.log('🔍 Filtering entries:', entries.length, 'total | filter:', dateFilter);
 
     const filtered = entries.filter((entry) => {
       // Parse entry_date explicitly in local time to avoid timezone issues
@@ -462,9 +451,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
     });
 
     const sorted = filtered.sort((a, b) => b.entry_date.localeCompare(a.entry_date));
-
-    console.log('  Filtered result:', sorted.length);
-    console.log('  ==================');
+    console.log('  ✅ Filtered result:', sorted.length, 'entries');
 
     return sorted;
   }, [entries, getDateRange]);
