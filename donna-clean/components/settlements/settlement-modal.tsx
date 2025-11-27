@@ -68,29 +68,39 @@ export function SettlementModal({
                 return (
                   <div
                     key={item.id}
-                    className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4"
+                    className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4 space-y-2"
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <p className="text-white font-semibold text-lg">
-                          {formatAmount(item.remaining_amount || item.amount)}
-                        </p>
-                        <p className="text-purple-300 text-sm">
-                          {item.category} • {formatDate(item.entry_date || item.date)}
-                        </p>
-                        {item.notes && (
-                          <p className="text-purple-400 text-xs mt-1">
-                            {item.notes}
-                          </p>
-                        )}
-                        {!canSettle && (
-                          <p className="text-xs text-purple-400 mt-1">
-                            {item.settled ? 'Already settled' : 'No balance remaining'}
-                          </p>
-                        )}
-                      </div>
+                    {/* Amount - Large and prominent */}
+                    <div className="text-white font-bold text-2xl">
+                      {formatAmount(item.remaining_amount || item.amount)}
                     </div>
 
+                    {/* Category */}
+                    <div className="text-purple-200 text-base font-medium">
+                      {item.category}
+                    </div>
+
+                    {/* Date */}
+                    <div className="text-purple-300 text-sm">
+                      📅 {formatDate(item.entry_date || item.date)}
+                    </div>
+
+                    {/* Notes - IMPORTANT - Always show, even if empty */}
+                    <div className="bg-purple-900/40 border border-purple-500/20 rounded-md p-3 min-h-[60px]">
+                      <p className="text-xs text-purple-400 mb-1 uppercase font-semibold">Notes:</p>
+                      <p className="text-white text-sm">
+                        {item.notes || 'No notes added'}
+                      </p>
+                    </div>
+
+                    {/* Status message if can't settle */}
+                    {!canSettle && (
+                      <p className="text-xs text-purple-400 italic">
+                        {item.settled ? '✓ Already settled' : 'No balance remaining'}
+                      </p>
+                    )}
+
+                    {/* Settle Button */}
                     <button
                       onClick={() => {
                         if (canSettle) {
@@ -99,7 +109,7 @@ export function SettlementModal({
                         }
                       }}
                       disabled={!canSettle}
-                      className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900/50 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm rounded-lg transition-colors"
+                      className="w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-900/50 disabled:opacity-50 disabled:cursor-not-allowed text-white text-base font-semibold rounded-lg transition-colors"
                     >
                       Settle
                     </button>
