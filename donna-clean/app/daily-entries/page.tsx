@@ -26,19 +26,45 @@ export default async function DailyEntriesPage() {
   }
 
   // Then continue with your queries using this supabase client
+  console.log('🔵 [SERVER] Fetching entries for user:', user.id);
+  console.log('🔵 [SERVER] User email:', user.email);
 
-    const { data, error } = await supabase
-      .from("entries")
-      .select(
-        "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at",
-      )
+  // First, try to count total entries (bypassing RLS if possible)
+  const { count: totalCount, error: countError } = await supabase
+    .from("entries")
+    .select("*", { count: "exact", head: true });
+
+  console.log('🔵 [SERVER] Total entries in database (all users):', totalCount);
+  if (countError) console.error('  Count error:', countError);
+
+  // Now fetch entries for this specific user
+  const { data, error } = await supabase
+    .from("entries")
+    .select(
+      "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at",
+    )
     .eq("user_id", user.id)
     .order("entry_date", { ascending: false });
 
+  console.log('🔵 [SERVER] Query result:');
+  console.log('  - Raw data count:', data?.length || 0);
+  console.log('  - Error:', error);
+  if (data && data.length > 0) {
+    console.log('  - First entry raw:', JSON.stringify(data[0], null, 2));
+    console.log('  - Entry dates:', data.slice(0, 5).map(e => e.entry_date));
+  } else {
+    console.log('  - ⚠️ NO DATA RETURNED FROM DATABASE');
+    console.log('  - This could be:');
+    console.log('    1. RLS policy blocking reads');
+    console.log('    2. No entries in database for this user');
+    console.log('    3. Supabase connection issue');
+  }
+
   const entries: Entry[] = data?.map((entry) => normalizeEntry(entry)) ?? [];
+  console.log('🔵 [SERVER] Normalized:', entries.length, 'entries');
 
   if (error) {
-    console.error('Daily Entries: Error fetching entries:', error);
+    console.error('❌ [SERVER] Error fetching entries:', error);
   }
 
   return (
