@@ -331,37 +331,23 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
   // Calculate total expenses (COGS + OPEX)
   const totalExpenses = useMemo(() => cogs + opex, [cogs, opex]);
 
-  // Calculate Top 5 Expenses by aggregating entries by category
+  // Calculate Top 5 Expenses - Individual transactions ranked by amount
   const topExpenses = useMemo(() => {
-    // Group expense entries by category
-    const expensesByCategory = filteredEntries
+    return filteredEntries
       .filter(entry => {
         // Include all Cash Outflow entries (COGS, Opex, Assets)
         return entry.entry_type === 'Cash Outflow';
       })
-      .reduce((acc, entry) => {
-        const category = entry.category;
-        if (!acc[category]) {
-          acc[category] = {
-            category: category,
-            total: 0,
-            type: category === 'COGS' ? 'COGS' : category === 'Opex' ? 'OPEX' : 'OTHER',
-            transactions: []
-          };
-        }
-        acc[category].total += entry.amount;
-        acc[category].transactions.push(entry);
-        return acc;
-      }, {} as Record<string, { category: string; total: number; type: string; transactions: Entry[] }>);
-
-    // Convert to array and sort by total (highest first), take top 5
-    return Object.values(expensesByCategory)
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+      .map(entry => ({
+        ...entry,
+        type: entry.category === 'COGS' ? 'COGS' : entry.category === 'Opex' ? 'OPEX' : 'OTHER'
+      }))
+      .sort((a, b) => b.amount - a.amount) // Sort by individual amount
+      .slice(0, 5); // Top 5 individual transactions
   }, [filteredEntries]);
 
   return (
-      <div className="flex flex-col gap-3 md:gap-4 text-white">
+      <div className="flex flex-col gap-3 md:gap-4 text-white pb-32">
       {/* Page Header - Title and Date Filter on Same Line */}
       <div className="flex items-center justify-between mt-2 mb-3">
         <h1 className="text-2xl md:text-3xl font-bold text-white">
@@ -542,14 +528,11 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             </div>
           ) : (
             topExpenses.map((expense, index) => {
-              const formatted = formatCurrencyWithWords(expense.total);
-              // Get the first transaction's notes (or show count)
-              const sampleNote = expense.transactions[0]?.notes || '';
-              const txCount = expense.transactions.length;
+              const formatted = formatCurrencyWithWords(expense.amount);
 
               return (
                 <div
-                  key={expense.category}
+                  key={expense.id}
                   className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-3 md:p-4 hover:bg-purple-900/30 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -576,17 +559,19 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
                         {formatted.words}
                       </p>
 
-                      {sampleNote && (
+                      {expense.notes && (
                         <p className="text-purple-400 text-xs italic truncate">
-                          "{sampleNote}"
+                          "{expense.notes}"
                         </p>
                       )}
 
-                      {txCount > 1 && (
-                        <p className="text-purple-500 text-[10px] md:text-xs mt-1">
-                          {txCount} transaction{txCount > 1 ? 's' : ''}
-                        </p>
-                      )}
+                      <p className="text-purple-500 text-[10px] md:text-xs mt-1">
+                        {new Date(expense.entry_date).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </p>
                     </div>
                   </div>
                 </div>
