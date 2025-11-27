@@ -100,12 +100,6 @@ const paymentMethodRuleViolation = (
 };
 
 export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellProps) {
-  // === DEBUG: Component Received Props ===
-  console.log('✅ DailyEntriesShell - Received Props:');
-  console.log('  initialEntries length:', initialEntries?.length);
-  console.log('  First entry:', initialEntries?.[0]);
-  console.log('  userId:', userId);
-
   const supabase = useMemo(() => createClient(), []);
 
   // Initialize state with server-fetched entries for immediate display
@@ -114,8 +108,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   // Sync initialEntries to state whenever it changes (e.g., page revalidation)
   useEffect(() => {
-    console.log('🔄 Syncing initialEntries to state:', initialEntries.length, 'entries');
-    // initialEntries are already normalized by the parent page
     setEntries(initialEntries);
   }, [initialEntries]);
 
@@ -430,8 +422,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   // Filter entries based on date range
   const filteredEntries = useMemo(() => {
-    console.log('🔍 Filtering entries:', entries.length, 'total | filter:', dateFilter);
-
     const filtered = entries.filter((entry) => {
       // Parse entry_date explicitly in local time to avoid timezone issues
       // entry_date is "yyyy-MM-dd" format (e.g., "2025-01-15")
@@ -450,10 +440,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       return isInRange;
     });
 
-    const sorted = filtered.sort((a, b) => b.entry_date.localeCompare(a.entry_date));
-    console.log('  ✅ Filtered result:', sorted.length, 'entries');
-
-    return sorted;
+    return filtered.sort((a, b) => b.entry_date.localeCompare(a.entry_date));
   }, [entries, getDateRange]);
 
   const handleExportToExcel = () => {
