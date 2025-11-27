@@ -56,7 +56,7 @@ export default function AlertsPage() {
   if (userLoading || remindersLoading) {
     return (
       <main className="min-h-screen bg-background text-foreground">
-        <div className="flex flex-col gap-10">
+        <div className="flex flex-col">
           <SiteHeader />
           <TopNavMobile />
           <section className="px-4 pb-12 md:px-8">
@@ -75,7 +75,7 @@ export default function AlertsPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col">
         {/* Desktop Header */}
         <SiteHeader />
 

@@ -33,7 +33,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col">
         {/* Desktop Header */}
         <SiteHeader />
 
