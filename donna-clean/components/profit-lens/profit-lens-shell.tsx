@@ -340,9 +340,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       <div className="flex flex-col gap-4 md:gap-8 text-white">
       <div className="flex flex-col gap-2 md:gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">Donna · Profit Lens</p>
           <h1 className="text-xl md:text-4xl font-semibold">Profit Lens</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Accrual basis for {dateRangeLabel}</p>
         </div>
         {/* Date Range Selector */}
         <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
@@ -414,7 +412,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
                 index === plRows.length - 1 ? "shadow-[0_0_25px_rgba(167,139,250,0.2)]" : "",
               )}
             >
-              <p className="text-[10px] md:text-sm uppercase tracking-[0.3em] text-muted-foreground">{row.label}</p>
+              <p className="text-base font-semibold text-white uppercase tracking-[0.3em]">{row.label}</p>
                 <p className={cn("text-base md:text-3xl font-semibold", rowColor(row.variant))}>
                 {currencyFormatter.format(row.value)}
               </p>

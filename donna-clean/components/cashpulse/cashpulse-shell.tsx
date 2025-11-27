@@ -476,9 +476,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     <div className="flex flex-col gap-4 md:gap-8 text-white">
       <div className="flex flex-col gap-2 md:gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">Donna · Cashpulse</p>
           <h1 className="text-xl md:text-4xl font-semibold">Cashpulse</h1>
-          <p className="text-xs md:text-sm text-muted-foreground">Accrual basis for {dateRangeLabel}</p>
         </div>
         {/* Date Range Selector */}
         <div className="flex flex-wrap items-center gap-1.5 md:gap-2">
@@ -903,7 +901,7 @@ function StatCard({ title, value, subtitle, variant }: StatCardProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 md:gap-3">
           <Icon className="h-3 w-3 md:h-4 md:w-4 text-white/70" />
-          <span className="text-[10px] md:text-sm uppercase tracking-widest text-white/70">{title}</span>
+          <span className="text-base font-semibold text-white uppercase tracking-widest">{title}</span>
         </div>
         <p className="text-xl md:text-3xl font-semibold text-white">{value}</p>
       </div>
@@ -921,10 +919,10 @@ function ChannelCard({ method, value }: ChannelCardProps) {
     <div className="rounded-lg md:rounded-2xl border border-border bg-card/60 p-3 md:p-5 shadow-lg shadow-black/30">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-muted-foreground">Channel</p>
+          <p className="text-sm font-medium text-white uppercase tracking-[0.3em]">Channel</p>
           <p className="mt-1 text-sm md:text-lg font-semibold text-white">{method}</p>
         </div>
-        <p className={cn("text-base md:text-2xl font-semibold", value.startsWith("-") ? "text-rose-300" : "text-primary")}>
+        <p className={cn("text-xl font-semibold", value.startsWith("-") ? "text-rose-300" : "text-primary")}>
           {value}
         </p>
       </div>
