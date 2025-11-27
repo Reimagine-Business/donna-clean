@@ -5,26 +5,17 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/components/logout-button";
-import { DeployButton } from "@/components/deploy-button";
+import { User, Settings, Users } from "lucide-react";
 
 interface HamburgerMenuProps {
   businessName?: string;
   userEmail?: string;
 }
 
-const navigationItems = [
-  { href: "/home", label: "Home", icon: "🏠" },
-  { href: "/daily-entries", label: "Daily Entries", icon: "📝" },
-  { href: "/cashpulse", label: "Cashpulse", icon: "💰" },
-  { href: "/profit-lens", label: "Profit Lens", icon: "📊" },
-  { href: "/alerts", label: "Alerts", icon: "🔔" },
-  { href: "/dashboard", label: "Dashboard", icon: "📈" },
-];
-
 const settingsItems = [
-  { href: "/profile", label: "Profile", icon: "👤" },
-  { href: "/settings", label: "Settings", icon: "⚙️" },
-  { href: "/user-management", label: "User Management", icon: "👥", adminOnly: true },
+  { href: "/profile", label: "Profile", icon: User },
+  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/admin/users", label: "User Management", icon: Users, adminOnly: true },
 ];
 
 export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: HamburgerMenuProps) {
@@ -80,12 +71,15 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
       >
         <div className="flex h-full flex-col">
           {/* Header */}
-          <div className="border-b border-slate-800 p-6">
+          <div className="border-b border-purple-500/30 p-6">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-white">{businessName}</h2>
                 {userEmail && (
-                  <p className="mt-1 text-sm text-muted-foreground">{userEmail}</p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs text-purple-300">Signed in as</p>
+                    <p className="text-sm text-white font-medium truncate">{userEmail}</p>
+                  </div>
                 )}
               </div>
               <button
@@ -98,46 +92,16 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
             </div>
           </div>
 
-          {/* Navigation Links */}
+          {/* Settings Links */}
           <nav className="flex-1 overflow-y-auto p-4">
-            <div className="mb-4">
-              <h3 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Navigation
-              </h3>
-              <ul className="space-y-2">
-                {navigationItems.map((item) => {
-                  const isActive = pathname === item.href;
-                  return (
-                    <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        onClick={closeMenu}
-                        className={cn(
-                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
-                          isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-foreground/70 hover:bg-secondary hover:text-white"
-                        )}
-                      >
-                        <span className="text-lg" aria-hidden="true">
-                          {item.icon}
-                        </span>
-                        {item.label}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-
             <div>
-              <h3 className="mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <h3 className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-purple-400">
                 Settings
               </h3>
               <ul className="space-y-2">
                 {settingsItems.map((item) => {
-                  // For now, show all items. Admin filtering can be added later
                   const isActive = pathname === item.href;
+                  const Icon = item.icon;
                   return (
                     <li key={item.href}>
                       <Link
@@ -146,13 +110,11 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
                         className={cn(
                           "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
                           isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-foreground/70 hover:bg-secondary hover:text-white"
+                            ? "bg-purple-500/20 text-purple-200"
+                            : "text-purple-200/70 hover:bg-purple-900/30 hover:text-purple-200"
                         )}
                       >
-                        <span className="text-lg" aria-hidden="true">
-                          {item.icon}
-                        </span>
+                        <Icon className="w-5 h-5" />
                         {item.label}
                       </Link>
                     </li>
@@ -162,9 +124,8 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail }: Hambu
             </div>
           </nav>
 
-          {/* Footer */}
-          <div className="border-t border-slate-800 p-4 space-y-3">
-            <DeployButton />
+          {/* Footer with Logout */}
+          <div className="border-t border-purple-500/30 p-4">
             <LogoutButton />
           </div>
         </div>
