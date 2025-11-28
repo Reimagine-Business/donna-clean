@@ -3,6 +3,13 @@
 import { revalidatePath } from "next/cache"
 import { createSupabaseServerClient } from "@/utils/supabase/server"
 import { getOrRefreshUser } from "@/lib/supabase/get-user"
+import { validateEntry } from "@/lib/validation"
+import {
+  sanitizeString,
+  sanitizeAmount,
+  sanitizeDate,
+  isRateLimited
+} from "@/lib/sanitization"
 
 export type EntryType = 'income' | 'expense'
 export type PaymentMethodType = 'cash' | 'bank' | 'upi' | 'card' | 'cheque' | 'other'
@@ -97,35 +104,39 @@ export async function createEntry(input: CreateEntryInput) {
     return { success: false, error: "Not authenticated" }
   }
 
-  // Validate amount
-  const amount = Number(input.amount)
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return { success: false, error: "Amount must be a positive number" }
+  // Rate limiting: 100 entries per day per user
+  const rateLimitKey = `create-entry:${user.id}`
+  if (isRateLimited(rateLimitKey, 100, 24 * 60 * 60 * 1000)) {
+    return { success: false, error: "Rate limit exceeded. Maximum 100 entries per day." }
   }
 
-  // Validate date (not in future)
-  const entryDate = new Date(input.date)
-  const today = new Date()
-  today.setHours(23, 59, 59, 999)
-
-  if (entryDate > today) {
-    return { success: false, error: "Date cannot be in the future" }
+  // Sanitize inputs
+  const sanitizedData = {
+    type: input.type,
+    category: sanitizeString(input.category, 50),
+    amount: sanitizeAmount(input.amount),
+    description: input.description ? sanitizeString(input.description, 500) : undefined,
+    date: sanitizeDate(input.date),
+    payment_method: input.payment_method,
+    notes: input.notes ? sanitizeString(input.notes, 1000) : undefined,
   }
 
-  // Validate required fields
-  if (!input.type || !input.category) {
-    return { success: false, error: "Type and category are required" }
+  // Comprehensive validation
+  const validation = validateEntry(sanitizedData)
+  if (!validation.isValid) {
+    console.error('Validation failed:', validation.error)
+    return { success: false, error: validation.error }
   }
 
   const payload = {
     user_id: user.id,
-    type: input.type,
-    category: input.category,
-    amount,
-    description: input.description || null,
-    date: input.date,
-    payment_method: input.payment_method || null,
-    notes: input.notes || null,
+    type: sanitizedData.type,
+    category: sanitizedData.category,
+    amount: sanitizedData.amount,
+    description: sanitizedData.description || null,
+    date: sanitizedData.date,
+    payment_method: sanitizedData.payment_method || null,
+    notes: sanitizedData.notes || null,
   }
 
   const { error } = await supabase
@@ -140,6 +151,8 @@ export async function createEntry(input: CreateEntryInput) {
   revalidatePath('/entries')
   revalidatePath('/cashpulse')
   revalidatePath('/profit-lens')
+  revalidatePath('/analytics/cashpulse')
+  revalidatePath('/analytics/profitlens')
 
   return { success: true, error: null }
 }
@@ -152,33 +165,62 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
     return { success: false, error: "Not authenticated" }
   }
 
-  // Validate amount if provided
-  if (input.amount !== undefined) {
-    const amount = Number(input.amount)
-    if (!Number.isFinite(amount) || amount <= 0) {
-      return { success: false, error: "Amount must be a positive number" }
-    }
+  // Rate limiting: 1000 updates per hour per user
+  const rateLimitKey = `update-entry:${user.id}`
+  if (isRateLimited(rateLimitKey, 1000, 60 * 60 * 1000)) {
+    return { success: false, error: "Rate limit exceeded. Maximum 1000 updates per hour." }
   }
 
-  // Validate date if provided (not in future)
-  if (input.date) {
-    const entryDate = new Date(input.date)
-    const today = new Date()
-    today.setHours(23, 59, 59, 999)
-
-    if (entryDate > today) {
-      return { success: false, error: "Date cannot be in the future" }
-    }
-  }
-
+  // Sanitize inputs
   const payload: any = {}
-  if (input.type) payload.type = input.type
-  if (input.category) payload.category = input.category
-  if (input.amount !== undefined) payload.amount = Number(input.amount)
-  if (input.description !== undefined) payload.description = input.description || null
-  if (input.date) payload.date = input.date
-  if (input.payment_method !== undefined) payload.payment_method = input.payment_method || null
-  if (input.notes !== undefined) payload.notes = input.notes || null
+
+  if (input.type) {
+    payload.type = input.type
+  }
+
+  if (input.category) {
+    payload.category = sanitizeString(input.category, 50)
+  }
+
+  if (input.amount !== undefined) {
+    payload.amount = sanitizeAmount(input.amount)
+  }
+
+  if (input.description !== undefined) {
+    payload.description = input.description ? sanitizeString(input.description, 500) : null
+  }
+
+  if (input.date) {
+    payload.date = sanitizeDate(input.date)
+  }
+
+  if (input.payment_method !== undefined) {
+    payload.payment_method = input.payment_method || null
+  }
+
+  if (input.notes !== undefined) {
+    payload.notes = input.notes ? sanitizeString(input.notes, 1000) : null
+  }
+
+  // Validate the update data (if we have enough fields)
+  if (Object.keys(payload).length > 0) {
+    // Fetch current entry to merge with updates for validation
+    const { data: currentEntry } = await supabase
+      .from('entries')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .single()
+
+    if (currentEntry) {
+      const mergedData = { ...currentEntry, ...payload }
+      const validation = validateEntry(mergedData)
+      if (!validation.isValid) {
+        console.error('Validation failed:', validation.error)
+        return { success: false, error: validation.error }
+      }
+    }
+  }
 
   const { error } = await supabase
     .from('entries')
@@ -194,6 +236,8 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
   revalidatePath('/entries')
   revalidatePath('/cashpulse')
   revalidatePath('/profit-lens')
+  revalidatePath('/analytics/cashpulse')
+  revalidatePath('/analytics/profitlens')
 
   return { success: true, error: null }
 }

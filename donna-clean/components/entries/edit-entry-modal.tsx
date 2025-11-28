@@ -5,6 +5,15 @@ import { X, Clock } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { updateEntry, type Entry, type Category, type EntryType, type PaymentMethodType } from '@/app/entries/actions'
 import { showSuccess, showError } from '@/lib/toast'
+import {
+  validateAmount,
+  validateDate,
+  validateType,
+  validateCategory,
+  validateDescription,
+  validateNotes,
+  validatePaymentMethod
+} from '@/lib/validation'
 
 interface EditEntryModalProps {
   entry: Entry
@@ -32,6 +41,17 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType | ''>(entry.payment_method || '')
   const [notes, setNotes] = useState(entry.notes || '')
 
+  // Validation errors
+  const [errors, setErrors] = useState<{
+    type?: string
+    category?: string
+    amount?: string
+    description?: string
+    date?: string
+    paymentMethod?: string
+    notes?: string
+  }>({})
+
   // Filter categories based on selected type
   const filteredCategories = categories.filter(cat => cat.type === type)
 
@@ -43,38 +63,116 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
     }
   }, [type, filteredCategories, category])
 
+  // Validation handlers
+  const handleTypeChange = (newType: EntryType) => {
+    setType(newType)
+    const validation = validateType(newType)
+    setErrors(prev => ({ ...prev, type: validation.isValid ? undefined : validation.error }))
+  }
+
+  const handleCategoryChange = (newCategory: string) => {
+    setCategory(newCategory)
+    const validation = validateCategory(newCategory)
+    setErrors(prev => ({ ...prev, category: validation.isValid ? undefined : validation.error }))
+  }
+
+  const handleAmountChange = (newAmount: string) => {
+    setAmount(newAmount)
+    const validation = validateAmount(newAmount)
+    setErrors(prev => ({ ...prev, amount: validation.isValid ? undefined : validation.error }))
+  }
+
+  const handleDescriptionChange = (newDescription: string) => {
+    setDescription(newDescription)
+    const validation = validateDescription(newDescription)
+    setErrors(prev => ({ ...prev, description: validation.isValid ? undefined : validation.error }))
+  }
+
+  const handleDateChange = (newDate: string) => {
+    setDate(newDate)
+    const validation = validateDate(newDate)
+    setErrors(prev => ({ ...prev, date: validation.isValid ? undefined : validation.error }))
+  }
+
+  const handlePaymentMethodChange = (newMethod: PaymentMethodType | '') => {
+    setPaymentMethod(newMethod)
+    const validation = validatePaymentMethod(newMethod || undefined)
+    setErrors(prev => ({ ...prev, paymentMethod: validation.isValid ? undefined : validation.error }))
+  }
+
+  const handleNotesChange = (newNotes: string) => {
+    setNotes(newNotes)
+    const validation = validateNotes(newNotes)
+    setErrors(prev => ({ ...prev, notes: validation.isValid ? undefined : validation.error }))
+  }
+
+  // Check if form is valid
+  const isFormValid = () => {
+    return (
+      !errors.type &&
+      !errors.category &&
+      !errors.amount &&
+      !errors.description &&
+      !errors.date &&
+      !errors.paymentMethod &&
+      !errors.notes &&
+      type &&
+      category &&
+      amount &&
+      date
+    )
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validation
-    if (!type) {
-      showError('Please select entry type')
+    // Run all validations
+    const typeValidation = validateType(type)
+    const categoryValidation = validateCategory(category)
+    const amountValidation = validateAmount(amount)
+    const descriptionValidation = validateDescription(description)
+    const dateValidation = validateDate(date)
+    const paymentMethodValidation = validatePaymentMethod(paymentMethod || undefined)
+    const notesValidation = validateNotes(notes)
+
+    // Update errors
+    setErrors({
+      type: typeValidation.isValid ? undefined : typeValidation.error,
+      category: categoryValidation.isValid ? undefined : categoryValidation.error,
+      amount: amountValidation.isValid ? undefined : amountValidation.error,
+      description: descriptionValidation.isValid ? undefined : descriptionValidation.error,
+      date: dateValidation.isValid ? undefined : dateValidation.error,
+      paymentMethod: paymentMethodValidation.isValid ? undefined : paymentMethodValidation.error,
+      notes: notesValidation.isValid ? undefined : notesValidation.error,
+    })
+
+    // Check if any validation failed
+    if (!typeValidation.isValid) {
+      showError(typeValidation.error || 'Invalid entry type')
       return
     }
-
-    if (!category) {
-      showError('Please select a category')
+    if (!categoryValidation.isValid) {
+      showError(categoryValidation.error || 'Invalid category')
       return
     }
-
-    const amountNum = parseFloat(amount)
-    if (!amount || isNaN(amountNum) || amountNum <= 0) {
-      showError('Amount must be a positive number')
+    if (!amountValidation.isValid) {
+      showError(amountValidation.error || 'Invalid amount')
       return
     }
-
-    if (!date) {
-      showError('Please select a date')
+    if (!descriptionValidation.isValid) {
+      showError(descriptionValidation.error || 'Invalid description')
       return
     }
-
-    // Check if date is in future
-    const entryDate = new Date(date)
-    const today = new Date()
-    today.setHours(23, 59, 59, 999)
-
-    if (entryDate > today) {
-      showError('Date cannot be in the future')
+    if (!dateValidation.isValid) {
+      showError(dateValidation.error || 'Invalid date')
+      return
+    }
+    if (!paymentMethodValidation.isValid) {
+      showError(paymentMethodValidation.error || 'Invalid payment method')
+      return
+    }
+    if (!notesValidation.isValid) {
+      showError(notesValidation.error || 'Invalid notes')
       return
     }
 
@@ -84,7 +182,7 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
       const result = await updateEntry(entry.id, {
         type,
         category,
-        amount: amountNum,
+        amount: parseFloat(amount),
         description: description || undefined,
         date,
         payment_method: paymentMethod || undefined,
@@ -145,7 +243,7 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
                   name="type"
                   value="income"
                   checked={type === 'income'}
-                  onChange={(e) => setType(e.target.value as EntryType)}
+                  onChange={(e) => handleTypeChange(e.target.value as EntryType)}
                   disabled={loading}
                   className="sr-only peer"
                 />
@@ -159,7 +257,7 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
                   name="type"
                   value="expense"
                   checked={type === 'expense'}
-                  onChange={(e) => setType(e.target.value as EntryType)}
+                  onChange={(e) => handleTypeChange(e.target.value as EntryType)}
                   disabled={loading}
                   className="sr-only peer"
                 />
@@ -168,6 +266,9 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
                 </div>
               </label>
             </div>
+            {errors.type && (
+              <p className="mt-1 text-xs text-red-400">{errors.type}</p>
+            )}
           </div>
 
           {/* Category Selection */}
@@ -178,9 +279,9 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
             <select
               id="category"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => handleCategoryChange(e.target.value)}
               disabled={loading || filteredCategories.length === 0}
-              className="w-full px-4 py-3 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.category ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
               required
             >
               <option value="">Select category</option>
@@ -190,6 +291,9 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
                 </option>
               ))}
             </select>
+            {errors.category && (
+              <p className="mt-1 text-xs text-red-400">{errors.category}</p>
+            )}
           </div>
 
           {/* Amount */}
@@ -205,15 +309,18 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
                 type="number"
                 id="amount"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => handleAmountChange(e.target.value)}
                 disabled={loading}
                 placeholder="0.00"
                 step="0.01"
                 min="0.01"
-                className="w-full pl-8 pr-4 py-3 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+                className={`w-full pl-8 pr-4 py-3 bg-purple-900/30 border ${errors.amount ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
                 required
               />
             </div>
+            {errors.amount && (
+              <p className="mt-1 text-xs text-red-400">{errors.amount}</p>
+            )}
           </div>
 
           {/* Description */}
@@ -225,11 +332,15 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
               type="text"
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => handleDescriptionChange(e.target.value)}
               disabled={loading}
               placeholder="Brief description"
-              className="w-full px-4 py-3 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+              maxLength={500}
+              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.description ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
             />
+            {errors.description && (
+              <p className="mt-1 text-xs text-red-400">{errors.description}</p>
+            )}
           </div>
 
           {/* Date */}
@@ -241,12 +352,15 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
               type="date"
               id="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => handleDateChange(e.target.value)}
               disabled={loading}
               max={format(new Date(), 'yyyy-MM-dd')}
-              className="w-full px-4 py-3 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.date ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
               required
             />
+            {errors.date && (
+              <p className="mt-1 text-xs text-red-400">{errors.date}</p>
+            )}
           </div>
 
           {/* Payment Method */}
@@ -257,9 +371,9 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
             <select
               id="payment-method"
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value as PaymentMethodType | '')}
+              onChange={(e) => handlePaymentMethodChange(e.target.value as PaymentMethodType | '')}
               disabled={loading}
-              className="w-full px-4 py-3 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.paymentMethod ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
             >
               <option value="">Select payment method</option>
               {PAYMENT_METHODS.map((method) => (
@@ -268,6 +382,9 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
                 </option>
               ))}
             </select>
+            {errors.paymentMethod && (
+              <p className="mt-1 text-xs text-red-400">{errors.paymentMethod}</p>
+            )}
           </div>
 
           {/* Notes */}
@@ -278,12 +395,16 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
             <textarea
               id="notes"
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onChange={(e) => handleNotesChange(e.target.value)}
               disabled={loading}
               placeholder="Additional notes..."
               rows={3}
-              className="w-full px-4 py-3 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 resize-none"
+              maxLength={1000}
+              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.notes ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 resize-none`}
             />
+            {errors.notes && (
+              <p className="mt-1 text-xs text-red-400">{errors.notes}</p>
+            )}
           </div>
 
           {/* Actions */}
@@ -298,7 +419,7 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
             </button>
             <button
               type="submit"
-              disabled={loading || filteredCategories.length === 0}
+              disabled={loading || filteredCategories.length === 0 || !isFormValid()}
               className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
             >
               {loading ? 'Updating...' : 'Update Entry'}
