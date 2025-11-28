@@ -147,10 +147,11 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
           {/* Add Button */}
           <button
             onClick={onAddClick}
-            className="hidden md:flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
+            className="flex items-center gap-2 rounded-lg bg-primary px-3 md:px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-slate-950"
           >
             <span className="text-xl leading-none">+</span>
-            <span>Add Reminder</span>
+            <span className="hidden sm:inline">Add Reminder</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
 
