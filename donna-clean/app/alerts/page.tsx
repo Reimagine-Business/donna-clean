@@ -55,7 +55,7 @@ export default function AlertsPage() {
   // Show loading skeleton while fetching
   if (userLoading || remindersLoading) {
     return (
-      <main className="min-h-screen bg-background text-foreground">
+      <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
         <div className="flex flex-col">
           <SiteHeader />
           <TopNavMobile />
@@ -74,7 +74,7 @@ export default function AlertsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <div className="flex flex-col">
         {/* Desktop Header */}
         <SiteHeader />
