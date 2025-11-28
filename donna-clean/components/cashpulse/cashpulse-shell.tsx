@@ -18,6 +18,7 @@ import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { SettlementSummaryCard } from "@/components/settlements/settlement-summary-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { showWarning } from "@/lib/toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Download } from "lucide-react";
@@ -169,8 +170,8 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     const alertRealtimeFailure = () => {
       if (hasAlertedRealtimeFailure) return;
       hasAlertedRealtimeFailure = true;
-      if (typeof window !== "undefined" && typeof window.alert === "function") {
-        window.alert("Realtime failed – refresh");
+      if (typeof window !== "undefined") {
+        showWarning("Realtime failed – refresh");
       }
     };
 
@@ -433,7 +434,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
 
   const handleExportHistory = () => {
     if (!filteredHistory.length) {
-      alert("No settlements to export for the selected date range.");
+      showWarning("No settlements to export for the selected date range.");
       return;
     }
 

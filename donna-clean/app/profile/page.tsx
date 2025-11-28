@@ -10,6 +10,7 @@ import { User, Building2, MapPin, Mail, ImageIcon, Lock } from 'lucide-react'
 import { EditProfileModal } from '@/components/profile/edit-profile-modal'
 import { ChangePasswordModal } from '@/components/profile/change-password-modal'
 import { UploadLogoModal } from '@/components/profile/upload-logo-modal'
+import { showError } from '@/lib/toast'
 
 interface Profile {
   username: string
@@ -86,7 +87,7 @@ export default function ProfilePage() {
     } catch (error: any) {
       console.error('❌ Failed to update profile:', error)
       const errorMessage = error.message || 'Unknown error'
-      alert(`Failed to update profile: ${errorMessage}`)
+      showError(`Failed to update profile: ${errorMessage}`)
     }
   }
 

@@ -17,6 +17,7 @@ import {
   type DateRange
 } from "@/lib/date-utils";
 import { formatAmountInWordsShort, formatCurrencyWithWords } from "@/lib/format-number-words";
+import { showWarning } from "@/lib/toast";
 
 type ProfitLensShellProps = {
   initialEntries: Entry[];
@@ -144,8 +145,8 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     const alertRealtimeFailure = () => {
       if (hasAlertedRealtimeFailure) return;
       hasAlertedRealtimeFailure = true;
-      if (typeof window !== "undefined" && typeof window.alert === "function") {
-        window.alert("Realtime failed – refresh");
+      if (typeof window !== "undefined") {
+        showWarning("Realtime failed – refresh");
       }
     };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { showWarning } from "@/lib/toast";
 
 type SessionExpiredNoticeProps = {
   message?: string;
@@ -10,8 +11,8 @@ export function SessionExpiredNotice({
   message = "Session expired – relogin",
 }: SessionExpiredNoticeProps) {
   useEffect(() => {
-    if (typeof window !== "undefined" && typeof window.alert === "function") {
-      window.alert(message);
+    if (typeof window !== "undefined") {
+      showWarning(message);
     }
   }, [message]);
 

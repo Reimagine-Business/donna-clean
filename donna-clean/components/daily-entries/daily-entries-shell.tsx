@@ -23,6 +23,7 @@ import {
 } from "@/lib/entries";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { addEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/daily-entries/actions";
+import { showError, showWarning } from "@/lib/toast";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -345,11 +346,11 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       const result = await deleteEntryAction(entryId);
       if (!result.success) {
         console.error("Failed to delete entry:", result.error);
-        alert(`Failed to delete entry: ${result.error}`);
+        showError(`Failed to delete entry: ${result.error}`);
       }
     } catch (error) {
       console.error("Failed to delete entry:", error);
-      alert("Failed to delete entry. Please try again.");
+      showError("Failed to delete entry. Please try again.");
     }
   };
 
@@ -445,7 +446,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
 
   const handleExportToExcel = () => {
     if (filteredEntries.length === 0) {
-      alert("No entries to export for the selected date range.");
+      showWarning("No entries to export for the selected date range.");
       return;
     }
 

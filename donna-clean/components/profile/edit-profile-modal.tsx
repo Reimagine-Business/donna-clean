@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import { showError } from '@/lib/toast'
 
 interface EditProfileModalProps {
   field: string
@@ -22,7 +23,7 @@ export function EditProfileModal({ field, currentValue, onSave, onClose }: EditP
 
   const handleSave = async () => {
     if (!value.trim()) {
-      alert('Field cannot be empty')
+      showError('Field cannot be empty')
       return
     }
 
