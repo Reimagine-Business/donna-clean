@@ -12,13 +12,6 @@ export default async function NotificationsPage() {
     getAlertCounts(),
   ])
 
-  const handleRefresh = async () => {
-    'use server'
-    const { alerts: freshAlerts } = await getAlerts()
-    const freshCounts = await getAlertCounts()
-    return { alerts: freshAlerts, counts: freshCounts }
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
       <div className="container mx-auto p-4 md:p-6">

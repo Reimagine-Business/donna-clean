@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { markReminderDone } from "@/app/reminders/actions";
+import { AlertsSection } from "./alerts-section";
 
 interface Reminder {
   id: string;
@@ -14,8 +15,21 @@ interface Reminder {
   category: string;
 }
 
+interface Alert {
+  id: string;
+  user_id: string;
+  type: 'critical' | 'warning' | 'info';
+  priority: number;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 interface HomeShellProps {
   initialReminders: Reminder[];
+  initialAlerts: Alert[];
+  userId: string;
 }
 
 const formatDate = (dateString: string): string => {
@@ -51,7 +65,7 @@ const getCategoryIcon = (category: string) => {
   }
 };
 
-export function HomeShell({ initialReminders }: HomeShellProps) {
+export function HomeShell({ initialReminders, initialAlerts, userId }: HomeShellProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -88,6 +102,9 @@ export function HomeShell({ initialReminders }: HomeShellProps) {
           Your Daily Start
         </h1>
       </div>
+
+      {/* Critical Alerts Section - TOP PRIORITY */}
+      <AlertsSection initialAlerts={initialAlerts} userId={userId} />
 
       {/* Due Soon Section */}
       <section>

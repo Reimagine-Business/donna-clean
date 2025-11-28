@@ -35,7 +35,7 @@ export default function AdminUsersPage() {
 
     try {
       // Use Supabase Admin API to invite user
-      const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
+      const { error } = await supabase.auth.admin.inviteUserByEmail(email, {
         redirectTo: `${window.location.origin}/auth/login`,
       });
 
@@ -51,10 +51,10 @@ export default function AdminUsersPage() {
         });
         setEmail('');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setInviteStatus({
         type: 'error',
-        message: err.message || 'An error occurred while sending the invitation'
+        message: err instanceof Error ? err.message : 'An error occurred while sending the invitation'
       });
     } finally {
       setIsInviting(false);

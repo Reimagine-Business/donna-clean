@@ -21,14 +21,28 @@ export default async function HomePage() {
   }
 
   // Fetch reminders from database
-  const { data: reminders, error } = await supabase
+  const { data: reminders, error: remindersError } = await supabase
     .from("reminders")
     .select("*")
     .eq("user_id", user.id)
     .order("due_date", { ascending: true });
 
-  if (error) {
-    console.error("Error fetching reminders:", error);
+  if (remindersError) {
+    console.error("Error fetching reminders:", remindersError);
+  }
+
+  // Fetch critical and warning alerts (unread only)
+  const { data: alerts, error: alertsError } = await supabase
+    .from("alerts")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_read", false)
+    .in("type", ["critical", "warning"])
+    .order("priority", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (alertsError) {
+    console.error("Error fetching alerts:", alertsError);
   }
 
   return (
@@ -43,7 +57,11 @@ export default async function HomePage() {
         {/* Main Content */}
         <section className="px-4 pb-24 md:px-8 md:pb-8">
           <div className="mx-auto w-full max-w-6xl">
-            <HomeShell initialReminders={reminders || []} />
+            <HomeShell
+              initialReminders={reminders || []}
+              initialAlerts={alerts || []}
+              userId={user.id}
+            />
           </div>
         </section>
 

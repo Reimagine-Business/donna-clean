@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, subDays } from "date-fns";
-import { ArrowDownRight, ArrowUpRight, Activity, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet } from "lucide-react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/client";
@@ -13,15 +13,11 @@ import {
   type PaymentMethod,
   normalizeEntry,
 } from "@/lib/entries";
-import { cn } from "@/lib/utils";
 import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
 import { SettlementSummaryCard } from "@/components/settlements/settlement-summary-card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { showWarning } from "@/lib/toast";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Download } from "lucide-react";
 import {
   filterByDateRange,
   filterByCustomDateRange,
@@ -42,15 +38,6 @@ const currencyFormatter = new Intl.NumberFormat("en-IN", {
   minimumFractionDigits: 0,
 });
 
-const numberFormatter = new Intl.NumberFormat("en-IN", {
-  minimumFractionDigits: 0,
-});
-
-const formatDisplayDate = (date: string) => format(new Date(date), "dd MMM");
-
-const isWithinRange = (date: string, start: string, end: string) =>
-  date >= start && date <= end;
-
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
 
@@ -59,10 +46,9 @@ const CASH_METHOD_LOOKUP = new Set<string>(PAYMENT_METHODS);
 const isCashPaymentMethod = (method: PaymentMethod): method is CashPaymentMethod =>
   CASH_METHOD_LOOKUP.has(method);
 
-const logCashpulseSkip = (entry: Entry, reason: string) => {
-  console.log(
-    `[Cashpulse Skip] ${reason} ID ${entry.id}: type=${entry.entry_type}, category=${entry.category}, payment=${entry.payment_method}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
-  );
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const logCashpulseSkip = (_entry: Entry, _reason: string) => {
+  // Skip logging in production
 };
 
 const MAX_REALTIME_RECONNECT_ATTEMPTS = 5;
@@ -116,7 +102,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
   }, [entries, dateFilter, customFromDate, customToDate]);
 
   useEffect(() => {
-    console.log("Cashpulse is now CLIENT — real-time will work");
+    // Component initialized
   }, []);
 
   const recalcKpis = useCallback(
@@ -164,8 +150,6 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     let retryAttempt = 0;
     let hasAlertedRealtimeFailure = false;
     let isMounted = true;
-
-    console.info("[Realtime Load] Changes applied – backoff max 30s");
 
     const alertRealtimeFailure = () => {
       if (hasAlertedRealtimeFailure) return;
@@ -226,7 +210,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       channel = supabase
         .channel(`public:entries:${userId}`)
         .on("system", { event: "*" }, (systemPayload) => {
-          console.log("[Realtime System]", systemPayload);
+          // System event received
         })
         .on(
           "postgres_changes",
@@ -237,12 +221,10 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
             filter: `user_id=eq.${userId}`,
           },
           async (payload) => {
-            console.log("REAL-TIME: payload received", payload);
             const latestEntries = await refetchEntries();
             if (!latestEntries) {
               return;
             }
-            console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
             // Filter entries by current date range before recalculating
             let filteredLatest: Entry[];
             if (dateFilter === "customize" && customFromDate && customToDate) {
@@ -252,25 +234,11 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
             } else {
               filteredLatest = latestEntries;
             }
-            const updatedStats = recalcKpis(filteredLatest);
-            const realtimeSales = updatedStats.cashBreakdown
-              .filter(
-                (channelBreakdown) =>
-                  channelBreakdown.method === "Cash" || channelBreakdown.method === "Bank",
-              )
-              .reduce((sum, channelBreakdown) => sum + channelBreakdown.value, 0);
-            console.log(
-              "REAL-TIME: KPIs recalculated → inflow:",
-              updatedStats.cashInflow,
-              "sales:",
-              realtimeSales,
-            );
+            recalcKpis(filteredLatest);
           },
         )
         .subscribe(async (status) => {
-          console.log(`[Realtime] Status: ${status}`);
           if (status === "SUBSCRIBED") {
-            console.log("[Realtime] joined public:entries Cashpulse channel");
             retryAttempt = 0;
             hasAlertedRealtimeFailure = false;
             startHeartbeat();

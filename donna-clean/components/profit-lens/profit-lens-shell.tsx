@@ -92,7 +92,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
   }, [entries, dateFilter, customFromDate, customToDate]);
 
   useEffect(() => {
-    console.log("Profit Lens is now CLIENT — real-time will work");
+    // Component initialized
   }, []);
 
   const recalcKpis = useCallback(
@@ -139,8 +139,6 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     let retryAttempt = 0;
     let hasAlertedRealtimeFailure = false;
     let isMounted = true;
-
-    console.info("[Realtime Load] Changes applied – backoff max 30s");
 
     const alertRealtimeFailure = () => {
       if (hasAlertedRealtimeFailure) return;
@@ -201,7 +199,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       channel = supabase
         .channel(`public:entries:${userId}:profit`)
         .on("system", { event: "*" }, (systemPayload) => {
-          console.log("[Realtime System]", systemPayload);
+          // System event received
         })
         .on(
           "postgres_changes",
@@ -212,12 +210,10 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             filter: `user_id=eq.${userId}`,
           },
           async (payload) => {
-            console.log("REAL-TIME: payload received", payload);
             const latestEntries = await refetchEntries();
             if (!latestEntries) {
               return;
             }
-            console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
             // Filter entries by current date range before recalculating
             let filteredLatest: Entry[];
             if (dateFilter === "customize" && customFromDate && customToDate) {
@@ -227,19 +223,11 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             } else {
               filteredLatest = latestEntries;
             }
-            const updatedStats = recalcKpis(filteredLatest);
-            console.log(
-              "REAL-TIME: KPIs recalculated → net profit:",
-              updatedStats.netProfit,
-              "sales:",
-              updatedStats.sales,
-            );
+            recalcKpis(filteredLatest);
           },
         )
         .subscribe(async (status) => {
-          console.log(`[Realtime] Status: ${status}`);
           if (status === "SUBSCRIBED") {
-            console.log("[Realtime] joined public:entries Profit Lens channel");
             retryAttempt = 0;
             hasAlertedRealtimeFailure = false;
             startHeartbeat();

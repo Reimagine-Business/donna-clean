@@ -41,8 +41,8 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
       setTimeout(() => {
         onClose()
       }, 2000)
-    } catch (error: any) {
-      setMessage(`❌ ${error.message}`)
+    } catch (error: unknown) {
+      setMessage(`❌ ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }

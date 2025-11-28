@@ -10,6 +10,7 @@ import {
   sanitizeDate,
   isRateLimited
 } from "@/lib/sanitization"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 export type EntryType = 'income' | 'expense'
 export type PaymentMethodType = 'cash' | 'bank' | 'upi' | 'card' | 'cheque' | 'other'
@@ -48,6 +49,124 @@ export type Category = {
   color: string
   icon: string
   created_at: string
+}
+
+// Helper function to generate alerts based on entry data
+async function generateAlertsForEntry(
+  supabase: SupabaseClient,
+  userId: string,
+  entry: { type: EntryType; category: string; amount: number; date: string }
+) {
+  try {
+    // Fetch all entries for this user to calculate balances and trends
+    const { data: allEntries, error: entriesError } = await supabase
+      .from('entries')
+      .select('type, amount, date')
+      .eq('user_id', userId)
+
+    if (entriesError || !allEntries) {
+      console.error('Failed to fetch entries for alert generation:', entriesError)
+      return
+    }
+
+    // Calculate current balance
+    const balance = allEntries.reduce((sum, e) => {
+      return e.type === 'income' ? sum + e.amount : sum - e.amount
+    }, 0)
+
+    // Calculate monthly totals
+    const currentMonth = new Date().toISOString().substring(0, 7) // YYYY-MM
+    const monthlyEntries = allEntries.filter(e => e.date.startsWith(currentMonth))
+    const monthlyIncome = monthlyEntries
+      .filter(e => e.type === 'income')
+      .reduce((sum, e) => sum + e.amount, 0)
+    const monthlyExpenses = monthlyEntries
+      .filter(e => e.type === 'expense')
+      .reduce((sum, e) => sum + e.amount, 0)
+
+    const alerts: Array<{
+      user_id: string
+      type: 'critical' | 'warning' | 'info'
+      priority: number
+      title: string
+      message: string
+      is_read: boolean
+    }> = []
+
+    // Alert 1: High single expense (> ₹50,000)
+    if (entry.type === 'expense' && entry.amount > 50000) {
+      alerts.push({
+        user_id: userId,
+        type: 'warning',
+        priority: 7,
+        title: 'High Expense Recorded',
+        message: `A large expense of ₹${entry.amount.toLocaleString('en-IN')} was recorded in category "${entry.category}". Please review if this is expected.`,
+        is_read: false,
+      })
+    }
+
+    // Alert 2: Low cash balance (< ₹10,000)
+    if (balance < 10000 && balance >= 0) {
+      alerts.push({
+        user_id: userId,
+        type: 'critical',
+        priority: 9,
+        title: 'Low Cash Balance',
+        message: `Your current balance is ₹${balance.toLocaleString('en-IN')}. Consider reviewing expenses or increasing income.`,
+        is_read: false,
+      })
+    }
+
+    // Alert 3: Negative balance
+    if (balance < 0) {
+      alerts.push({
+        user_id: userId,
+        type: 'critical',
+        priority: 10,
+        title: 'Negative Balance Alert',
+        message: `Your account balance is negative: ₹${balance.toLocaleString('en-IN')}. Immediate attention required.`,
+        is_read: false,
+      })
+    }
+
+    // Alert 4: Monthly expenses exceed income
+    if (monthlyExpenses > monthlyIncome && monthlyIncome > 0) {
+      const difference = monthlyExpenses - monthlyIncome
+      alerts.push({
+        user_id: userId,
+        type: 'warning',
+        priority: 8,
+        title: 'Monthly Expenses Exceed Income',
+        message: `This month's expenses (₹${monthlyExpenses.toLocaleString('en-IN')}) exceed income (₹${monthlyIncome.toLocaleString('en-IN')}) by ₹${difference.toLocaleString('en-IN')}.`,
+        is_read: false,
+      })
+    }
+
+    // Alert 5: Expenses significantly exceed income (>150%)
+    if (monthlyIncome > 0 && monthlyExpenses > monthlyIncome * 1.5) {
+      alerts.push({
+        user_id: userId,
+        type: 'critical',
+        priority: 9,
+        title: 'Excessive Spending Alert',
+        message: `Your monthly expenses are ${((monthlyExpenses / monthlyIncome) * 100).toFixed(0)}% of your income. This is not sustainable.`,
+        is_read: false,
+      })
+    }
+
+    // Insert alerts into database (only if there are any)
+    if (alerts.length > 0) {
+      const { error: insertError } = await supabase
+        .from('alerts')
+        .insert(alerts)
+
+      if (insertError) {
+        console.error('Failed to insert alerts:', insertError)
+      }
+    }
+  } catch (error) {
+    console.error('Error in generateAlertsForEntry:', error)
+  }
 }
 
 export async function getEntries() {
@@ -148,11 +267,15 @@ export async function createEntry(input: CreateEntryInput) {
     return { success: false, error: error.message }
   }
 
+  // Generate alerts based on entry data
+  await generateAlertsForEntry(supabase, user.id, sanitizedData)
+
   revalidatePath('/entries')
   revalidatePath('/cashpulse')
   revalidatePath('/profit-lens')
   revalidatePath('/analytics/cashpulse')
   revalidatePath('/analytics/profitlens')
+  revalidatePath('/home')
 
   return { success: true, error: null }
 }
@@ -172,7 +295,7 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
   }
 
   // Sanitize inputs
-  const payload: any = {}
+  const payload: Record<string, unknown> = {}
 
   if (input.type) {
     payload.type = input.type

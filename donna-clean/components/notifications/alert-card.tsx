@@ -26,8 +26,8 @@ export function AlertCard({ alert, onUpdate }: AlertCardProps) {
       } else {
         showError(result.error || 'Failed to mark as read')
       }
-    } catch (error: any) {
-      showError(error.message || 'An unexpected error occurred')
+    } catch (error: unknown) {
+      showError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setProcessing(false)
     }
@@ -49,8 +49,8 @@ export function AlertCard({ alert, onUpdate }: AlertCardProps) {
       } else {
         showError(result.error || 'Failed to delete alert')
       }
-    } catch (error: any) {
-      showError(error.message || 'An unexpected error occurred')
+    } catch (error: unknown) {
+      showError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setProcessing(false)
     }

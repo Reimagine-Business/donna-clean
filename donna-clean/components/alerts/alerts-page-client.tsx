@@ -4,8 +4,18 @@ import { useState } from "react";
 import { AlertsShell } from "./alerts-shell";
 import { AddReminderDialog } from "./add-reminder-dialog";
 
+interface Reminder {
+  id: string;
+  title: string;
+  description: string | null;
+  due_date: string;
+  status: string;
+  category: string;
+  frequency: string;
+}
+
 interface AlertsPageClientProps {
-  initialReminders: any[];
+  initialReminders: Reminder[];
 }
 
 export function AlertsPageClient({ initialReminders }: AlertsPageClientProps) {
