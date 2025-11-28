@@ -22,16 +22,19 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Validate file type
     if (!file.type.startsWith('image/')) {
-      setMessage('Please select an image file')
+      setMessage('❌ Please select an image file (PNG, JPG, etc.)')
       return
     }
 
+    // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
-      setMessage('File size must be less than 5MB')
+      setMessage('❌ File size must be less than 5MB')
       return
     }
 
+    // Show preview
     const reader = new FileReader()
     reader.onloadend = () => {
       setPreview(reader.result as string)
@@ -39,30 +42,57 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
     reader.readAsDataURL(file)
 
     setUploading(true)
-    setMessage('')
+    setMessage('Uploading...')
 
     try {
       const fileExt = file.name.split('.').pop()
-      const fileName = `${userId}-${Date.now()}.${fileExt}`
+      // Use user ID folder structure with consistent filename
+      const fileName = `${userId}/logo.${fileExt}`
 
-      const { error: uploadError } = await supabase.storage
+      console.log('📤 Uploading logo:', fileName)
+
+      // Upload to 'logos' bucket
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('logos')
         .upload(fileName, file, {
-          upsert: true
+          cacheControl: '3600',
+          upsert: true // Overwrite if exists
         })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error('❌ Upload error:', uploadError)
+        throw uploadError
+      }
 
+      console.log('✅ Upload successful:', uploadData)
+
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('logos')
         .getPublicUrl(fileName)
 
+      console.log('🔗 Public URL:', publicUrl)
+
+      // Update profiles table with logo URL
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ logo_url: publicUrl })
+        .update({
+          logo_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
         .eq('user_id', userId)
 
-      if (updateError) throw updateError
+      if (updateError) {
+        console.error('❌ Profile update error:', updateError)
+        console.error('Error details:', {
+          message: updateError.message,
+          code: updateError.code,
+          details: updateError.details
+        })
+        throw updateError
+      }
+
+      console.log('✅ Profile updated with logo URL')
 
       setMessage('✅ Logo uploaded successfully!')
       setTimeout(() => {
@@ -70,7 +100,9 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
         onClose()
       }, 1500)
     } catch (error: any) {
-      setMessage(`❌ ${error.message}`)
+      console.error('❌ Logo upload failed:', error)
+      const errorMessage = error.message || 'Unknown error'
+      setMessage(`❌ Upload failed: ${errorMessage}`)
     } finally {
       setUploading(false)
     }

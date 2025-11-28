@@ -58,18 +58,35 @@ export default function ProfilePage() {
 
   const handleUpdate = async (field: string, value: string) => {
     try {
+      console.log('📝 Updating profile:', { field, value, userId: user.id })
+
       const { error } = await supabase
         .from('profiles')
-        .update({ [field]: value })
+        .update({
+          [field]: value,
+          updated_at: new Date().toISOString()
+        })
         .eq('user_id', user.id)
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Update error:', error)
+        console.error('Error details:', {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint
+        })
+        throw error
+      }
+
+      console.log('✅ Profile updated successfully')
 
       await loadProfile()
       setEditingField(null)
-    } catch (error) {
-      console.error('Error updating profile:', error)
-      alert('Failed to update profile')
+    } catch (error: any) {
+      console.error('❌ Failed to update profile:', error)
+      const errorMessage = error.message || 'Unknown error'
+      alert(`Failed to update profile: ${errorMessage}`)
     }
   }
 
