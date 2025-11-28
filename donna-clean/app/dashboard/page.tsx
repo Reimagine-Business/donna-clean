@@ -46,12 +46,14 @@ export default async function DashboardPage() {
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
+        console.error("Profile fetch error:", error);
         throw error;
       }
 
       if (data) {
         profile = data;
       } else {
+        // Profile doesn't exist, try to create it
         const defaultBusinessName =
           metadata.business_name ?? user.email?.split("@")[0] ?? "Not set";
         const defaultRole = metadata.role ?? "owner";
@@ -67,10 +69,28 @@ export default async function DashboardPage() {
           .single();
 
         if (createError) {
-          throw createError;
-        }
+          // If insert fails due to duplicate user_id (23505), try fetching again
+          if (createError.code === "23505") {
+            console.log("Profile already exists, fetching again...");
+            const { data: existingProfile, error: refetchError } = await supabase
+              .from("profiles")
+              .select("business_name, role")
+              .eq("user_id", user.id)
+              .single();
 
-        profile = createdProfile;
+            if (refetchError) {
+              console.error("Failed to fetch existing profile:", refetchError);
+              throw new Error("Profile exists but cannot be accessed. Please check RLS policies.");
+            }
+
+            profile = existingProfile;
+          } else {
+            console.error("Profile creation error:", createError);
+            throw createError;
+          }
+        } else {
+          profile = createdProfile;
+        }
       }
     } catch (error) {
       console.error("Dashboard profile fetch failed", error);
