@@ -34,8 +34,8 @@ export function AlertSummary({ total, unread, info, warning, critical, onUpdate 
       } else {
         showError(result.error || 'Failed to mark all as read')
       }
-    } catch (error: any) {
-      showError(error.message || 'An unexpected error occurred')
+    } catch (error: unknown) {
+      showError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setProcessing(false)
     }
@@ -64,8 +64,8 @@ export function AlertSummary({ total, unread, info, warning, critical, onUpdate 
       } else {
         showError(result.error || 'Failed to delete read alerts')
       }
-    } catch (error: any) {
-      showError(error.message || 'An unexpected error occurred')
+    } catch (error: unknown) {
+      showError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setProcessing(false)
     }

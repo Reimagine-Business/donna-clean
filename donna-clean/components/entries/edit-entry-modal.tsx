@@ -196,9 +196,9 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
       } else {
         showError(result.error || 'Failed to update entry')
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Failed to update entry:', error)
-      showError(error.message || 'An unexpected error occurred')
+      showError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {
       setLoading(false)
     }

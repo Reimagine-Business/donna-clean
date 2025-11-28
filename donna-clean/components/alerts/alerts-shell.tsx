@@ -77,12 +77,6 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
   const [customFromDate, setCustomFromDate] = useState<Date>();
   const [customToDate, setCustomToDate] = useState<Date>();
 
-  const filterOptions: { id: FilterOption; label: string }[] = [
-    { id: "due_soon", label: "Due Soon" },
-    { id: "overdue", label: "Overdue" },
-    { id: "completed", label: "Completed" },
-  ];
-
   // Filter reminders based on date range AND status filter
   const filteredReminders = useMemo(() => {
     // First, filter by date range

@@ -14,7 +14,7 @@ import {
   getMonthlyComparison,
   getEntryCount,
 } from '@/lib/analytics'
-import { showSuccess, showError } from '@/lib/toast'
+import { showSuccess } from '@/lib/toast'
 
 interface CashPulseAnalyticsProps {
   entries: Entry[]
@@ -119,7 +119,7 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
         <select
           value={dateRange}
           onChange={(e) => {
-            setDateRange(e.target.value as any)
+            setDateRange(e.target.value as 'month' | '3months' | 'year')
             setChartDays(e.target.value === 'month' ? 30 : e.target.value === '3months' ? 90 : 365)
           }}
           className="px-4 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -226,7 +226,7 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
                   </Pie>
                   <Tooltip
                     contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid #7c3aed', borderRadius: '8px' }}
-                    formatter={(value: any) => formatCurrency(value)}
+                    formatter={(value: number) => formatCurrency(value)}
                   />
                 </PieChart>
               </ResponsiveContainer>

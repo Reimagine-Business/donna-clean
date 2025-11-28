@@ -1,12 +1,13 @@
 'use client'
 
 import { X } from 'lucide-react'
+import type { Entry } from '@/lib/entries'
 
 interface SettlementModalProps {
   type: string
   title: string
-  items: any[]
-  onSettle: (item: any) => void
+  items: Entry[]
+  onSettle: (item: Entry) => void
   onClose: () => void
 }
 
@@ -82,7 +83,7 @@ export function SettlementModal({
 
                     {/* Date */}
                     <div className="text-purple-300 text-sm">
-                      📅 {formatDate(item.entry_date || item.date)}
+                      📅 {formatDate(item.entry_date)}
                     </div>
 
                     {/* Notes - IMPORTANT - Always show, even if empty */}

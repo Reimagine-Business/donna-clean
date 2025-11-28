@@ -3,13 +3,14 @@
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { SettlementModal } from './settlement-modal'
+import type { Entry } from '@/lib/entries'
 
 interface SettlementSummaryCardProps {
   type: 'collections' | 'bills' | 'advances'
   count: number
   amount: number
-  items: any[]
-  onSettle: (item: any) => void
+  items: Entry[]
+  onSettle: (item: Entry) => void
 }
 
 export function SettlementSummaryCard({

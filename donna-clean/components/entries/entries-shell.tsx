@@ -103,9 +103,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
       if (!categoriesResult.error) {
         setAllCategories(categoriesResult.categories)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Failed to refresh data:', err)
-      setError(err.message || 'Failed to refresh data')
+      setError(err instanceof Error ? err.message : 'Failed to refresh data')
     } finally {
       setLoading(false)
     }
@@ -177,7 +177,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
       if (failedCount > 0) {
         showError(`Failed to delete ${failedCount} ${failedCount === 1 ? 'entry' : 'entries'}`)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Bulk delete failed:', error)
       showError('An error occurred during bulk delete')
     } finally {

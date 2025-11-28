@@ -65,8 +65,6 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
       // Use user ID folder structure with consistent filename
       const fileName = `${userId}/logo.${fileExt}`
 
-      console.log('📤 Uploading logo:', fileName)
-
       // Upload to 'logos' bucket
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('logos')
@@ -80,14 +78,10 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
         throw uploadError
       }
 
-      console.log('✅ Upload successful:', uploadData)
-
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('logos')
         .getPublicUrl(fileName)
-
-      console.log('🔗 Public URL:', publicUrl)
 
       // Update profiles table with logo URL
       const { error: updateError } = await supabase
@@ -108,8 +102,6 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
         throw updateError
       }
 
-      console.log('✅ Profile updated with logo URL')
-
       clearInterval(progressInterval)
       setUploadProgress(100)
       setMessage('✅ Logo uploaded successfully!')
@@ -118,11 +110,11 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
         onSuccess()
         onClose()
       }, 1500)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Logo upload failed:', error)
       clearInterval(progressInterval)
       setUploadProgress(0)
-      const errorMessage = error.message || 'Unknown error'
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       setMessage(`❌ Upload failed: ${errorMessage}`)
     } finally {
       setUploading(false)

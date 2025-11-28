@@ -11,7 +11,7 @@ export default function SettingsPage() {
   const supabase = createClient()
 
   // Fetch user for top nav
-  const { data: user } = useQuery({
+  useQuery({
     queryKey: ['user'],
     queryFn: async () => {
       const { data: { user }, error } = await supabase.auth.getUser()

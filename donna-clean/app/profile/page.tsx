@@ -12,6 +12,7 @@ import { ChangePasswordModal } from '@/components/profile/change-password-modal'
 import { UploadLogoModal } from '@/components/profile/upload-logo-modal'
 import { showError } from '@/lib/toast'
 import { ProfileSkeleton } from '@/components/skeletons/profile-skeleton'
+import type { User as SupabaseUser } from '@supabase/supabase-js'
 
 interface Profile {
   username: string
@@ -23,7 +24,7 @@ interface Profile {
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<SupabaseUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [editingField, setEditingField] = useState<string | null>(null)
 
@@ -59,9 +60,9 @@ export default function ProfilePage() {
   }
 
   const handleUpdate = async (field: string, value: string) => {
-    try {
-      console.log('📝 Updating profile:', { field, value, userId: user.id })
+    if (!user) return
 
+    try {
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -81,13 +82,11 @@ export default function ProfilePage() {
         throw error
       }
 
-      console.log('✅ Profile updated successfully')
-
       await loadProfile()
       setEditingField(null)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('❌ Failed to update profile:', error)
-      const errorMessage = error.message || 'Unknown error'
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       showError(`Failed to update profile: ${errorMessage}`)
     }
   }
@@ -178,7 +177,6 @@ export default function ProfilePage() {
             label="Admin Email"
             value={user?.email || ''}
             onEdit={null}
-            readOnly
             helper="Contact admin to change email"
           />
 
@@ -248,7 +246,6 @@ function ProfileField({
   label,
   value,
   onEdit,
-  readOnly = false,
   helper,
   buttonText = 'Edit'
 }: {
@@ -256,7 +253,6 @@ function ProfileField({
   label: string
   value: string
   onEdit: (() => void) | null
-  readOnly?: boolean
   helper?: string
   buttonText?: string
 }) {

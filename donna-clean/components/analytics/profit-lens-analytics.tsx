@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { TrendingUp, TrendingDown, DollarSign, Lightbulb, Download } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from 'recharts'
+import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from 'recharts'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { type Entry } from '@/app/entries/actions'
 import {
@@ -56,10 +56,6 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   const recommendations = useMemo(() => getRecommendations(entries, startDate, endDate), [entries, startDate, endDate])
 
   // Calculate trends
-  const profitChange = lastMonthMetrics.netProfit !== 0
-    ? ((currentMetrics.netProfit - lastMonthMetrics.netProfit) / Math.abs(lastMonthMetrics.netProfit)) * 100
-    : 0
-
   const marginChange = currentMetrics.profitMargin - lastMonthMetrics.profitMargin
 
   // Export to CSV
@@ -108,7 +104,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
         <label className="text-purple-300 text-sm">Period:</label>
         <select
           value={dateRange}
-          onChange={(e) => setDateRange(e.target.value as any)}
+          onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | '6months')}
           className="px-4 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
           <option value="month">This Month</option>

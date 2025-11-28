@@ -289,8 +289,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         image_url: uploadedUrl,
       };
 
-      console.log("Saving entry payload", payload);
-
       if (editingEntryId) {
         // Use Server Action for update
         const result = await updateEntryAction(editingEntryId, payload);

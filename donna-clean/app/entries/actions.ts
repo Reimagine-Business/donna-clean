@@ -172,7 +172,7 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
   }
 
   // Sanitize inputs
-  const payload: any = {}
+  const payload: Record<string, unknown> = {}
 
   if (input.type) {
     payload.type = input.type
