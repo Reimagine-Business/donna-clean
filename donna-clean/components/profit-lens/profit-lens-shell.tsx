@@ -348,7 +348,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
   }, [filteredEntries]);
 
   return (
-      <div className="flex flex-col gap-3 md:gap-4 text-white pb-32">
+      <div className="flex flex-col gap-3 md:gap-4 text-white pb-24 md:pb-8">
       {/* Page Header - Title and Date Filter on Same Line */}
       <div className="flex items-center justify-between mt-2 mb-3">
         <h1 className="text-2xl md:text-3xl font-bold text-white">

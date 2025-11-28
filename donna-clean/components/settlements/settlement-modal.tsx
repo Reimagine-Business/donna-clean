@@ -56,7 +56,7 @@ export function SettlementModal({
         </div>
 
         {/* Items List - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 pb-32 md:pb-6">
           {items.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-purple-300">No items to display</p>
