@@ -43,3 +43,17 @@ export function showWarning(message: string) {
     icon: '⚠️',
   })
 }
+
+export function showLoading(message: string) {
+  return toast.loading(message, {
+    style: {
+      background: '#1a1a2e',
+      border: '1px solid rgba(124, 58, 237, 0.5)',
+      color: '#ffffff',
+    },
+  })
+}
+
+export function dismissToast(toastId: string | number) {
+  toast.dismiss(toastId)
+}

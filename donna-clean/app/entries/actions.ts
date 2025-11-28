@@ -361,6 +361,7 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
   revalidatePath('/profit-lens')
   revalidatePath('/analytics/cashpulse')
   revalidatePath('/analytics/profitlens')
+  revalidatePath('/home')
 
   return { success: true, error: null }
 }
@@ -387,6 +388,9 @@ export async function deleteEntry(id: string) {
   revalidatePath('/entries')
   revalidatePath('/cashpulse')
   revalidatePath('/profit-lens')
+  revalidatePath('/analytics/cashpulse')
+  revalidatePath('/analytics/profitlens')
+  revalidatePath('/home')
 
   return { success: true, error: null }
 }

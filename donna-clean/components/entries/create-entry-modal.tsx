@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { format } from 'date-fns'
 import { createEntry, type Category, type EntryType, type PaymentMethodType } from '@/app/entries/actions'
-import { showSuccess, showError } from '@/lib/toast'
+import { showSuccess, showError, showLoading, dismissToast } from '@/lib/toast'
 import {
   validateAmount,
   validateDate,
@@ -181,6 +181,9 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
 
     setLoading(true)
 
+    // Show loading toast for immediate feedback
+    const loadingToastId = showLoading('Adding entry...')
+
     try {
       const result = await createEntry({
         type,
@@ -192,6 +195,9 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
         notes: notes || undefined,
       })
 
+      // Dismiss loading toast
+      dismissToast(loadingToastId)
+
       if (result.success) {
         showSuccess('Entry added successfully!')
         onSuccess()
@@ -200,6 +206,8 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
         showError(result.error || 'Failed to create entry')
       }
     } catch (error: unknown) {
+      // Dismiss loading toast
+      dismissToast(loadingToastId)
       console.error('Failed to create entry:', error)
       showError(error instanceof Error ? error.message : 'An unexpected error occurred')
     } finally {

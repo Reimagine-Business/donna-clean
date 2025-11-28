@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { TrendingUp, TrendingDown, DollarSign, Lightbulb, Download } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { TrendingUp, TrendingDown, DollarSign, Lightbulb, Download, RefreshCw } from 'lucide-react'
 import { Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from 'recharts'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { type Entry } from '@/app/entries/actions'
@@ -27,7 +28,14 @@ function formatCurrency(amount: number): string {
 }
 
 export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
+  const router = useRouter()
   const [dateRange, setDateRange] = useState<'month' | '3months' | '6months'>('month')
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Refresh data on mount to ensure latest entries are shown
+  useEffect(() => {
+    router.refresh()
+  }, [router])
 
   // Calculate date ranges
   const { startDate, endDate } = useMemo(() => {
@@ -58,6 +66,17 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   // Calculate trends
   const marginChange = currentMetrics.profitMargin - lastMonthMetrics.profitMargin
 
+  // Manual refresh
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    router.refresh()
+    // Wait a bit for the refresh to complete
+    setTimeout(() => {
+      setIsRefreshing(false)
+      showSuccess('Data refreshed!')
+    }, 500)
+  }
+
   // Export to CSV
   const handleExportCSV = () => {
     const csvContent = [
@@ -84,19 +103,30 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Actions */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Profit Lens</h1>
           <p className="text-purple-300 mt-1">Profit & loss analysis</p>
         </div>
-        <button
-          onClick={handleExportCSV}
-          className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2"
-        >
-          <Download className="w-4 h-4" />
-          <span className="hidden sm:inline">Export CSV</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="px-4 py-2 bg-purple-900/50 hover:bg-purple-900/70 text-white rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            aria-label="Refresh data"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </button>
+          <button
+            onClick={handleExportCSV}
+            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Export CSV</span>
+          </button>
+        </div>
       </div>
 
       {/* Date Range Filter */}
