@@ -11,6 +11,7 @@ import { EditProfileModal } from '@/components/profile/edit-profile-modal'
 import { ChangePasswordModal } from '@/components/profile/change-password-modal'
 import { UploadLogoModal } from '@/components/profile/upload-logo-modal'
 import { showError } from '@/lib/toast'
+import { ProfileSkeleton } from '@/components/skeletons/profile-skeleton'
 
 interface Profile {
   username: string
@@ -93,8 +94,13 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0f0f1e]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+      <div className="min-h-screen bg-[#0f0f1e] pb-24 md:pb-8">
+        <SiteHeader />
+        <TopNavMobile />
+        <div className="container mx-auto px-4 pt-2 pb-24 md:p-6 max-w-3xl">
+          <ProfileSkeleton />
+        </div>
+        <BottomNav />
       </div>
     )
   }
