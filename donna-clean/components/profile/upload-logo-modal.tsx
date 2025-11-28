@@ -15,8 +15,23 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(currentLogoUrl)
   const [message, setMessage] = useState('')
+  const [uploadProgress, setUploadProgress] = useState(0)
 
   const supabase = createClient()
+
+  const simulateProgress = () => {
+    setUploadProgress(0)
+    let progress = 0
+    const interval = setInterval(() => {
+      progress += 15
+      if (progress <= 90) {
+        setUploadProgress(progress)
+      } else {
+        clearInterval(interval)
+      }
+    }, 150)
+    return interval
+  }
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -43,6 +58,7 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
 
     setUploading(true)
     setMessage('Uploading...')
+    const progressInterval = simulateProgress()
 
     try {
       const fileExt = file.name.split('.').pop()
@@ -94,13 +110,18 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
 
       console.log('✅ Profile updated with logo URL')
 
+      clearInterval(progressInterval)
+      setUploadProgress(100)
       setMessage('✅ Logo uploaded successfully!')
       setTimeout(() => {
+        setUploadProgress(0)
         onSuccess()
         onClose()
       }, 1500)
     } catch (error: any) {
       console.error('❌ Logo upload failed:', error)
+      clearInterval(progressInterval)
+      setUploadProgress(0)
       const errorMessage = error.message || 'Unknown error'
       setMessage(`❌ Upload failed: ${errorMessage}`)
     } finally {
@@ -154,6 +175,21 @@ export function UploadLogoModal({ currentLogoUrl, userId, onSuccess, onClose }: 
           <p className="text-purple-400 text-xs text-center mt-2">
             PNG, JPG up to 5MB
           </p>
+
+          {uploading && uploadProgress < 100 && (
+            <div className="w-full mt-4">
+              <div className="flex justify-between text-sm text-purple-300 mb-2">
+                <span>Uploading...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <div className="w-full bg-purple-900/30 rounded-full h-2">
+                <div
+                  className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+            </div>
+          )}
 
           {message && (
             <div className={`mt-4 p-3 rounded-lg text-sm ${

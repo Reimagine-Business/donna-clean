@@ -112,9 +112,16 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
           <button
             onClick={handleChangePassword}
             disabled={loading}
-            className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
+            className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Changing...' : 'Change Password'}
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Changing...</span>
+              </div>
+            ) : (
+              'Change Password'
+            )}
           </button>
         </div>
       </div>
