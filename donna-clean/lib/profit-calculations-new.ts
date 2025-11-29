@@ -96,14 +96,21 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
   // STEP 3: Apply date filters
   if (startDate) {
     const before = revenueEntries.length
+    console.log(`🔍 [REVENUE] Before date filter - entry dates:`, revenueEntries.map(e => e.entry_date))
     revenueEntries = revenueEntries.filter(e => new Date(e.entry_date) >= startDate)
     console.log(`🔍 [REVENUE] After startDate (${startDate.toISOString().split('T')[0]}):`, revenueEntries.length, `(removed ${before - revenueEntries.length})`)
+    if (before !== revenueEntries.length) {
+      console.log(`⚠️ [REVENUE] Entries filtered out by startDate:`, before - revenueEntries.length)
+    }
   }
 
   if (endDate) {
     const before = revenueEntries.length
     revenueEntries = revenueEntries.filter(e => new Date(e.entry_date) <= endDate)
     console.log(`🔍 [REVENUE] After endDate (${endDate.toISOString().split('T')[0]}):`, revenueEntries.length, `(removed ${before - revenueEntries.length})`)
+    if (before !== revenueEntries.length) {
+      console.log(`⚠️ [REVENUE] Entries filtered out by endDate:`, before - revenueEntries.length)
+    }
   }
 
   // STEP 4: Calculate total

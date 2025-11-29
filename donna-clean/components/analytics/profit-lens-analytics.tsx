@@ -29,7 +29,7 @@ function formatCurrency(amount: number): string {
 
 export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   const router = useRouter()
-  const [dateRange, setDateRange] = useState<'month' | '3months' | '6months'>('month')
+  const [dateRange, setDateRange] = useState<'month' | '3months' | '6months' | 'all'>('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Log received data
@@ -58,6 +58,12 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
 
   // Calculate date ranges
   const { startDate, endDate } = useMemo(() => {
+    // If 'all' is selected, don't apply any date filters
+    if (dateRange === 'all') {
+      console.log('📅 [PROFIT_LENS_COMPONENT] Date range: ALL TIME (no filters)')
+      return { startDate: undefined, endDate: undefined }
+    }
+
     const end = endOfMonth(new Date())
     let start = startOfMonth(new Date())
 
@@ -89,7 +95,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
     return getProfitMetrics(entries, lastMonthStart, lastMonthEnd)
   }, [entries])
 
-  const profitTrend = useMemo(() => getProfitTrend(entries, dateRange === 'month' ? 3 : dateRange === '3months' ? 6 : 12), [entries, dateRange])
+  const profitTrend = useMemo(() => getProfitTrend(entries, dateRange === 'month' ? 3 : dateRange === '3months' ? 6 : dateRange === 'all' ? 12 : 12), [entries, dateRange])
   const expenseBreakdown = useMemo(() => getExpenseBreakdown(entries, startDate, endDate), [entries, startDate, endDate])
   const recommendations = useMemo(() => getRecommendations(entries, startDate, endDate), [entries, startDate, endDate])
 
@@ -164,9 +170,10 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
         <label className="text-purple-300 text-sm">Period:</label>
         <select
           value={dateRange}
-          onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | '6months')}
+          onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | '6months' | 'all')}
           className="px-4 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
+          <option value="all">All Time</option>
           <option value="month">This Month</option>
           <option value="3months">Last 3 Months</option>
           <option value="6months">Last 6 Months</option>
