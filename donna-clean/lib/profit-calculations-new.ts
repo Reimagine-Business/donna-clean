@@ -44,17 +44,38 @@ export type CategoryExpense = {
 
 // Calculate revenue (Sales from Cash IN + Credit + Settled Advance)
 export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: Date): number {
+  console.log('🔍 [REVENUE] ==================== START ====================')
   console.log('🔍 [REVENUE] Total entries received:', entries.length)
+  console.log('🔍 [REVENUE] Date filter:', { startDate, endDate })
 
   // Log all Sales entries to debug
   const allSalesEntries = entries.filter(e => e.category === 'Sales')
   console.log('🔍 [REVENUE] Sales entries found:', allSalesEntries.length)
-  console.log('🔍 [REVENUE] Sales breakdown:', allSalesEntries.map(e => ({
-    id: e.id,
+
+  // Breakdown by type and settled status
+  const salesByType = {
+    cashIn: allSalesEntries.filter(e => e.entry_type === 'Cash IN'),
+    credit: allSalesEntries.filter(e => e.entry_type === 'Credit'),
+    advance: allSalesEntries.filter(e => e.entry_type === 'Advance'),
+  }
+
+  console.log('🔍 [REVENUE] Sales by type:', {
+    cashIn: { count: salesByType.cashIn.length, total: salesByType.cashIn.reduce((sum, e) => sum + e.amount, 0) },
+    cashInSettlements: salesByType.cashIn.filter(e => e.notes?.startsWith('Settlement of')).length,
+    credit: { count: salesByType.credit.length, total: salesByType.credit.reduce((sum, e) => sum + e.amount, 0) },
+    creditSettled: salesByType.credit.filter(e => e.settled).length,
+    creditUnsettled: salesByType.credit.filter(e => !e.settled).length,
+    advance: { count: salesByType.advance.length, total: salesByType.advance.reduce((sum, e) => sum + e.amount, 0) },
+    advanceSettled: salesByType.advance.filter(e => e.settled).length,
+    advanceUnsettled: salesByType.advance.filter(e => !e.settled).length,
+  })
+
+  console.log('🔍 [REVENUE] Sample Sales entries:', allSalesEntries.slice(0, 5).map(e => ({
+    id: e.id.substring(0, 8),
     type: e.entry_type,
     amount: e.amount,
     settled: e.settled,
-    notes: e.notes,
+    notes: e.notes?.substring(0, 30),
     date: e.entry_date
   })))
 
@@ -68,21 +89,34 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
     )
   )
 
-  console.log('🔍 [REVENUE] Filtered Sales entries (for P&L):', filtered.length, filtered.map(e => ({
-    type: e.entry_type,
-    amount: e.amount,
-    settled: e.settled
-  })))
+  console.log('🔍 [REVENUE] After type filter:', filtered.length)
+  console.log('🔍 [REVENUE] Breakdown after type filter:', {
+    cashIn: filtered.filter(e => e.entry_type === 'Cash IN').length,
+    credit: filtered.filter(e => e.entry_type === 'Credit').length,
+    creditUnsettled: filtered.filter(e => e.entry_type === 'Credit' && !e.settled).length,
+    advanceSettled: filtered.filter(e => e.entry_type === 'Advance' && e.settled).length,
+  })
 
   if (startDate) {
+    const beforeDateFilter = filtered.length
     filtered = filtered.filter(e => new Date(e.entry_date) >= startDate)
+    console.log(`🔍 [REVENUE] After startDate filter (${startDate.toISOString()}):`, filtered.length, `(removed ${beforeDateFilter - filtered.length})`)
   }
   if (endDate) {
+    const beforeDateFilter = filtered.length
     filtered = filtered.filter(e => new Date(e.entry_date) <= endDate)
+    console.log(`🔍 [REVENUE] After endDate filter (${endDate.toISOString()}):`, filtered.length, `(removed ${beforeDateFilter - filtered.length})`)
   }
 
   const total = filtered.reduce((sum, e) => sum + e.amount, 0)
-  console.log('🔍 [REVENUE] Total revenue calculated:', total)
+  console.log('🔍 [REVENUE] FINAL REVENUE:', total.toLocaleString('en-IN'))
+  console.log('🔍 [REVENUE] Final breakdown:', {
+    cashIn: filtered.filter(e => e.entry_type === 'Cash IN').reduce((sum, e) => sum + e.amount, 0),
+    credit: filtered.filter(e => e.entry_type === 'Credit').reduce((sum, e) => sum + e.amount, 0),
+    creditUnsettled: filtered.filter(e => e.entry_type === 'Credit' && !e.settled).reduce((sum, e) => sum + e.amount, 0),
+    advanceSettled: filtered.filter(e => e.entry_type === 'Advance' && e.settled).reduce((sum, e) => sum + e.amount, 0),
+  })
+  console.log('🔍 [REVENUE] ==================== END ====================')
 
   return total
 }
