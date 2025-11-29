@@ -8,13 +8,13 @@ import type { EntryType, CategoryType } from './entries';
 /**
  * Maps entry type database values to display labels
  * Examples:
- *   "Cash Inflow" → "CASH IN"
- *   "Cash Outflow" → "CASH OUT"
+ *   "Cash IN" → "CASH IN"
+ *   "Cash OUT" → "CASH OUT"
  */
 export function getDisplayEntryType(dbEntryType: EntryType): string {
   const mapping: Record<EntryType, string> = {
-    'Cash Inflow': 'CASH IN',
-    'Cash Outflow': 'CASH OUT',
+    'Cash IN': 'CASH IN',
+    'Cash OUT': 'CASH OUT',
     'Credit': 'CREDIT',
     'Advance': 'ADVANCE',
   };
@@ -43,10 +43,10 @@ export function getDisplayCategory(dbCategory: CategoryType): string {
  * Gets color class for entry type
  */
 export function getEntryTypeColor(dbEntryType: EntryType): string {
-  if (dbEntryType === 'Cash Inflow') {
+  if (dbEntryType === 'Cash IN') {
     return 'text-green-400';
   }
-  if (dbEntryType === 'Cash Outflow') {
+  if (dbEntryType === 'Cash OUT') {
     return 'text-red-400';
   }
   return 'text-purple-400';
@@ -56,10 +56,10 @@ export function getEntryTypeColor(dbEntryType: EntryType): string {
  * Gets border color class for entry type
  */
 export function getEntryTypeBorderColor(dbEntryType: EntryType): string {
-  if (dbEntryType === 'Cash Inflow') {
+  if (dbEntryType === 'Cash IN') {
     return 'border-green-500';
   }
-  if (dbEntryType === 'Cash Outflow') {
+  if (dbEntryType === 'Cash OUT') {
     return 'border-red-500';
   }
   return 'border-purple-500';

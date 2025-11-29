@@ -51,10 +51,10 @@ export function SettlementSummaryCard({
 
   // For advances, split items by type
   const advancePaid = type === 'advances'
-    ? items.filter(i => i.entry_type === 'Cash Outflow' || (i.entry_type === 'Advance'))
+    ? items.filter(i => i.entry_type === 'Cash OUT' || (i.entry_type === 'Advance'))
     : []
   const advanceReceived = type === 'advances'
-    ? items.filter(i => i.entry_type === 'Cash Inflow' && i.category === 'Assets')
+    ? items.filter(i => i.entry_type === 'Cash IN' && i.category === 'Assets')
     : []
 
   const formatAmount = (amt: number) => {

@@ -34,7 +34,7 @@ function getCategoryDetails(categoryName: string, categories: Category[]) {
 
 export function EntryDetailsModal({ entry, categories, onEdit, onDelete, onClose }: EntryDetailsModalProps) {
   const categoryDetails = getCategoryDetails(entry.category, categories)
-  const isIncome = entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
+  const isIncome = entry.entry_type === 'Cash IN' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
 
   const createdAt = formatDistanceToNow(new Date(entry.created_at), { addSuffix: true })
   const updatedAt = formatDistanceToNow(new Date(entry.updated_at), { addSuffix: true })

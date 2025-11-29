@@ -10,7 +10,7 @@ import { createSupabaseServerClient } from "@/utils/supabase/server";
 const entryTypeIsCredit = (type: EntryType): boolean => type === "Credit";
 
 const entryTypeRequiresCashMovement = (type: EntryType): boolean =>
-  type === "Cash Inflow" || type === "Cash Outflow" || type === "Advance";
+  type === "Cash IN" || type === "Cash OUT" || type === "Advance";
 
 type AddEntryInput = {
   entry_type: EntryType;

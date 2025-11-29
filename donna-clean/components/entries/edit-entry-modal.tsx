@@ -22,8 +22,8 @@ interface EditEntryModalProps {
 }
 
 const ENTRY_TYPES: { value: EntryType; label: string }[] = [
-  { value: 'Cash Inflow', label: 'Cash Inflow' },
-  { value: 'Cash Outflow', label: 'Cash Outflow' },
+  { value: 'Cash IN', label: 'Cash IN' },
+  { value: 'Cash OUT', label: 'Cash OUT' },
   { value: 'Credit', label: 'Credit' },
   { value: 'Advance', label: 'Advance' },
 ]

@@ -80,7 +80,7 @@ export async function createSettlement({
           : "Cash";
       const { error: cashEntryError } = await supabase.from("entries").insert({
         user_id: user.id,
-        entry_type: isInflow ? "Cash Inflow" : "Cash Outflow",
+        entry_type: isInflow ? "Cash IN" : "Cash OUT",
         category: latestEntry.category,
         payment_method: settlementPaymentMethod,
         amount: settledAmount,

@@ -74,13 +74,13 @@ export function validateDate(date: string | Date): ValidationResult {
 
 /**
  * Validate entry type
- * - Must be 'Cash Inflow', 'Cash Outflow', 'Credit', or 'Advance'
+ * - Must be 'Cash IN', 'Cash OUT', 'Credit', or 'Advance'
  */
 export function validateEntryType(entry_type: string): ValidationResult {
-  const validTypes = ['Cash Inflow', 'Cash Outflow', 'Credit', 'Advance']
+  const validTypes = ['Cash IN', 'Cash OUT', 'Credit', 'Advance']
 
   if (!validTypes.includes(entry_type)) {
-    return { isValid: false, error: 'Entry type must be Cash Inflow, Cash Outflow, Credit, or Advance' }
+    return { isValid: false, error: 'Entry type must be Cash IN, Cash OUT, Credit, or Advance' }
   }
 
   return { isValid: true }

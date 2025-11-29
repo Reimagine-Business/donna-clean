@@ -69,7 +69,7 @@ export function EntryList({ entries, categories, onRefresh, selectedEntries = []
       <div className="space-y-3">
         {entries.map((entry) => {
           const categoryDetails = getCategoryDetails(entry.category, categories)
-          const isIncome = entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
+          const isIncome = entry.entry_type === 'Cash IN' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
           const isMenuOpen = openMenuId === entry.id
           const isSelected = selectedEntries.includes(entry.id)
 

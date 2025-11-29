@@ -778,8 +778,8 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
 
   entries.forEach((entry) => {
     const paymentIsCash = isCashPaymentMethod(entry.payment_method);
-    const isCashInflow = entry.entry_type === "Cash Inflow";
-    const isCashOutflow = entry.entry_type === "Cash Outflow";
+    const isCashInflow = entry.entry_type === "Cash IN";
+    const isCashOutflow = entry.entry_type === "Cash OUT";
     const isCredit = entry.entry_type === "Credit";
     const isAdvance = entry.entry_type === "Advance";
     const isAdvanceSales = isAdvance && entry.category === "Sales";

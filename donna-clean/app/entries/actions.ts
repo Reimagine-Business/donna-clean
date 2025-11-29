@@ -12,7 +12,7 @@ import {
 } from "@/lib/sanitization"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-export type EntryType = 'Cash Inflow' | 'Cash Outflow' | 'Credit' | 'Advance'
+export type EntryType = 'Cash IN' | 'Cash OUT' | 'Credit' | 'Advance'
 export type CategoryType = 'Sales' | 'COGS' | 'Opex' | 'Assets'
 export type PaymentMethodType = 'Cash' | 'Bank' | 'None'
 
@@ -76,13 +76,13 @@ async function generateAlertsForEntry(
     // Calculate Cash Pulse balance (Cash IN/OUT + Advance only)
     const cashIn = allEntries
       .filter(e =>
-        e.entry_type === 'Cash Inflow' ||
+        e.entry_type === 'Cash IN' ||
         (e.entry_type === 'Advance' && e.category === 'Sales')
       )
       .reduce((sum, e) => sum + e.amount, 0)
     const cashOut = allEntries
       .filter(e =>
-        e.entry_type === 'Cash Outflow' ||
+        e.entry_type === 'Cash OUT' ||
         (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
       )
       .reduce((sum, e) => sum + e.amount, 0)
@@ -94,13 +94,13 @@ async function generateAlertsForEntry(
     const monthlyRevenue = monthlyEntries
       .filter(e =>
         e.category === 'Sales' &&
-        (e.entry_type === 'Cash Inflow' || e.entry_type === 'Credit')
+        (e.entry_type === 'Cash IN' || e.entry_type === 'Credit')
       )
       .reduce((sum, e) => sum + e.amount, 0)
     const monthlyExpenses = monthlyEntries
       .filter(e =>
         ['COGS', 'Opex'].includes(e.category) &&
-        (e.entry_type === 'Cash Outflow' || e.entry_type === 'Credit')
+        (e.entry_type === 'Cash OUT' || e.entry_type === 'Credit')
       )
       .reduce((sum, e) => sum + e.amount, 0)
 

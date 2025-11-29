@@ -325,7 +325,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     return filteredEntries
       .filter(entry => {
         // Include all Cash Outflow entries (COGS, Opex, Assets)
-        return entry.entry_type === 'Cash Outflow';
+        return entry.entry_type === 'Cash OUT';
       })
       .map(entry => ({
         ...entry,
@@ -589,9 +589,9 @@ function buildProfitStats(entries: Entry[]): ProfitStats {
   let opex = 0;
 
   entries.forEach((entry) => {
-    if (entry.entry_type === "Cash Inflow" && entry.category === "Sales") {
+    if (entry.entry_type === "Cash IN" && entry.category === "Sales") {
       sales += entry.amount;
-    } else if (entry.entry_type === "Cash Outflow") {
+    } else if (entry.entry_type === "Cash OUT") {
       if (entry.category === "COGS") {
         cogs += entry.amount;
       } else if (entry.category === "Opex") {

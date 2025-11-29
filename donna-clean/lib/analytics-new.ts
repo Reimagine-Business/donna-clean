@@ -44,18 +44,18 @@ export type MonthlyComparison = {
 
 // Calculate total cash balance (cash movements only)
 export function calculateCashBalance(entries: Entry[]): number {
-  // Cash IN: Cash Inflow + Advance Sales
+  // Cash IN: Cash IN + Advance Sales
   const cashIn = entries
     .filter(e =>
-      e.entry_type === 'Cash Inflow' ||
+      e.entry_type === 'Cash IN' ||
       (e.entry_type === 'Advance' && e.category === 'Sales')
     )
     .reduce((sum, e) => sum + e.amount, 0)
 
-  // Cash OUT: Cash Outflow + Advance expenses (COGS, Opex, Assets)
+  // Cash OUT: Cash OUT + Advance expenses (COGS, Opex, Assets)
   const cashOut = entries
     .filter(e =>
-      e.entry_type === 'Cash Outflow' ||
+      e.entry_type === 'Cash OUT' ||
       (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
     )
     .reduce((sum, e) => sum + e.amount, 0)
@@ -66,7 +66,7 @@ export function calculateCashBalance(entries: Entry[]): number {
 // Get total Cash IN for a date range
 export function getTotalCashIn(entries: Entry[], startDate?: Date, endDate?: Date): number {
   let filtered = entries.filter(e =>
-    e.entry_type === 'Cash Inflow' ||
+    e.entry_type === 'Cash IN' ||
     (e.entry_type === 'Advance' && e.category === 'Sales')
   )
 
@@ -83,7 +83,7 @@ export function getTotalCashIn(entries: Entry[], startDate?: Date, endDate?: Dat
 // Get total Cash OUT for a date range
 export function getTotalCashOut(entries: Entry[], startDate?: Date, endDate?: Date): number {
   let filtered = entries.filter(e =>
-    e.entry_type === 'Cash Outflow' ||
+    e.entry_type === 'Cash OUT' ||
     (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
   )
 
@@ -100,7 +100,7 @@ export function getTotalCashOut(entries: Entry[], startDate?: Date, endDate?: Da
 // Get cash inflows breakdown by category
 export function getCashInByCategory(entries: Entry[], startDate?: Date, endDate?: Date): CategoryBreakdown[] {
   let filtered = entries.filter(e =>
-    e.entry_type === 'Cash Inflow' ||
+    e.entry_type === 'Cash IN' ||
     (e.entry_type === 'Advance' && e.category === 'Sales')
   )
 
@@ -136,7 +136,7 @@ export function getCashInByCategory(entries: Entry[], startDate?: Date, endDate?
 // Get cash outflows breakdown by category
 export function getCashOutByCategory(entries: Entry[], startDate?: Date, endDate?: Date): CategoryBreakdown[] {
   let filtered = entries.filter(e =>
-    e.entry_type === 'Cash Outflow' ||
+    e.entry_type === 'Cash OUT' ||
     (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
   )
 
@@ -187,14 +187,14 @@ export function getCashFlowTrend(entries: Entry[], days: number = 30): CashFlowD
 
     const cashIn = dayEntries
       .filter(e =>
-        e.entry_type === 'Cash Inflow' ||
+        e.entry_type === 'Cash IN' ||
         (e.entry_type === 'Advance' && e.category === 'Sales')
       )
       .reduce((sum, e) => sum + e.amount, 0)
 
     const cashOut = dayEntries
       .filter(e =>
-        e.entry_type === 'Cash Outflow' ||
+        e.entry_type === 'Cash OUT' ||
         (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
       )
       .reduce((sum, e) => sum + e.amount, 0)
@@ -256,18 +256,18 @@ export function getCashEntryCount(entries: Entry[], type?: 'in' | 'out', startDa
 
   if (type === 'in') {
     filtered = entries.filter(e =>
-      e.entry_type === 'Cash Inflow' ||
+      e.entry_type === 'Cash IN' ||
       (e.entry_type === 'Advance' && e.category === 'Sales')
     )
   } else if (type === 'out') {
     filtered = entries.filter(e =>
-      e.entry_type === 'Cash Outflow' ||
+      e.entry_type === 'Cash OUT' ||
       (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
     )
   } else {
     filtered = entries.filter(e =>
-      e.entry_type === 'Cash Inflow' ||
-      e.entry_type === 'Cash Outflow' ||
+      e.entry_type === 'Cash IN' ||
+      e.entry_type === 'Cash OUT' ||
       e.entry_type === 'Advance'
     )
   }

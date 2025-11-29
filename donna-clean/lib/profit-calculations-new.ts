@@ -39,7 +39,7 @@ export type CategoryExpense = {
 export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: Date): number {
   let filtered = entries.filter(e =>
     e.category === 'Sales' &&
-    (e.entry_type === 'Cash Inflow' || e.entry_type === 'Credit')
+    (e.entry_type === 'Cash IN' || e.entry_type === 'Credit')
   )
 
   if (startDate) {
@@ -56,7 +56,7 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
 export function calculateCOGS(entries: Entry[], startDate?: Date, endDate?: Date): number {
   let filtered = entries.filter(e =>
     e.category === 'COGS' &&
-    (e.entry_type === 'Cash Outflow' || e.entry_type === 'Credit')
+    (e.entry_type === 'Cash OUT' || e.entry_type === 'Credit')
   )
 
   if (startDate) {
@@ -78,7 +78,7 @@ export function calculateGrossProfit(revenue: number, cogs: number): number {
 export function calculateOperatingExpenses(entries: Entry[], startDate?: Date, endDate?: Date): number {
   let filtered = entries.filter(e =>
     e.category === 'Opex' &&
-    (e.entry_type === 'Cash Outflow' || e.entry_type === 'Credit')
+    (e.entry_type === 'Cash OUT' || e.entry_type === 'Credit')
   )
 
   if (startDate) {
@@ -136,7 +136,7 @@ export function getProfitTrend(entries: Entry[], months: number = 6): ProfitTren
     const totalExpenses = entries
       .filter(e =>
         ['COGS', 'Opex'].includes(e.category) &&
-        (e.entry_type === 'Cash Outflow' || e.entry_type === 'Credit')
+        (e.entry_type === 'Cash OUT' || e.entry_type === 'Credit')
       )
       .filter(e => {
         const entryDate = new Date(e.entry_date)
@@ -162,7 +162,7 @@ export function getExpenseBreakdown(entries: Entry[], startDate?: Date, endDate?
   // CRITICAL FIX for Bug B8: Only include COGS and Opex, NEVER Sales or Assets
   let filtered = entries.filter(e =>
     ['COGS', 'Opex'].includes(e.category) &&
-    (e.entry_type === 'Cash Outflow' || e.entry_type === 'Credit')
+    (e.entry_type === 'Cash OUT' || e.entry_type === 'Credit')
   )
 
   if (startDate) {

@@ -48,14 +48,14 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
       if (filters.type === 'in') {
         // Cash In: Cash Inflow + Advance(Sales) + Credit(Sales)
         result = result.filter(entry =>
-          entry.entry_type === 'Cash Inflow' ||
+          entry.entry_type === 'Cash IN' ||
           (entry.entry_type === 'Advance' && entry.category === 'Sales') ||
           (entry.entry_type === 'Credit' && entry.category === 'Sales')
         )
       } else if (filters.type === 'out') {
         // Cash Out: Cash Outflow + Advance(expenses) + Credit(expenses)
         result = result.filter(entry =>
-          entry.entry_type === 'Cash Outflow' ||
+          entry.entry_type === 'Cash OUT' ||
           (entry.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(entry.category)) ||
           (entry.entry_type === 'Credit' && ['COGS', 'Opex', 'Assets'].includes(entry.category))
         )

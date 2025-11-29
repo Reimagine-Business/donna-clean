@@ -286,7 +286,7 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
+                        entry.entry_type === 'Cash IN' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
                           ? 'bg-green-900/30 text-green-400'
                           : 'bg-red-900/30 text-red-400'
                       }`}>
@@ -297,11 +297,11 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
                     <div className="text-xs text-purple-400 mt-1">{format(new Date(entry.entry_date), 'MMM dd, yyyy')}</div>
                   </div>
                   <div className={`text-lg font-semibold ${
-                    entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
+                    entry.entry_type === 'Cash IN' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
                       ? 'text-green-400'
                       : 'text-red-400'
                   }`}>
-                    {entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales') ? '+' : '-'}{formatCurrency(entry.amount)}
+                    {entry.entry_type === 'Cash IN' || (entry.entry_type === 'Advance' && entry.category === 'Sales') ? '+' : '-'}{formatCurrency(entry.amount)}
                   </div>
                 </div>
               ))

@@ -21,8 +21,8 @@ interface CreateEntryModalProps {
 }
 
 const ENTRY_TYPES: { value: EntryType; label: string }[] = [
-  { value: 'Cash Inflow', label: 'Cash Inflow' },
-  { value: 'Cash Outflow', label: 'Cash Outflow' },
+  { value: 'Cash IN', label: 'Cash IN' },
+  { value: 'Cash OUT', label: 'Cash OUT' },
   { value: 'Credit', label: 'Credit' },
   { value: 'Advance', label: 'Advance' },
 ]
@@ -42,7 +42,7 @@ const PAYMENT_METHODS: { value: PaymentMethodType; label: string }[] = [
 
 export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntryModalProps) {
   const [loading, setLoading] = useState(false)
-  const [entryType, setEntryType] = useState<EntryType>('Cash Inflow')
+  const [entryType, setEntryType] = useState<EntryType>('Cash IN')
   const [category, setCategory] = useState<CategoryType>('Sales')
   const [amount, setAmount] = useState('')
   const [entryDate, setEntryDate] = useState(format(new Date(), 'yyyy-MM-dd'))
