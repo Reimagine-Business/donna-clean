@@ -86,7 +86,7 @@ export async function createSettlement({
         amount: settledAmount,
         remaining_amount: settledAmount,
         entry_date: settlementDate,
-        notes: `Settlement of credit ${latestEntry.category.toLowerCase()} (${latestEntry.id})`,
+        notes: `Settlement of Credit ${latestEntry.category} (${latestEntry.id})`,
       });
 
       if (cashEntryError) {
