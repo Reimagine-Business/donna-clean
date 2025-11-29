@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { Entry } from "@/lib/entries";
 import { createSettlement } from "@/app/settlements/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { showSuccess, showError } from "@/lib/toast";
 
 type SettleEntryDialogProps = {
   entry: Entry | null;
@@ -14,6 +16,7 @@ type SettleEntryDialogProps = {
 };
 
 export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
+  const router = useRouter();
   const [settlementDate, setSettlementDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [amount, setAmount] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -62,18 +65,24 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
       const result = await createSettlement(entry.id, numericAmount, settlementDate);
 
       if (!result.success) {
+        showError(result.error || "Failed to settle entry");
         setError(result.error);
         return;
       }
 
+      // Show success message
+      showSuccess("Settlement created successfully!");
+
       // Close dialog first
       onClose();
-      
-      // Force page reload to update KPIs immediately
-      window.location.reload();
+
+      // Refresh the current page data without full reload
+      router.refresh();
     } catch (err) {
       console.error("Settlement failed", err);
-      setError(err instanceof Error ? err.message : "Unable to settle entry.");
+      const errorMessage = err instanceof Error ? err.message : "Unable to settle entry.";
+      showError(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsSaving(false);
     }
