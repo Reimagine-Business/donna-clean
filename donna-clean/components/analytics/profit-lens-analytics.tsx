@@ -85,10 +85,28 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   // Calculate metrics
   const currentMetrics = useMemo(() => {
     console.log('🧮 [PROFIT_LENS_COMPONENT] Calculating metrics with:', entries?.length || 0, 'entries')
+    console.log('🧮 [PROFIT_LENS_COMPONENT] Date filters:', {
+      startDate: startDate?.toISOString(),
+      endDate: endDate?.toISOString(),
+      dateRange
+    })
+
+    // Log all Sales entries before calculation
+    const salesEntries = entries.filter(e => e.category === 'Sales')
+    console.log('🧮 [PROFIT_LENS_COMPONENT] Total Sales entries found:', salesEntries.length)
+    console.log('🧮 [PROFIT_LENS_COMPONENT] Sales entries breakdown:', salesEntries.map(e => ({
+      type: e.entry_type,
+      amount: e.amount,
+      date: e.entry_date,
+      settled: e.settled,
+      notes: e.notes?.substring(0, 30)
+    })))
+
     const metrics = getProfitMetrics(entries, startDate, endDate)
     console.log('💰 [PROFIT_LENS_COMPONENT] Metrics calculated:', metrics)
+    console.log('💰 [PROFIT_LENS_COMPONENT] Revenue from metrics:', metrics.revenue)
     return metrics
-  }, [entries, startDate, endDate])
+  }, [entries, startDate, endDate, dateRange])
   const lastMonthMetrics = useMemo(() => {
     const lastMonthStart = startOfMonth(subMonths(new Date(), 1))
     const lastMonthEnd = endOfMonth(subMonths(new Date(), 1))
