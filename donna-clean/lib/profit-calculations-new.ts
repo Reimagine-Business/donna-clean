@@ -41,6 +41,19 @@ export type CategoryExpense = {
 
 // Calculate revenue (Sales from Cash IN + Credit + Settled Advance)
 export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: Date): number {
+  console.log('🔍 [REVENUE] Total entries received:', entries.length)
+
+  // Log all Sales entries to debug
+  const allSalesEntries = entries.filter(e => e.category === 'Sales')
+  console.log('🔍 [REVENUE] Sales entries found:', allSalesEntries.length)
+  console.log('🔍 [REVENUE] Sales breakdown:', allSalesEntries.map(e => ({
+    id: e.id,
+    type: e.entry_type,
+    amount: e.amount,
+    settled: e.settled,
+    date: e.entry_date
+  })))
+
   let filtered = entries.filter(e =>
     e.category === 'Sales' &&
     (
@@ -50,6 +63,12 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
     )
   )
 
+  console.log('🔍 [REVENUE] Filtered Sales entries (for P&L):', filtered.length, filtered.map(e => ({
+    type: e.entry_type,
+    amount: e.amount,
+    settled: e.settled
+  })))
+
   if (startDate) {
     filtered = filtered.filter(e => new Date(e.entry_date) >= startDate)
   }
@@ -57,11 +76,24 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
     filtered = filtered.filter(e => new Date(e.entry_date) <= endDate)
   }
 
-  return filtered.reduce((sum, e) => sum + e.amount, 0)
+  const total = filtered.reduce((sum, e) => sum + e.amount, 0)
+  console.log('🔍 [REVENUE] Total revenue calculated:', total)
+
+  return total
 }
 
 // Calculate COGS (Cost of Goods Sold from Cash OUT + Credit + Settled Advance)
 export function calculateCOGS(entries: Entry[], startDate?: Date, endDate?: Date): number {
+  console.log('🔍 [COGS] Total entries received:', entries.length)
+
+  const allCOGSEntries = entries.filter(e => e.category === 'COGS')
+  console.log('🔍 [COGS] COGS entries found:', allCOGSEntries.length)
+  console.log('🔍 [COGS] COGS breakdown:', allCOGSEntries.map(e => ({
+    type: e.entry_type,
+    amount: e.amount,
+    settled: e.settled
+  })))
+
   let filtered = entries.filter(e =>
     e.category === 'COGS' &&
     (
@@ -71,6 +103,8 @@ export function calculateCOGS(entries: Entry[], startDate?: Date, endDate?: Date
     )
   )
 
+  console.log('🔍 [COGS] Filtered COGS entries (for P&L):', filtered.length)
+
   if (startDate) {
     filtered = filtered.filter(e => new Date(e.entry_date) >= startDate)
   }
@@ -78,7 +112,10 @@ export function calculateCOGS(entries: Entry[], startDate?: Date, endDate?: Date
     filtered = filtered.filter(e => new Date(e.entry_date) <= endDate)
   }
 
-  return filtered.reduce((sum, e) => sum + e.amount, 0)
+  const total = filtered.reduce((sum, e) => sum + e.amount, 0)
+  console.log('🔍 [COGS] Total COGS calculated:', total)
+
+  return total
 }
 
 // Calculate Gross Profit
@@ -88,6 +125,16 @@ export function calculateGrossProfit(revenue: number, cogs: number): number {
 
 // Calculate Operating Expenses (Opex from Cash OUT + Credit + Settled Advance, NO Assets)
 export function calculateOperatingExpenses(entries: Entry[], startDate?: Date, endDate?: Date): number {
+  console.log('🔍 [OPEX] Total entries received:', entries.length)
+
+  const allOpexEntries = entries.filter(e => e.category === 'Opex')
+  console.log('🔍 [OPEX] Opex entries found:', allOpexEntries.length)
+  console.log('🔍 [OPEX] Opex breakdown:', allOpexEntries.map(e => ({
+    type: e.entry_type,
+    amount: e.amount,
+    settled: e.settled
+  })))
+
   let filtered = entries.filter(e =>
     e.category === 'Opex' &&
     (
@@ -97,6 +144,8 @@ export function calculateOperatingExpenses(entries: Entry[], startDate?: Date, e
     )
   )
 
+  console.log('🔍 [OPEX] Filtered Opex entries (for P&L):', filtered.length)
+
   if (startDate) {
     filtered = filtered.filter(e => new Date(e.entry_date) >= startDate)
   }
@@ -104,7 +153,10 @@ export function calculateOperatingExpenses(entries: Entry[], startDate?: Date, e
     filtered = filtered.filter(e => new Date(e.entry_date) <= endDate)
   }
 
-  return filtered.reduce((sum, e) => sum + e.amount, 0)
+  const total = filtered.reduce((sum, e) => sum + e.amount, 0)
+  console.log('🔍 [OPEX] Total Opex calculated:', total)
+
+  return total
 }
 
 // Calculate Net Profit
