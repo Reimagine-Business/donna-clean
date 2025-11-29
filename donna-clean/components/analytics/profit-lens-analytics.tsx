@@ -11,7 +11,7 @@ import {
   getProfitTrend,
   getExpenseBreakdown,
   getRecommendations,
-} from '@/lib/profit-calculations'
+} from '@/lib/profit-calculations-new'
 import { showSuccess } from '@/lib/toast'
 
 interface ProfitLensAnalyticsProps {

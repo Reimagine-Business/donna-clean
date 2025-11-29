@@ -34,7 +34,7 @@ function getCategoryDetails(categoryName: string, categories: Category[]) {
 
 export function EntryDetailsModal({ entry, categories, onEdit, onDelete, onClose }: EntryDetailsModalProps) {
   const categoryDetails = getCategoryDetails(entry.category, categories)
-  const isIncome = entry.type === 'income'
+  const isIncome = entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
 
   const createdAt = formatDistanceToNow(new Date(entry.created_at), { addSuffix: true })
   const updatedAt = formatDistanceToNow(new Date(entry.updated_at), { addSuffix: true })
@@ -98,7 +98,7 @@ export function EntryDetailsModal({ entry, categories, onEdit, onDelete, onClose
                 <span className="text-sm font-medium">Date</span>
               </div>
               <div className="text-white">
-                {format(new Date(entry.date), 'EEEE, dd MMMM yyyy')}
+                {format(new Date(entry.entry_date), 'EEEE, dd MMMM yyyy')}
               </div>
             </div>
 
@@ -116,15 +116,15 @@ export function EntryDetailsModal({ entry, categories, onEdit, onDelete, onClose
             )}
           </div>
 
-          {/* Description */}
-          {entry.description && (
+          {/* Notes */}
+          {entry.notes && (
             <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-4">
               <div className="flex items-center gap-2 text-purple-400 mb-2">
                 <FileText className="w-4 h-4" />
-                <span className="text-sm font-medium">Description</span>
+                <span className="text-sm font-medium">Notes</span>
               </div>
               <div className="text-white">
-                {entry.description}
+                {entry.notes}
               </div>
             </div>
           )}

@@ -69,7 +69,7 @@ export function EntryList({ entries, categories, onRefresh, selectedEntries = []
       <div className="space-y-3">
         {entries.map((entry) => {
           const categoryDetails = getCategoryDetails(entry.category, categories)
-          const isIncome = entry.type === 'income'
+          const isIncome = entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
           const isMenuOpen = openMenuId === entry.id
           const isSelected = selectedEntries.includes(entry.id)
 
@@ -103,7 +103,7 @@ export function EntryList({ entries, categories, onRefresh, selectedEntries = []
                   {/* Date and Category */}
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm text-purple-400">
-                      {format(new Date(entry.date), 'dd MMM yyyy')}
+                      {format(new Date(entry.entry_date), 'dd MMM yyyy')}
                     </span>
                     <span
                       className="px-2 py-0.5 rounded text-xs font-medium"
@@ -128,10 +128,10 @@ export function EntryList({ entries, categories, onRefresh, selectedEntries = []
                     {isIncome ? '+' : '-'} {formatIndianCurrency(entry.amount)}
                   </div>
 
-                  {/* Description */}
-                  {entry.description && (
+                  {/* Notes */}
+                  {entry.notes && (
                     <p className="text-sm text-white">
-                      {entry.description}
+                      {entry.notes}
                     </p>
                   )}
 

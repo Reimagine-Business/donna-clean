@@ -1,10 +1,10 @@
 'use client'
 
 import { X } from 'lucide-react'
-import { type Category, type EntryType } from '@/app/entries/actions'
+import { type Category } from '@/app/entries/actions'
 
 export type EntryFilters = {
-  type: 'all' | EntryType
+  type: 'all' | 'in' | 'out'
   category: string
   dateFrom: string
   dateTo: string
@@ -54,24 +54,24 @@ export function EntryFiltersBar({ filters, categories, onFiltersChange }: EntryF
             All
           </button>
           <button
-            onClick={() => onFiltersChange({ ...filters, type: 'income' })}
+            onClick={() => onFiltersChange({ ...filters, type: 'in' })}
             className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filters.type === 'income'
+              filters.type === 'in'
                 ? 'bg-green-600 text-white'
                 : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
             }`}
           >
-            Income
+            Cash In
           </button>
           <button
-            onClick={() => onFiltersChange({ ...filters, type: 'expense' })}
+            onClick={() => onFiltersChange({ ...filters, type: 'out' })}
             className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              filters.type === 'expense'
+              filters.type === 'out'
                 ? 'bg-red-600 text-white'
                 : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
             }`}
           >
-            Expense
+            Cash Out
           </button>
         </div>
       </div>
@@ -89,7 +89,12 @@ export function EntryFiltersBar({ filters, categories, onFiltersChange }: EntryF
         >
           <option value="">All Categories</option>
           {categories
-            .filter(cat => filters.type === 'all' || cat.type === filters.type)
+            .filter(cat => {
+              if (filters.type === 'all') return true
+              if (filters.type === 'in') return cat.type === 'income'
+              if (filters.type === 'out') return cat.type === 'expense'
+              return true
+            })
             .map((cat) => (
               <option key={cat.id} value={cat.name}>
                 {cat.icon} {cat.name}
