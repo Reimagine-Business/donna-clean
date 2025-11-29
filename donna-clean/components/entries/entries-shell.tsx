@@ -45,7 +45,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
 
     // Filter by type
     if (filters.type !== 'all') {
-      result = result.filter(entry => entry.type === filters.type)
+      result = result.filter(entry => entry.entry_type === filters.type)
     }
 
     // Filter by category
@@ -55,19 +55,19 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
 
     // Filter by date range
     if (filters.dateFrom) {
-      result = result.filter(entry => entry.date >= filters.dateFrom)
+      result = result.filter(entry => entry.entry_date >= filters.dateFrom)
     }
     if (filters.dateTo) {
-      result = result.filter(entry => entry.date <= filters.dateTo)
+      result = result.filter(entry => entry.entry_date <= filters.dateTo)
     }
 
     // Filter by search
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
       result = result.filter(entry =>
-        entry.description?.toLowerCase().includes(searchLower) ||
         entry.notes?.toLowerCase().includes(searchLower) ||
-        entry.category.toLowerCase().includes(searchLower)
+        entry.category.toLowerCase().includes(searchLower) ||
+        entry.entry_type.toLowerCase().includes(searchLower)
       )
     }
 
@@ -193,15 +193,14 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
 
     const selectedData = entries.filter(entry => selectedEntries.includes(entry.id))
     const csvContent = [
-      ['Date', 'Type', 'Category', 'Amount', 'Payment Method', 'Description', 'Notes'].join(','),
+      ['Date', 'Entry Type', 'Category', 'Amount', 'Payment Method', 'Notes'].join(','),
       ...selectedData.map(entry =>
         [
-          entry.date,
-          entry.type,
+          entry.entry_date,
+          entry.entry_type,
           entry.category,
           entry.amount,
           entry.payment_method || '',
-          `"${(entry.description || '').replace(/"/g, '""')}"`,
           `"${(entry.notes || '').replace(/"/g, '""')}"`,
         ].join(',')
       ),

@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { format } from 'date-fns'
-import { createEntry, type Category, type EntryType, type PaymentMethodType } from '@/app/entries/actions'
+import { createEntry, type Category, type EntryType, type CategoryType, type PaymentMethodType } from '@/app/entries/actions'
 import { showSuccess, showError, showLoading, dismissToast } from '@/lib/toast'
 import {
   validateAmount,
   validateDate,
-  validateType,
-  validateCategory,
-  validateDescription,
+  validateEntryType,
+  validateCategoryType,
   validateNotes,
   validatePaymentMethod
 } from '@/lib/validation'
@@ -21,61 +20,56 @@ interface CreateEntryModalProps {
   onClose: () => void
 }
 
+const ENTRY_TYPES: { value: EntryType; label: string }[] = [
+  { value: 'Cash Inflow', label: 'Cash Inflow' },
+  { value: 'Cash Outflow', label: 'Cash Outflow' },
+  { value: 'Credit', label: 'Credit' },
+  { value: 'Advance', label: 'Advance' },
+]
+
+const CATEGORIES: { value: CategoryType; label: string }[] = [
+  { value: 'Sales', label: 'Sales' },
+  { value: 'COGS', label: 'COGS (Cost of Goods Sold)' },
+  { value: 'Opex', label: 'Opex (Operating Expenses)' },
+  { value: 'Assets', label: 'Assets' },
+]
+
 const PAYMENT_METHODS: { value: PaymentMethodType; label: string }[] = [
-  { value: 'cash', label: 'Cash' },
-  { value: 'bank', label: 'Bank Transfer' },
-  { value: 'upi', label: 'UPI' },
-  { value: 'card', label: 'Card' },
-  { value: 'cheque', label: 'Cheque' },
-  { value: 'other', label: 'Other' },
+  { value: 'Cash', label: 'Cash' },
+  { value: 'Bank', label: 'Bank Transfer' },
+  { value: 'None', label: 'None' },
 ]
 
 export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntryModalProps) {
   const [loading, setLoading] = useState(false)
-  const [type, setType] = useState<EntryType>('income')
-  const [category, setCategory] = useState('')
+  const [entryType, setEntryType] = useState<EntryType>('Cash Inflow')
+  const [category, setCategory] = useState<CategoryType>('Sales')
   const [amount, setAmount] = useState('')
-  const [description, setDescription] = useState('')
-  const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'))
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType | ''>('')
+  const [entryDate, setEntryDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('Cash')
   const [notes, setNotes] = useState('')
+  const [settled, setSettled] = useState(false)
 
   // Validation errors
   const [errors, setErrors] = useState<{
-    type?: string
+    entryType?: string
     category?: string
     amount?: string
-    description?: string
-    date?: string
+    entryDate?: string
     paymentMethod?: string
     notes?: string
   }>({})
 
-  // Filter categories based on selected type
-  const filteredCategories = categories.filter(cat => cat.type === type)
-
-  // Reset category when type changes
-  useEffect(() => {
-    setCategory('')
-  }, [type])
-
-  // Set default category when filtered categories change
-  useEffect(() => {
-    if (filteredCategories.length > 0 && !category) {
-      setCategory(filteredCategories[0].name)
-    }
-  }, [filteredCategories, category])
-
   // Validation handlers
-  const handleTypeChange = (newType: EntryType) => {
-    setType(newType)
-    const validation = validateType(newType)
-    setErrors(prev => ({ ...prev, type: validation.isValid ? undefined : validation.error }))
+  const handleEntryTypeChange = (newType: EntryType) => {
+    setEntryType(newType)
+    const validation = validateEntryType(newType)
+    setErrors(prev => ({ ...prev, entryType: validation.isValid ? undefined : validation.error }))
   }
 
-  const handleCategoryChange = (newCategory: string) => {
+  const handleCategoryChange = (newCategory: CategoryType) => {
     setCategory(newCategory)
-    const validation = validateCategory(newCategory)
+    const validation = validateCategoryType(newCategory)
     setErrors(prev => ({ ...prev, category: validation.isValid ? undefined : validation.error }))
   }
 
@@ -85,21 +79,15 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
     setErrors(prev => ({ ...prev, amount: validation.isValid ? undefined : validation.error }))
   }
 
-  const handleDescriptionChange = (newDescription: string) => {
-    setDescription(newDescription)
-    const validation = validateDescription(newDescription)
-    setErrors(prev => ({ ...prev, description: validation.isValid ? undefined : validation.error }))
-  }
-
   const handleDateChange = (newDate: string) => {
-    setDate(newDate)
+    setEntryDate(newDate)
     const validation = validateDate(newDate)
-    setErrors(prev => ({ ...prev, date: validation.isValid ? undefined : validation.error }))
+    setErrors(prev => ({ ...prev, entryDate: validation.isValid ? undefined : validation.error }))
   }
 
-  const handlePaymentMethodChange = (newMethod: PaymentMethodType | '') => {
+  const handlePaymentMethodChange = (newMethod: PaymentMethodType) => {
     setPaymentMethod(newMethod)
-    const validation = validatePaymentMethod(newMethod || undefined)
+    const validation = validatePaymentMethod(newMethod)
     setErrors(prev => ({ ...prev, paymentMethod: validation.isValid ? undefined : validation.error }))
   }
 
@@ -112,17 +100,16 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
   // Check if form is valid
   const isFormValid = () => {
     return (
-      !errors.type &&
+      !errors.entryType &&
       !errors.category &&
       !errors.amount &&
-      !errors.description &&
-      !errors.date &&
+      !errors.entryDate &&
       !errors.paymentMethod &&
       !errors.notes &&
-      type &&
+      entryType &&
       category &&
       amount &&
-      date
+      entryDate
     )
   }
 
@@ -130,28 +117,26 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
     e.preventDefault()
 
     // Run all validations
-    const typeValidation = validateType(type)
-    const categoryValidation = validateCategory(category)
+    const entryTypeValidation = validateEntryType(entryType)
+    const categoryValidation = validateCategoryType(category)
     const amountValidation = validateAmount(amount)
-    const descriptionValidation = validateDescription(description)
-    const dateValidation = validateDate(date)
-    const paymentMethodValidation = validatePaymentMethod(paymentMethod || undefined)
+    const dateValidation = validateDate(entryDate)
+    const paymentMethodValidation = validatePaymentMethod(paymentMethod)
     const notesValidation = validateNotes(notes)
 
     // Update errors
     setErrors({
-      type: typeValidation.isValid ? undefined : typeValidation.error,
+      entryType: entryTypeValidation.isValid ? undefined : entryTypeValidation.error,
       category: categoryValidation.isValid ? undefined : categoryValidation.error,
       amount: amountValidation.isValid ? undefined : amountValidation.error,
-      description: descriptionValidation.isValid ? undefined : descriptionValidation.error,
-      date: dateValidation.isValid ? undefined : dateValidation.error,
+      entryDate: dateValidation.isValid ? undefined : dateValidation.error,
       paymentMethod: paymentMethodValidation.isValid ? undefined : paymentMethodValidation.error,
       notes: notesValidation.isValid ? undefined : notesValidation.error,
     })
 
     // Check if any validation failed
-    if (!typeValidation.isValid) {
-      showError(typeValidation.error || 'Invalid entry type')
+    if (!entryTypeValidation.isValid) {
+      showError(entryTypeValidation.error || 'Invalid entry type')
       return
     }
     if (!categoryValidation.isValid) {
@@ -160,10 +145,6 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
     }
     if (!amountValidation.isValid) {
       showError(amountValidation.error || 'Invalid amount')
-      return
-    }
-    if (!descriptionValidation.isValid) {
-      showError(descriptionValidation.error || 'Invalid description')
       return
     }
     if (!dateValidation.isValid) {
@@ -186,13 +167,13 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
 
     try {
       const result = await createEntry({
-        type,
+        entry_type: entryType,
         category,
         amount: parseFloat(amount),
-        description: description || undefined,
-        date,
-        payment_method: paymentMethod || undefined,
+        entry_date: entryDate,
+        payment_method: paymentMethod,
         notes: notes || undefined,
+        settled,
       })
 
       // Dismiss loading toast
@@ -205,185 +186,128 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
       } else {
         showError(result.error || 'Failed to create entry')
       }
-    } catch (error: unknown) {
-      // Dismiss loading toast
+    } catch (error) {
       dismissToast(loadingToastId)
-      console.error('Failed to create entry:', error)
-      showError(error instanceof Error ? error.message : 'An unexpected error occurred')
+      showError('An unexpected error occurred')
+      console.error('Create entry error:', error)
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-[#1a1a2e] border border-purple-500/30 rounded-lg max-w-2xl w-full my-8">
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-purple-500/30">
-          <h2 className="text-xl font-semibold text-white">
-            Add New Entry
-          </h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-[#16213e] rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-[#16213e] border-b border-gray-700 p-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-white">Add New Entry</h2>
           <button
             onClick={onClose}
+            className="p-1 hover:bg-gray-700 rounded-full transition-colors"
             disabled={loading}
-            className="text-purple-300 hover:text-white transition-colors disabled:opacity-50"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* Type Selection */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Entry Type */}
           <div>
-            <label className="block text-sm font-medium text-purple-300 mb-2">
-              Type <span className="text-red-400">*</span>
+            <label htmlFor="entry-type" className="block text-sm font-medium text-gray-300 mb-2">
+              Entry Type <span className="text-red-500">*</span>
             </label>
-            <div className="flex gap-4">
-              <label className="flex-1">
-                <input
-                  type="radio"
-                  name="type"
-                  value="income"
-                  checked={type === 'income'}
-                  onChange={(e) => handleTypeChange(e.target.value as EntryType)}
-                  disabled={loading}
-                  className="sr-only peer"
-                />
-                <div className="px-4 py-3 bg-purple-900/30 border-2 border-purple-500/30 rounded-lg cursor-pointer transition-all peer-checked:border-green-500 peer-checked:bg-green-900/20 text-center text-white peer-disabled:opacity-50 peer-disabled:cursor-not-allowed">
-                  Income
-                </div>
-              </label>
-              <label className="flex-1">
-                <input
-                  type="radio"
-                  name="type"
-                  value="expense"
-                  checked={type === 'expense'}
-                  onChange={(e) => handleTypeChange(e.target.value as EntryType)}
-                  disabled={loading}
-                  className="sr-only peer"
-                />
-                <div className="px-4 py-3 bg-purple-900/30 border-2 border-purple-500/30 rounded-lg cursor-pointer transition-all peer-checked:border-red-500 peer-checked:bg-red-900/20 text-center text-white peer-disabled:opacity-50 peer-disabled:cursor-not-allowed">
-                  Expense
-                </div>
-              </label>
-            </div>
-            {errors.type && (
-              <p className="mt-1 text-xs text-red-400">{errors.type}</p>
+            <select
+              id="entry-type"
+              value={entryType}
+              onChange={(e) => handleEntryTypeChange(e.target.value as EntryType)}
+              className="w-full px-3 py-2 bg-[#0f1729] border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              disabled={loading}
+            >
+              {ENTRY_TYPES.map((type) => (
+                <option key={type.value} value={type.value}>
+                  {type.label}
+                </option>
+              ))}
+            </select>
+            {errors.entryType && (
+              <p className="mt-1 text-sm text-red-500">{errors.entryType}</p>
             )}
           </div>
 
-          {/* Category Selection */}
+          {/* Category */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-purple-300 mb-2">
-              Category <span className="text-red-400">*</span>
+            <label htmlFor="category" className="block text-sm font-medium text-gray-300 mb-2">
+              Category <span className="text-red-500">*</span>
             </label>
             <select
               id="category"
               value={category}
-              onChange={(e) => handleCategoryChange(e.target.value)}
-              disabled={loading || filteredCategories.length === 0}
-              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.category ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
-              required
+              onChange={(e) => handleCategoryChange(e.target.value as CategoryType)}
+              className="w-full px-3 py-2 bg-[#0f1729] border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              disabled={loading}
             >
-              <option value="">Select category</option>
-              {filteredCategories.map((cat) => (
-                <option key={cat.id} value={cat.name}>
-                  {cat.icon} {cat.name}
+              {CATEGORIES.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
                 </option>
               ))}
             </select>
             {errors.category && (
-              <p className="mt-1 text-xs text-red-400">{errors.category}</p>
-            )}
-            {filteredCategories.length === 0 && (
-              <p className="mt-1 text-xs text-red-400">
-                No categories available for {type}. Please add categories first.
-              </p>
+              <p className="mt-1 text-sm text-red-500">{errors.category}</p>
             )}
           </div>
 
           {/* Amount */}
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-purple-300 mb-2">
-              Amount <span className="text-red-400">*</span>
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-400">
-                ₹
-              </span>
-              <input
-                type="number"
-                id="amount"
-                value={amount}
-                onChange={(e) => handleAmountChange(e.target.value)}
-                disabled={loading}
-                placeholder="0.00"
-                step="0.01"
-                min="0.01"
-                className={`w-full pl-8 pr-4 py-3 bg-purple-900/30 border ${errors.amount ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
-                required
-              />
-            </div>
-            {errors.amount && (
-              <p className="mt-1 text-xs text-red-400">{errors.amount}</p>
-            )}
-          </div>
-
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-purple-300 mb-2">
-              Description
+            <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-2">
+              Amount (₹) <span className="text-red-500">*</span>
             </label>
             <input
-              type="text"
-              id="description"
-              value={description}
-              onChange={(e) => handleDescriptionChange(e.target.value)}
+              id="amount"
+              type="number"
+              step="0.01"
+              min="0"
+              value={amount}
+              onChange={(e) => handleAmountChange(e.target.value)}
+              placeholder="0.00"
+              className="w-full px-3 py-2 bg-[#0f1729] border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               disabled={loading}
-              placeholder="Brief description"
-              maxLength={500}
-              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.description ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
             />
-            {errors.description && (
-              <p className="mt-1 text-xs text-red-400">{errors.description}</p>
+            {errors.amount && (
+              <p className="mt-1 text-sm text-red-500">{errors.amount}</p>
             )}
           </div>
 
           {/* Date */}
           <div>
-            <label htmlFor="date" className="block text-sm font-medium text-purple-300 mb-2">
-              Date <span className="text-red-400">*</span>
+            <label htmlFor="entry-date" className="block text-sm font-medium text-gray-300 mb-2">
+              Date <span className="text-red-500">*</span>
             </label>
             <input
+              id="entry-date"
               type="date"
-              id="date"
-              value={date}
+              value={entryDate}
               onChange={(e) => handleDateChange(e.target.value)}
-              disabled={loading}
               max={format(new Date(), 'yyyy-MM-dd')}
-              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.date ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
-              required
+              className="w-full px-3 py-2 bg-[#0f1729] border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              disabled={loading}
             />
-            {errors.date && (
-              <p className="mt-1 text-xs text-red-400">{errors.date}</p>
+            {errors.entryDate && (
+              <p className="mt-1 text-sm text-red-500">{errors.entryDate}</p>
             )}
           </div>
 
           {/* Payment Method */}
           <div>
-            <label htmlFor="payment-method" className="block text-sm font-medium text-purple-300 mb-2">
+            <label htmlFor="payment-method" className="block text-sm font-medium text-gray-300 mb-2">
               Payment Method
             </label>
             <select
               id="payment-method"
               value={paymentMethod}
-              onChange={(e) => handlePaymentMethodChange(e.target.value as PaymentMethodType | '')}
+              onChange={(e) => handlePaymentMethodChange(e.target.value as PaymentMethodType)}
+              className="w-full px-3 py-2 bg-[#0f1729] border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
               disabled={loading}
-              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.paymentMethod ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50`}
             >
-              <option value="">Select payment method</option>
               {PAYMENT_METHODS.map((method) => (
                 <option key={method.value} value={method.value}>
                   {method.label}
@@ -391,44 +315,59 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
               ))}
             </select>
             {errors.paymentMethod && (
-              <p className="mt-1 text-xs text-red-400">{errors.paymentMethod}</p>
+              <p className="mt-1 text-sm text-red-500">{errors.paymentMethod}</p>
             )}
           </div>
 
+          {/* Settled checkbox (for Credit and Advance) */}
+          {(entryType === 'Credit' || entryType === 'Advance') && (
+            <div>
+              <label className="flex items-center space-x-2 text-sm text-gray-300">
+                <input
+                  type="checkbox"
+                  checked={settled}
+                  onChange={(e) => setSettled(e.target.checked)}
+                  className="w-4 h-4 bg-[#0f1729] border border-gray-700 rounded focus:ring-2 focus:ring-violet-500"
+                  disabled={loading}
+                />
+                <span>Mark as settled</span>
+              </label>
+            </div>
+          )}
+
           {/* Notes */}
           <div>
-            <label htmlFor="notes" className="block text-sm font-medium text-purple-300 mb-2">
+            <label htmlFor="notes" className="block text-sm font-medium text-gray-300 mb-2">
               Notes
             </label>
             <textarea
               id="notes"
               value={notes}
               onChange={(e) => handleNotesChange(e.target.value)}
-              disabled={loading}
-              placeholder="Additional notes..."
               rows={3}
-              maxLength={1000}
-              className={`w-full px-4 py-3 bg-purple-900/30 border ${errors.notes ? 'border-red-500' : 'border-purple-500/30'} rounded-lg text-white placeholder-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50 resize-none`}
+              placeholder="Additional notes (optional)"
+              className="w-full px-3 py-2 bg-[#0f1729] border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+              disabled={loading}
             />
             {errors.notes && (
-              <p className="mt-1 text-xs text-red-400">{errors.notes}</p>
+              <p className="mt-1 text-sm text-red-500">{errors.notes}</p>
             )}
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 pt-4 border-t border-purple-500/30">
+          {/* Action Buttons */}
+          <div className="flex gap-3 pt-4">
             <button
               type="button"
               onClick={onClose}
+              className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md transition-colors"
               disabled={loading}
-              className="flex-1 px-6 py-3 bg-purple-900/30 hover:bg-purple-900/50 text-white rounded-lg transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={loading || filteredCategories.length === 0 || !isFormValid()}
-              className="flex-1 px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              disabled={!isFormValid() || loading}
+              className="flex-1 px-4 py-2 bg-violet-600 hover:bg-violet-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md transition-colors"
             >
               {loading ? 'Adding...' : 'Add Entry'}
             </button>

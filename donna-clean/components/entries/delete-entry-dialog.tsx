@@ -37,7 +37,7 @@ export function DeleteEntryDialog({ entry, categories, onSuccess, onClose }: Del
   const [deleting, setDeleting] = useState(false)
 
   const categoryDetails = getCategoryDetails(entry.category, categories)
-  const isIncome = entry.type === 'income'
+  const isIncome = entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -115,16 +115,9 @@ export function DeleteEntryDialog({ entry, categories, onSuccess, onClose }: Del
               {isIncome ? '+' : '-'} {formatIndianCurrency(entry.amount)}
             </div>
 
-            {/* Description */}
-            {entry.description && (
-              <p className="text-sm text-white">
-                {entry.description}
-              </p>
-            )}
-
             {/* Date and Payment Method */}
             <div className="flex items-center gap-3 text-xs text-purple-400">
-              <span>{format(new Date(entry.date), 'dd MMM yyyy')}</span>
+              <span>{format(new Date(entry.entry_date), 'dd MMM yyyy')}</span>
               {entry.payment_method && (
                 <>
                   <span>•</span>

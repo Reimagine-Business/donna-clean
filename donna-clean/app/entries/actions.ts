@@ -12,17 +12,19 @@ import {
 } from "@/lib/sanitization"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-export type EntryType = 'income' | 'expense'
-export type PaymentMethodType = 'cash' | 'bank' | 'upi' | 'card' | 'cheque' | 'other'
+export type EntryType = 'Cash Inflow' | 'Cash Outflow' | 'Credit' | 'Advance'
+export type CategoryType = 'Sales' | 'COGS' | 'Opex' | 'Assets'
+export type PaymentMethodType = 'Cash' | 'Bank' | 'None'
 
 export type CreateEntryInput = {
-  type: EntryType
-  category: string
+  entry_type: EntryType
+  category: CategoryType
   amount: number
-  description?: string
-  date: string
+  entry_date: string
   payment_method?: PaymentMethodType
   notes?: string
+  settled?: boolean
+  image_url?: string
 }
 
 export type UpdateEntryInput = Partial<CreateEntryInput>
@@ -30,13 +32,15 @@ export type UpdateEntryInput = Partial<CreateEntryInput>
 export type Entry = {
   id: string
   user_id: string
-  type: EntryType
-  category: string
+  entry_type: EntryType
+  category: CategoryType
   amount: number
-  description: string | null
-  date: string
-  payment_method: PaymentMethodType | null
+  entry_date: string
+  payment_method: PaymentMethodType
   notes: string | null
+  image_url: string | null
+  settled: boolean
+  settled_at: string | null
   created_at: string
   updated_at: string
 }
@@ -45,7 +49,7 @@ export type Category = {
   id: string
   user_id: string
   name: string
-  type: EntryType
+  type: 'income' | 'expense'
   color: string
   icon: string
   created_at: string
@@ -55,13 +59,13 @@ export type Category = {
 async function generateAlertsForEntry(
   supabase: SupabaseClient,
   userId: string,
-  entry: { type: EntryType; category: string; amount: number; date: string }
+  entry: { entry_type: EntryType; category: CategoryType; amount: number; entry_date: string }
 ) {
   try {
     // Fetch all entries for this user to calculate balances and trends
     const { data: allEntries, error: entriesError } = await supabase
       .from('entries')
-      .select('type, amount, date')
+      .select('entry_type, category, amount, entry_date')
       .eq('user_id', userId)
 
     if (entriesError || !allEntries) {
@@ -69,19 +73,35 @@ async function generateAlertsForEntry(
       return
     }
 
-    // Calculate current balance
-    const balance = allEntries.reduce((sum, e) => {
-      return e.type === 'income' ? sum + e.amount : sum - e.amount
-    }, 0)
+    // Calculate Cash Pulse balance (Cash IN/OUT + Advance only)
+    const cashIn = allEntries
+      .filter(e =>
+        e.entry_type === 'Cash Inflow' ||
+        (e.entry_type === 'Advance' && e.category === 'Sales')
+      )
+      .reduce((sum, e) => sum + e.amount, 0)
+    const cashOut = allEntries
+      .filter(e =>
+        e.entry_type === 'Cash Outflow' ||
+        (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
+      )
+      .reduce((sum, e) => sum + e.amount, 0)
+    const balance = cashIn - cashOut
 
-    // Calculate monthly totals
+    // Calculate monthly Profit Lens totals (Cash + Credit, no Advance)
     const currentMonth = new Date().toISOString().substring(0, 7) // YYYY-MM
-    const monthlyEntries = allEntries.filter(e => e.date.startsWith(currentMonth))
-    const monthlyIncome = monthlyEntries
-      .filter(e => e.type === 'income')
+    const monthlyEntries = allEntries.filter(e => e.entry_date.startsWith(currentMonth))
+    const monthlyRevenue = monthlyEntries
+      .filter(e =>
+        e.category === 'Sales' &&
+        (e.entry_type === 'Cash Inflow' || e.entry_type === 'Credit')
+      )
       .reduce((sum, e) => sum + e.amount, 0)
     const monthlyExpenses = monthlyEntries
-      .filter(e => e.type === 'expense')
+      .filter(e =>
+        ['COGS', 'Opex'].includes(e.category) &&
+        (e.entry_type === 'Cash Outflow' || e.entry_type === 'Credit')
+      )
       .reduce((sum, e) => sum + e.amount, 0)
 
     const alerts: Array<{
@@ -94,7 +114,7 @@ async function generateAlertsForEntry(
     }> = []
 
     // Alert 1: High single expense (> ₹50,000)
-    if (entry.type === 'expense' && entry.amount > 50000) {
+    if (['COGS', 'Opex', 'Assets'].includes(entry.category) && entry.amount > 50000) {
       alerts.push({
         user_id: userId,
         type: 'warning',
@@ -112,7 +132,7 @@ async function generateAlertsForEntry(
         type: 'critical',
         priority: 9,
         title: 'Low Cash Balance',
-        message: `Your current balance is ₹${balance.toLocaleString('en-IN')}. Consider reviewing expenses or increasing income.`,
+        message: `Your current Cash Pulse balance is ₹${balance.toLocaleString('en-IN')}. Consider reviewing cash outflows.`,
         is_read: false,
       })
     }
@@ -123,33 +143,33 @@ async function generateAlertsForEntry(
         user_id: userId,
         type: 'critical',
         priority: 10,
-        title: 'Negative Balance Alert',
-        message: `Your account balance is negative: ₹${balance.toLocaleString('en-IN')}. Immediate attention required.`,
+        title: 'Negative Cash Balance Alert',
+        message: `Your Cash Pulse balance is negative: ₹${balance.toLocaleString('en-IN')}. Immediate attention required.`,
         is_read: false,
       })
     }
 
-    // Alert 4: Monthly expenses exceed income
-    if (monthlyExpenses > monthlyIncome && monthlyIncome > 0) {
-      const difference = monthlyExpenses - monthlyIncome
+    // Alert 4: Monthly expenses exceed revenue (Profit Lens)
+    if (monthlyExpenses > monthlyRevenue && monthlyRevenue > 0) {
+      const difference = monthlyExpenses - monthlyRevenue
       alerts.push({
         user_id: userId,
         type: 'warning',
         priority: 8,
-        title: 'Monthly Expenses Exceed Income',
-        message: `This month's expenses (₹${monthlyExpenses.toLocaleString('en-IN')}) exceed income (₹${monthlyIncome.toLocaleString('en-IN')}) by ₹${difference.toLocaleString('en-IN')}.`,
+        title: 'Monthly Expenses Exceed Revenue',
+        message: `This month's expenses (₹${monthlyExpenses.toLocaleString('en-IN')}) exceed revenue (₹${monthlyRevenue.toLocaleString('en-IN')}) by ₹${difference.toLocaleString('en-IN')}.`,
         is_read: false,
       })
     }
 
-    // Alert 5: Expenses significantly exceed income (>150%)
-    if (monthlyIncome > 0 && monthlyExpenses > monthlyIncome * 1.5) {
+    // Alert 5: Expenses significantly exceed revenue (>150%)
+    if (monthlyRevenue > 0 && monthlyExpenses > monthlyRevenue * 1.5) {
       alerts.push({
         user_id: userId,
         type: 'critical',
         priority: 9,
         title: 'Excessive Spending Alert',
-        message: `Your monthly expenses are ${((monthlyExpenses / monthlyIncome) * 100).toFixed(0)}% of your income. This is not sustainable.`,
+        message: `Your monthly expenses are ${((monthlyExpenses / monthlyRevenue) * 100).toFixed(0)}% of your revenue. This is not sustainable.`,
         is_read: false,
       })
     }
@@ -181,7 +201,7 @@ export async function getEntries() {
     .from('entries')
     .select('*')
     .eq('user_id', user.id)
-    .order('date', { ascending: false })
+    .order('entry_date', { ascending: false })
     .order('created_at', { ascending: false })
 
   if (error) {
@@ -231,13 +251,14 @@ export async function createEntry(input: CreateEntryInput) {
 
   // Sanitize inputs
   const sanitizedData = {
-    type: input.type,
-    category: sanitizeString(input.category, 50),
+    entry_type: input.entry_type,
+    category: input.category,
     amount: sanitizeAmount(input.amount),
-    description: input.description ? sanitizeString(input.description, 500) : undefined,
-    date: sanitizeDate(input.date),
-    payment_method: input.payment_method,
+    entry_date: sanitizeDate(input.entry_date),
+    payment_method: input.payment_method || 'Cash',
     notes: input.notes ? sanitizeString(input.notes, 1000) : undefined,
+    settled: input.settled || false,
+    image_url: input.image_url,
   }
 
   // Comprehensive validation
@@ -249,13 +270,14 @@ export async function createEntry(input: CreateEntryInput) {
 
   const payload = {
     user_id: user.id,
-    type: sanitizedData.type,
+    entry_type: sanitizedData.entry_type,
     category: sanitizedData.category,
     amount: sanitizedData.amount,
-    description: sanitizedData.description || null,
-    date: sanitizedData.date,
-    payment_method: sanitizedData.payment_method || null,
+    entry_date: sanitizedData.entry_date,
+    payment_method: sanitizedData.payment_method,
     notes: sanitizedData.notes || null,
+    settled: sanitizedData.settled,
+    image_url: sanitizedData.image_url || null,
   }
 
   const { error } = await supabase
@@ -299,32 +321,36 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
   // Sanitize inputs
   const payload: Record<string, unknown> = {}
 
-  if (input.type) {
-    payload.type = input.type
+  if (input.entry_type) {
+    payload.entry_type = input.entry_type
   }
 
   if (input.category) {
-    payload.category = sanitizeString(input.category, 50)
+    payload.category = input.category
   }
 
   if (input.amount !== undefined) {
     payload.amount = sanitizeAmount(input.amount)
   }
 
-  if (input.description !== undefined) {
-    payload.description = input.description ? sanitizeString(input.description, 500) : null
-  }
-
-  if (input.date) {
-    payload.date = sanitizeDate(input.date)
+  if (input.entry_date) {
+    payload.entry_date = sanitizeDate(input.entry_date)
   }
 
   if (input.payment_method !== undefined) {
-    payload.payment_method = input.payment_method || null
+    payload.payment_method = input.payment_method
   }
 
   if (input.notes !== undefined) {
     payload.notes = input.notes ? sanitizeString(input.notes, 1000) : null
+  }
+
+  if (input.settled !== undefined) {
+    payload.settled = input.settled
+  }
+
+  if (input.image_url !== undefined) {
+    payload.image_url = input.image_url || null
   }
 
   // Validate the update data (if we have enough fields)

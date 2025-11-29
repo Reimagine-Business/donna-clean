@@ -71,7 +71,7 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
   const recentTransactions = useMemo(() => {
     return entries
       .slice()
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime())
       .slice(0, 10)
   }, [entries])
 
@@ -89,15 +89,14 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
   // Export to CSV
   const handleExportCSV = () => {
     const csvContent = [
-      ['Date', 'Type', 'Category', 'Amount', 'Payment Method', 'Description', 'Notes'].join(','),
+      ['Date', 'Entry Type', 'Category', 'Amount', 'Payment Method', 'Notes'].join(','),
       ...entries.map(entry =>
         [
-          entry.date,
-          entry.type,
+          entry.entry_date,
+          entry.entry_type,
           entry.category,
           entry.amount,
           entry.payment_method || '',
-          `"${(entry.description || '').replace(/"/g, '""')}"`,
           `"${(entry.notes || '').replace(/"/g, '""')}"`,
         ].join(',')
       ),
@@ -287,16 +286,22 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        entry.type === 'income' ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'
+                        entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
+                          ? 'bg-green-900/30 text-green-400'
+                          : 'bg-red-900/30 text-red-400'
                       }`}>
-                        {entry.type}
+                        {entry.entry_type}
                       </span>
                       <span className="text-sm text-white">{entry.category}</span>
                     </div>
-                    <div className="text-xs text-purple-400 mt-1">{format(new Date(entry.date), 'MMM dd, yyyy')}</div>
+                    <div className="text-xs text-purple-400 mt-1">{format(new Date(entry.entry_date), 'MMM dd, yyyy')}</div>
                   </div>
-                  <div className={`text-lg font-semibold ${entry.type === 'income' ? 'text-green-400' : 'text-red-400'}`}>
-                    {entry.type === 'income' ? '+' : '-'}{formatCurrency(entry.amount)}
+                  <div className={`text-lg font-semibold ${
+                    entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
+                      ? 'text-green-400'
+                      : 'text-red-400'
+                  }`}>
+                    {entry.entry_type === 'Cash Inflow' || (entry.entry_type === 'Advance' && entry.category === 'Sales') ? '+' : '-'}{formatCurrency(entry.amount)}
                   </div>
                 </div>
               ))

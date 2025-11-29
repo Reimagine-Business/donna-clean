@@ -74,6 +74,34 @@ export function validateDate(date: string | Date): ValidationResult {
 
 /**
  * Validate entry type
+ * - Must be 'Cash Inflow', 'Cash Outflow', 'Credit', or 'Advance'
+ */
+export function validateEntryType(entry_type: string): ValidationResult {
+  const validTypes = ['Cash Inflow', 'Cash Outflow', 'Credit', 'Advance']
+
+  if (!validTypes.includes(entry_type)) {
+    return { isValid: false, error: 'Entry type must be Cash Inflow, Cash Outflow, Credit, or Advance' }
+  }
+
+  return { isValid: true }
+}
+
+/**
+ * Validate category type
+ * - Must be 'Sales', 'COGS', 'Opex', or 'Assets'
+ */
+export function validateCategoryType(category: string): ValidationResult {
+  const validCategories = ['Sales', 'COGS', 'Opex', 'Assets']
+
+  if (!validCategories.includes(category)) {
+    return { isValid: false, error: 'Category must be Sales, COGS, Opex, or Assets' }
+  }
+
+  return { isValid: true }
+}
+
+/**
+ * Validate type (for backwards compatibility with Category table)
  * - Must be 'income' or 'expense'
  */
 export function validateType(type: string): ValidationResult {
@@ -88,36 +116,22 @@ export function validateType(type: string): ValidationResult {
 
 /**
  * Validate payment method
+ * - Must be 'Cash', 'Bank', or 'None'
  */
 export function validatePaymentMethod(method: string | undefined | null): ValidationResult {
   if (!method) {
-    return { isValid: true } // Optional field
+    return { isValid: true } // Optional field, defaults to 'Cash'
   }
 
-  const validMethods = ['cash', 'bank', 'upi', 'card', 'cheque', 'other']
+  const validMethods = ['Cash', 'Bank', 'None']
 
   if (!validMethods.includes(method)) {
-    return { isValid: false, error: 'Invalid payment method' }
+    return { isValid: false, error: 'Payment method must be Cash, Bank, or None' }
   }
 
   return { isValid: true }
 }
 
-/**
- * Validate category exists and matches type
- * Note: This requires database check, so it's a partial validation
- */
-export function validateCategory(category: string): ValidationResult {
-  if (!category || category.trim().length === 0) {
-    return { isValid: false, error: 'Category is required' }
-  }
-
-  if (category.length > 50) {
-    return { isValid: false, error: 'Category name cannot exceed 50 characters' }
-  }
-
-  return { isValid: true }
-}
 
 // =====================================================
 // CATEGORY VALIDATION
@@ -273,20 +287,21 @@ export function validateFile(file: File, options?: {
  * Validate complete entry data
  */
 export function validateEntry(data: {
-  type: string
+  entry_type: string
   category: string
   amount: number
-  date: string
-  description?: string
+  entry_date: string
   notes?: string
   payment_method?: string
+  settled?: boolean
+  image_url?: string
 }): ValidationResult {
-  // Validate type
-  const typeValidation = validateType(data.type)
-  if (!typeValidation.isValid) return typeValidation
+  // Validate entry type
+  const entryTypeValidation = validateEntryType(data.entry_type)
+  if (!entryTypeValidation.isValid) return entryTypeValidation
 
   // Validate category
-  const categoryValidation = validateCategory(data.category)
+  const categoryValidation = validateCategoryType(data.category)
   if (!categoryValidation.isValid) return categoryValidation
 
   // Validate amount
@@ -294,16 +309,12 @@ export function validateEntry(data: {
   if (!amountValidation.isValid) return amountValidation
 
   // Validate date
-  const dateValidation = validateDate(data.date)
+  const dateValidation = validateDate(data.entry_date)
   if (!dateValidation.isValid) return dateValidation
 
   // Validate payment method (if provided)
   const paymentValidation = validatePaymentMethod(data.payment_method)
   if (!paymentValidation.isValid) return paymentValidation
-
-  // Validate description (if provided)
-  const descriptionValidation = validateDescription(data.description)
-  if (!descriptionValidation.isValid) return descriptionValidation
 
   // Validate notes (if provided)
   const notesValidation = validateNotes(data.notes)
