@@ -2,13 +2,13 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Download, RefreshCw } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Banknote, Building2, Clock, Download, RefreshCw } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { type Entry } from '@/app/entries/actions'
 import {
   calculateCashBalance,
-  getTotalIncome,
-  getTotalExpenses,
+  getTotalCashIn,
+  getTotalCashOut,
   getMonthlyComparison,
   getEntryCount,
 } from '@/lib/analytics-new'
@@ -53,25 +53,51 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
 
   // Calculate metrics
   const cashBalance = useMemo(() => calculateCashBalance(entries), [entries])
-  const totalIncome = useMemo(() => getTotalIncome(entries, startDate, endDate), [entries, startDate, endDate])
-  const totalExpenses = useMemo(() => getTotalExpenses(entries, startDate, endDate), [entries, startDate, endDate])
+  const totalCashIn = useMemo(() => getTotalCashIn(entries, startDate, endDate), [entries, startDate, endDate])
+  const totalCashOut = useMemo(() => getTotalCashOut(entries, startDate, endDate), [entries, startDate, endDate])
   const monthlyComparison = useMemo(() => getMonthlyComparison(entries), [entries])
-  const incomeCount = useMemo(() => getEntryCount(entries, 'in', startDate, endDate), [entries, startDate, endDate])
-  const expenseCount = useMemo(() => getEntryCount(entries, 'out', startDate, endDate), [entries, startDate, endDate])
+  const cashInCount = useMemo(() => getEntryCount(entries, 'in', startDate, endDate), [entries, startDate, endDate])
+  const cashOutCount = useMemo(() => getEntryCount(entries, 'out', startDate, endDate), [entries, startDate, endDate])
 
-  // Recent transactions
-  const recentTransactions = useMemo(() => {
-    return entries
-      .slice()
-      .sort((a, b) => new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime())
-      .slice(0, 10)
+  // Calculate Cash vs Bank breakdown
+  const { cashAmount, bankAmount } = useMemo(() => {
+    const cash = entries
+      .filter(e => e.payment_method === 'Cash')
+      .reduce((sum, e) => {
+        if (e.entry_type === 'Cash IN' || (e.entry_type === 'Advance' && e.category === 'Sales')) {
+          return sum + e.amount
+        } else if (e.entry_type === 'Cash OUT' || (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))) {
+          return sum - e.amount
+        }
+        return sum
+      }, 0)
+
+    const bank = entries
+      .filter(e => e.payment_method === 'Bank')
+      .reduce((sum, e) => {
+        if (e.entry_type === 'Cash IN' || (e.entry_type === 'Advance' && e.category === 'Sales')) {
+          return sum + e.amount
+        } else if (e.entry_type === 'Cash OUT' || (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))) {
+          return sum - e.amount
+        }
+        return sum
+      }, 0)
+
+    return { cashAmount: cash, bankAmount: bank }
+  }, [entries])
+
+  // Calculate Pending Collections (unsettled Credit entries)
+  const pendingCollections = useMemo(() => {
+    const unsettledCredits = entries.filter(e => e.entry_type === 'Credit' && !e.settled)
+    const count = unsettledCredits.length
+    const amount = unsettledCredits.reduce((sum, e) => sum + (e.remaining_amount || e.amount), 0)
+    return { count, amount }
   }, [entries])
 
   // Manual refresh
   const handleRefresh = async () => {
     setIsRefreshing(true)
     router.refresh()
-    // Wait a bit for the refresh to complete
     setTimeout(() => {
       setIsRefreshing(false)
       showSuccess('Data refreshed!')
@@ -112,7 +138,7 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Cash Pulse</h1>
-          <p className="text-purple-300 mt-1">Financial analytics and insights</p>
+          <p className="text-purple-300 mt-1">Cash flow tracking and analysis</p>
         </div>
         <div className="flex items-center gap-2">
           <button
@@ -148,7 +174,7 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
         </select>
       </div>
 
-      {/* Summary Cards */}
+      {/* Top Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Cash Balance */}
         <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/40 border border-purple-500/30 rounded-lg p-6">
@@ -163,15 +189,15 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
           </div>
         </div>
 
-        {/* Total Income */}
+        {/* Cash IN */}
         <div className="bg-gradient-to-br from-green-900/20 to-green-800/10 border-2 border-green-500 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-2">
             <ArrowUpRight className="w-5 h-5 text-green-400" />
-            <span className="text-sm text-green-300 uppercase tracking-wider">Income</span>
+            <span className="text-sm text-green-300 uppercase tracking-wider">Cash IN</span>
           </div>
-          <div className="text-3xl font-bold text-white mb-2">{formatCurrency(totalIncome)}</div>
+          <div className="text-3xl font-bold text-white mb-2">{formatCurrency(totalCashIn)}</div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-green-200">{incomeCount} entries</span>
+            <span className="text-sm text-green-200">{cashInCount} entries</span>
             {monthlyComparison.percentChange.cashIn !== 0 && (
               <span className={`text-sm flex items-center gap-1 ${monthlyComparison.percentChange.cashIn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {monthlyComparison.percentChange.cashIn >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -181,15 +207,15 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
           </div>
         </div>
 
-        {/* Total Expenses */}
+        {/* Cash OUT */}
         <div className="bg-gradient-to-br from-red-900/20 to-red-800/10 border-2 border-red-500 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-2">
             <ArrowDownRight className="w-5 h-5 text-red-400" />
-            <span className="text-sm text-red-300 uppercase tracking-wider">Expenses</span>
+            <span className="text-sm text-red-300 uppercase tracking-wider">Cash OUT</span>
           </div>
-          <div className="text-3xl font-bold text-white mb-2">{formatCurrency(totalExpenses)}</div>
+          <div className="text-3xl font-bold text-white mb-2">{formatCurrency(totalCashOut)}</div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-red-200">{expenseCount} entries</span>
+            <span className="text-sm text-red-200">{cashOutCount} entries</span>
             {monthlyComparison.percentChange.cashOut !== 0 && (
               <span className={`text-sm flex items-center gap-1 ${monthlyComparison.percentChange.cashOut >= 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {monthlyComparison.percentChange.cashOut >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -200,40 +226,52 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
         </div>
       </div>
 
-      {/* Recent Transactions */}
+      {/* Cash vs Bank Breakdown */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Cash */}
         <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-white mb-4">Recent Transactions</h2>
-          <div className="space-y-2 max-h-[350px] overflow-y-auto">
-            {recentTransactions.length > 0 ? (
-              recentTransactions.map(entry => (
-                <div key={entry.id} className="flex items-center justify-between p-3 bg-purple-900/20 rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                        entry.entry_type === 'Cash IN' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
-                          ? 'bg-green-900/30 text-green-400'
-                          : 'bg-red-900/30 text-red-400'
-                      }`}>
-                        {entry.entry_type}
-                      </span>
-                      <span className="text-sm text-white">{entry.category}</span>
-                    </div>
-                    <div className="text-xs text-purple-400 mt-1">{format(new Date(entry.entry_date), 'MMM dd, yyyy')}</div>
-                  </div>
-                  <div className={`text-lg font-semibold ${
-                    entry.entry_type === 'Cash IN' || (entry.entry_type === 'Advance' && entry.category === 'Sales')
-                      ? 'text-green-400'
-                      : 'text-red-400'
-                  }`}>
-                    {entry.entry_type === 'Cash IN' || (entry.entry_type === 'Advance' && entry.category === 'Sales') ? '+' : '-'}{formatCurrency(entry.amount)}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-center text-purple-400 py-8">No transactions yet</p>
-            )}
+          <div className="flex items-center gap-2 mb-2">
+            <Banknote className="w-5 h-5 text-purple-400" />
+            <span className="text-sm text-purple-300 uppercase tracking-wider">Cash</span>
+          </div>
+          <div className="text-3xl font-bold text-white">{formatCurrency(cashAmount)}</div>
+        </div>
+
+        {/* Bank */}
+        <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Building2 className="w-5 h-5 text-purple-400" />
+            <span className="text-sm text-purple-300 uppercase tracking-wider">Bank</span>
+          </div>
+          <div className="text-3xl font-bold text-white">{formatCurrency(bankAmount)}</div>
+        </div>
+      </div>
+
+      {/* Pending Collections */}
+      <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-5 h-5 text-yellow-400" />
+          <h2 className="text-xl font-semibold text-white">Pending Collections</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <p className="text-sm text-purple-300 mb-1">No of Pending</p>
+            <p className="text-2xl font-bold text-white">{pendingCollections.count}</p>
+          </div>
+          <div>
+            <p className="text-sm text-purple-300 mb-1">Amount to Collect</p>
+            <p className="text-2xl font-bold text-yellow-400">{formatCurrency(pendingCollections.amount)}</p>
+          </div>
+          <div className="flex items-end">
+            <button
+              onClick={() => router.push('/daily-entries')}
+              className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors w-full md:w-auto"
+            >
+              Settle Collections
+            </button>
           </div>
         </div>
+      </div>
     </div>
   )
 }
