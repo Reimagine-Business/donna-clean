@@ -35,6 +35,7 @@ export type Entry = {
   entry_type: EntryType
   category: CategoryType
   amount: number
+  remaining_amount: number
   entry_date: string
   payment_method: PaymentMethodType
   notes: string | null
