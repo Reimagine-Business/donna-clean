@@ -128,47 +128,9 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const [settlementEntry, setSettlementEntry] = useState<Entry | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel("public:entries")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "entries",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          setEntries((prev) => {
-            switch (payload.eventType) {
-                case "INSERT": {
-                  const newEntry = normalizeEntry(payload.new);
-                  if (prev.some((e) => e.id === newEntry.id)) {
-                    return prev.map((entry) => (entry.id === newEntry.id ? newEntry : entry));
-                  }
-                  return [newEntry, ...prev];
-                }
-                case "UPDATE": {
-                  const updated = normalizeEntry(payload.new);
-                  return prev.map((entry) => (entry.id === updated.id ? updated : entry));
-                }
-              case "DELETE": {
-                const deletedId = (payload.old as Entry).id;
-                return prev.filter((entry) => entry.id !== deletedId);
-              }
-              default:
-                return prev;
-            }
-          });
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [supabase, userId]);
+  // REALTIME SUBSCRIPTIONS REMOVED - Causing infinite loops and crashes
+  // Component now uses simple data fetching without live updates
+  // Use router.refresh() or manual page refresh to update data
 
   const handleInputChange = <K extends keyof EntryFormState>(
     name: K,

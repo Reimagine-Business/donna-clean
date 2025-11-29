@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
-import type { RealtimeChannel } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/client";
 import { Entry, normalizeEntry } from "@/lib/entries";
@@ -43,10 +42,6 @@ type FiltersState = {
 
 const ENTRY_SELECT =
   "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
-
-const MAX_REALTIME_RECONNECT_ATTEMPTS = 5;
-const BASE_REALTIME_DELAY_MS = 5000;
-const MAX_REALTIME_DELAY_MS = 30000;
 
 export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps) {
   const supabase = useMemo(() => createClient(), []);
@@ -132,171 +127,9 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     }
   }, [supabase, userId]);
 
-  useEffect(() => {
-    let channel: RealtimeChannel | null = null;
-    let retryTimer: ReturnType<typeof setTimeout> | null = null;
-    let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-    let retryAttempt = 0;
-    let hasAlertedRealtimeFailure = false;
-    let isMounted = true;
-
-    const alertRealtimeFailure = () => {
-      if (hasAlertedRealtimeFailure) return;
-      hasAlertedRealtimeFailure = true;
-      if (typeof window !== "undefined") {
-        showWarning("Realtime failed – refresh");
-      }
-    };
-
-    const logCloseReason = (
-      event?: { code?: number; reason?: string },
-      payload?: unknown,
-    ) => {
-      const code = event?.code ?? "unknown";
-      const reason = (event?.reason ?? "none").trim() || "none";
-      let payloadSummary: string;
-      try {
-        payloadSummary =
-          payload === undefined
-            ? "none"
-            : JSON.stringify(payload, (_key, value) =>
-                typeof value === "bigint" ? Number(value) : value,
-              );
-      } catch {
-        payloadSummary = "unserializable";
-      }
-      console.warn(
-        `[Realtime Closed] Code ${code}: ${reason} payload ${payloadSummary} (profit-lens channel)`,
-      );
-    };
-
-    const teardownChannel = () => {
-      if (heartbeatTimer) {
-        clearInterval(heartbeatTimer);
-        heartbeatTimer = null;
-      }
-      if (channel) {
-        supabase.removeChannel(channel);
-        channel = null;
-      }
-    };
-
-    const startHeartbeat = () => {
-      if (heartbeatTimer || !channel) return;
-      heartbeatTimer = setInterval(() => {
-        channel?.send({
-          type: "broadcast",
-          event: "heartbeat",
-          payload: {},
-          topic: "heartbeat",
-        } as any);
-      }, 30000);
-    };
-
-    const subscribe = () => {
-      teardownChannel();
-
-      channel = supabase
-        .channel(`public:entries:${userId}:profit`)
-        .on("system", { event: "*" }, (systemPayload) => {
-          // System event received
-        })
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "entries",
-            filter: `user_id=eq.${userId}`,
-          },
-          async (payload) => {
-            const latestEntries = await refetchEntries();
-            if (!latestEntries) {
-              return;
-            }
-            // Filter entries by current date range before recalculating
-            let filteredLatest: Entry[];
-            if (dateFilter === "customize" && customFromDate && customToDate) {
-              filteredLatest = filterByCustomDateRange(latestEntries, customFromDate, customToDate);
-            } else if (dateFilter !== "customize") {
-              filteredLatest = filterByDateRange(latestEntries, dateFilter as DateRange);
-            } else {
-              filteredLatest = latestEntries;
-            }
-            recalcKpis(filteredLatest);
-          },
-        )
-        .subscribe(async (status) => {
-          if (status === "SUBSCRIBED") {
-            retryAttempt = 0;
-            hasAlertedRealtimeFailure = false;
-            startHeartbeat();
-          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-            logCloseReason(undefined, { status });
-            console.error("[Realtime Error] Closed – scheduling retry");
-            teardownChannel();
-            // Note: DO NOT call refreshSession() here - it causes 429 rate limiting
-            // Middleware handles session refresh automatically
-            scheduleRetry();
-          }
-        });
-
-      const socket = (channel as unknown as { socket?: { onClose?: (cb: (event?: CloseEvent) => void) => void } })
-        ?.socket;
-      socket?.onClose?.((event?: CloseEvent) => logCloseReason(event, { source: "socket" }));
-    };
-
-    const scheduleRetry = () => {
-      if (!isMounted || retryTimer) {
-        return;
-      }
-      if (retryAttempt >= MAX_REALTIME_RECONNECT_ATTEMPTS) {
-        console.error("[Realtime Error] Max retries reached for Profit Lens channel.");
-        alertRealtimeFailure();
-        return;
-      }
-      const attemptIndex = retryAttempt + 1;
-      const exponentialDelay = BASE_REALTIME_DELAY_MS * 2 ** retryAttempt;
-      const delay = Math.min(exponentialDelay, MAX_REALTIME_DELAY_MS);
-      console.warn(
-        `[Realtime Retry] attempt ${attemptIndex} in ${delay}ms (profit-lens channel)`,
-      );
-      retryTimer = setTimeout(() => {
-        retryTimer = null;
-        retryAttempt = attemptIndex;
-        subscribe();
-      }, delay);
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        // Note: DO NOT call refreshSession() here - middleware handles it
-        // Just reconnect the Realtime channel if needed
-        if (!channel || channel.state !== "joined") {
-          retryAttempt = 0;
-          hasAlertedRealtimeFailure = false;
-          subscribe();
-        }
-      }
-    };
-
-    subscribe();
-
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-    }
-
-    return () => {
-      isMounted = false;
-      if (retryTimer) {
-        clearTimeout(retryTimer);
-      }
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", handleVisibilityChange);
-      }
-      teardownChannel();
-    };
-  }, [recalcKpis, refetchEntries, supabase, userId]);
+  // REALTIME SUBSCRIPTIONS REMOVED - Causing infinite loops and crashes
+  // Component now uses simple data fetching without live updates
+  // Use router.refresh() or manual page refresh to update data
 
   useEffect(() => {
     if (skipNextRecalc.current) {
