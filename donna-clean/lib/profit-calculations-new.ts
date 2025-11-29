@@ -47,76 +47,82 @@ export type CategoryExpense = {
 // - Credit Sales: ALL (settled + unsettled) → YES
 // - Advance Sales: ONLY settled → YES
 // - Cash IN Sales: YES, except 'Settlement of' entries → YES
+// Calculate Revenue (Total Sales) for Profit Lens
+// RULES:
+// 1. Cash IN Sales (excluding settlements)
+// 2. ALL Credit Sales (both settled AND unsettled)
+// 3. ONLY settled Advance Sales
 export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: Date): number {
-  console.log('🔍 [REVENUE] ==================== START ====================')
-  console.log('🔍 [REVENUE] Total entries received:', entries.length)
+  console.log('💰 [REVENUE] ========== CALCULATING REVENUE ==========')
+  console.log('💰 [REVENUE] Total entries received:', entries.length)
 
-  // STEP 1: Get all Sales entries
-  let salesEntries = entries.filter(e => e.category === 'Sales')
-  console.log('🔍 [REVENUE] Total Sales entries:', salesEntries.length)
+  let total = 0
+  let counted = 0
+  let skipped = 0
 
-  // STEP 2: Apply entry type rules
-  let revenueEntries = salesEntries.filter(e => {
-    // RULE 1: Credit Sales - Include ALL (settled + unsettled)
-    if (e.entry_type === 'Credit') {
-      console.log('  ✅ Including Credit Sale:', e.amount, 'settled:', e.settled)
-      return true
+  for (const entry of entries) {
+    // Only process Sales category
+    if (entry.category !== 'Sales') {
+      continue
     }
 
-    // RULE 2: Advance Sales - Include ONLY settled
-    if (e.entry_type === 'Advance') {
-      const include = e.settled === true
-      console.log(`  ${include ? '✅' : '❌'} Advance Sale:`, e.amount, 'settled:', e.settled)
-      return include
+    // Apply date filters if provided
+    if (startDate && new Date(entry.entry_date) < startDate) {
+      console.log(`  ⏭️ SKIP (before startDate): ${entry.entry_type} ₹${entry.amount} on ${entry.entry_date}`)
+      skipped++
+      continue
+    }
+    if (endDate && new Date(entry.entry_date) > endDate) {
+      console.log(`  ⏭️ SKIP (after endDate): ${entry.entry_type} ₹${entry.amount} on ${entry.entry_date}`)
+      skipped++
+      continue
     }
 
-    // RULE 3: Cash IN Sales - Include, but exclude settlements
-    if (e.entry_type === 'Cash IN') {
-      const isSettlement = e.notes?.startsWith('Settlement of')
-      const include = !isSettlement
-      console.log(`  ${include ? '✅' : '❌'} Cash IN Sale:`, e.amount, 'isSettlement:', isSettlement)
-      return include
+    // RULE 1: Cash IN Sales (excluding settlements)
+    if (entry.entry_type === 'Cash IN') {
+      if (entry.notes?.startsWith('Settlement')) {
+        console.log(`  ❌ SKIP Cash IN Settlement: ₹${entry.amount} (${entry.notes?.substring(0, 30)})`)
+        skipped++
+      } else {
+        console.log(`  ✅ COUNT Cash IN Sale: ₹${entry.amount}`)
+        total += entry.amount
+        counted++
+      }
+      continue
     }
 
-    // Exclude all other types
-    console.log('  ❌ Excluding:', e.entry_type)
-    return false
-  })
-
-  console.log('🔍 [REVENUE] After type filter:', revenueEntries.length)
-  console.log('🔍 [REVENUE] Breakdown:', {
-    credit: revenueEntries.filter(e => e.entry_type === 'Credit').length,
-    creditAmount: revenueEntries.filter(e => e.entry_type === 'Credit').reduce((sum, e) => sum + e.amount, 0),
-    advance: revenueEntries.filter(e => e.entry_type === 'Advance').length,
-    advanceAmount: revenueEntries.filter(e => e.entry_type === 'Advance').reduce((sum, e) => sum + e.amount, 0),
-    cashIn: revenueEntries.filter(e => e.entry_type === 'Cash IN').length,
-    cashInAmount: revenueEntries.filter(e => e.entry_type === 'Cash IN').reduce((sum, e) => sum + e.amount, 0),
-  })
-
-  // STEP 3: Apply date filters
-  if (startDate) {
-    const before = revenueEntries.length
-    console.log(`🔍 [REVENUE] Before date filter - entry dates:`, revenueEntries.map(e => e.entry_date))
-    revenueEntries = revenueEntries.filter(e => new Date(e.entry_date) >= startDate)
-    console.log(`🔍 [REVENUE] After startDate (${startDate.toISOString().split('T')[0]}):`, revenueEntries.length, `(removed ${before - revenueEntries.length})`)
-    if (before !== revenueEntries.length) {
-      console.log(`⚠️ [REVENUE] Entries filtered out by startDate:`, before - revenueEntries.length)
+    // RULE 2: ALL Credit Sales (BOTH settled AND unsettled)
+    // CRITICAL: No settled check here!
+    if (entry.entry_type === 'Credit') {
+      console.log(`  ✅ COUNT Credit Sale: ₹${entry.amount} (settled=${entry.settled})`)
+      total += entry.amount
+      counted++
+      continue
     }
+
+    // RULE 3: ONLY settled Advance Sales
+    if (entry.entry_type === 'Advance') {
+      if (entry.settled === true) {
+        console.log(`  ✅ COUNT Settled Advance Sale: ₹${entry.amount}`)
+        total += entry.amount
+        counted++
+      } else {
+        console.log(`  ❌ SKIP Unsettled Advance Sale: ₹${entry.amount}`)
+        skipped++
+      }
+      continue
+    }
+
+    // Unknown entry type
+    console.log(`  ❓ UNKNOWN entry type: ${entry.entry_type}`)
+    skipped++
   }
 
-  if (endDate) {
-    const before = revenueEntries.length
-    revenueEntries = revenueEntries.filter(e => new Date(e.entry_date) <= endDate)
-    console.log(`🔍 [REVENUE] After endDate (${endDate.toISOString().split('T')[0]}):`, revenueEntries.length, `(removed ${before - revenueEntries.length})`)
-    if (before !== revenueEntries.length) {
-      console.log(`⚠️ [REVENUE] Entries filtered out by endDate:`, before - revenueEntries.length)
-    }
-  }
-
-  // STEP 4: Calculate total
-  const total = revenueEntries.reduce((sum, e) => sum + e.amount, 0)
-  console.log('🔍 [REVENUE] FINAL REVENUE:', total.toLocaleString('en-IN'), `(₹${total})`)
-  console.log('🔍 [REVENUE] ==================== END ====================')
+  console.log('💰 [REVENUE] ========================================')
+  console.log('💰 [REVENUE] Entries COUNTED:', counted)
+  console.log('💰 [REVENUE] Entries SKIPPED:', skipped)
+  console.log('💰 [REVENUE] FINAL REVENUE:', `₹${total.toLocaleString('en-IN')}`)
+  console.log('💰 [REVENUE] ========================================')
 
   return total
 }
