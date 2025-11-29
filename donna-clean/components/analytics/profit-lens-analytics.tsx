@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { TrendingUp, TrendingDown, DollarSign, Lightbulb, Download, RefreshCw } from 'lucide-react'
+import { TrendingUp, TrendingDown, Lightbulb, Download, RefreshCw, TrendingUpIcon } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { type Entry } from '@/app/entries/actions'
 import {
@@ -188,28 +188,29 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
           onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | '6months' | 'all')}
           className="px-4 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
         >
-          <option value="all">All Time</option>
           <option value="month">This Month</option>
           <option value="3months">Last 3 Months</option>
           <option value="6months">Last 6 Months</option>
+          <option value="all">All Time</option>
         </select>
       </div>
 
-      {/* Net Profit Overview */}
-      <div className={`bg-gradient-to-br ${currentMetrics.netProfit >= 0 ? 'from-green-900/40 to-green-800/40 border-green-500' : 'from-red-900/40 to-red-800/40 border-red-500'} border-2 rounded-lg p-8 text-center`}>
+      {/* Sales Overview */}
+      <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/40 border-2 border-blue-500 rounded-lg p-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <DollarSign className={`w-8 h-8 ${currentMetrics.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`} />
-          <span className="text-sm text-purple-300 uppercase tracking-wider">Net Profit</span>
+          <TrendingUpIcon className="w-8 h-8 text-blue-400" />
+          <span className="text-sm text-purple-300 uppercase tracking-wider">SALES</span>
         </div>
-        <div className={`text-5xl font-bold mb-2 ${currentMetrics.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-          {formatCurrency(currentMetrics.netProfit)}
+        <div className="text-5xl font-bold mb-2 text-blue-400">
+          {formatCurrency(currentMetrics.revenue)}
         </div>
         <div className="flex items-center justify-center gap-4 text-sm">
           <span className="text-purple-200">
-            Margin: {currentMetrics.profitMargin.toFixed(1)}%
+            100.0% of revenue
           </span>
           {marginChange !== 0 && (
             <span className={`flex items-center gap-1 ${marginChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              Margin: {currentMetrics.profitMargin.toFixed(1)}%
               {marginChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
               {Math.abs(marginChange).toFixed(1)}% vs last month
             </span>
@@ -217,32 +218,33 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
         </div>
       </div>
 
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <MetricCard
-          title="Revenue"
-          amount={currentMetrics.revenue}
-          percentage={(currentMetrics.revenue / (currentMetrics.revenue || 1)) * 100}
-          color="text-blue-400"
-        />
-        <MetricCard
-          title="COGS"
-          amount={currentMetrics.cogs}
-          percentage={currentMetrics.revenue > 0 ? (currentMetrics.cogs / currentMetrics.revenue) * 100 : 0}
-          color="text-orange-400"
-        />
-        <MetricCard
-          title="Operating Exp."
-          amount={currentMetrics.operatingExpenses}
-          percentage={currentMetrics.revenue > 0 ? (currentMetrics.operatingExpenses / currentMetrics.revenue) * 100 : 0}
-          color="text-red-400"
-        />
-        <MetricCard
-          title="Gross Profit"
-          amount={currentMetrics.grossProfit}
-          percentage={currentMetrics.revenue > 0 ? (currentMetrics.grossProfit / currentMetrics.revenue) * 100 : 0}
-          color="text-green-400"
-        />
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Total Expenses */}
+        <div className="bg-orange-900/20 border-2 border-orange-500/50 rounded-lg p-6">
+          <div className="text-sm text-orange-300 mb-2 uppercase tracking-wider">TOTAL EXPENSES</div>
+          <div className="text-4xl font-bold mb-2 text-orange-400">
+            {formatCurrency(currentMetrics.cogs + currentMetrics.operatingExpenses)}
+          </div>
+          <div className="text-sm text-orange-200">
+            {currentMetrics.revenue > 0
+              ? (((currentMetrics.cogs + currentMetrics.operatingExpenses) / currentMetrics.revenue) * 100).toFixed(1)
+              : '0.0'}% of sales
+          </div>
+        </div>
+
+        {/* Profit */}
+        <div className={`${currentMetrics.netProfit >= 0 ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'} border-2 rounded-lg p-6`}>
+          <div className={`text-sm mb-2 uppercase tracking-wider ${currentMetrics.netProfit >= 0 ? 'text-green-300' : 'text-red-300'}`}>PROFIT</div>
+          <div className={`text-4xl font-bold mb-2 ${currentMetrics.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            {formatCurrency(currentMetrics.netProfit)}
+          </div>
+          <div className={`text-sm ${currentMetrics.netProfit >= 0 ? 'text-green-200' : 'text-red-200'}`}>
+            {currentMetrics.revenue > 0
+              ? ((currentMetrics.netProfit / currentMetrics.revenue) * 100).toFixed(1)
+              : '0.0'}% of sales
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -293,23 +295,6 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
           )}
         </div>
       </div>
-    </div>
-  )
-}
-
-interface MetricCardProps {
-  title: string
-  amount: number
-  percentage: number
-  color: string
-}
-
-function MetricCard({ title, amount, percentage, color }: MetricCardProps) {
-  return (
-    <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-4">
-      <div className="text-sm text-purple-300 mb-2">{title}</div>
-      <div className={`text-2xl font-bold mb-1 ${color}`}>{formatCurrency(amount)}</div>
-      <div className="text-xs text-purple-400">{percentage.toFixed(1)}% of revenue</div>
     </div>
   )
 }
