@@ -13,7 +13,7 @@ import {
   getEntryCount,
 } from '@/lib/analytics-new'
 import { showSuccess, showError } from '@/lib/toast'
-import { deleteSettlement } from '@/lib/settlements'
+import { deleteSettlement } from '@/app/settlements/actions'
 
 interface CashPulseAnalyticsProps {
   entries: Entry[]
@@ -203,9 +203,14 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
 
     setDeletingSettlement(entryId)
     try {
-      await deleteSettlement(entryId)
-      showSuccess('Settlement deleted successfully!')
-      router.refresh()
+      const result = await deleteSettlement(entryId)
+
+      if (result.success) {
+        showSuccess('Settlement deleted successfully!')
+        router.refresh()
+      } else {
+        showError(result.error || 'Failed to delete settlement')
+      }
     } catch (error) {
       showError('Failed to delete settlement')
       console.error('Error deleting settlement:', error)

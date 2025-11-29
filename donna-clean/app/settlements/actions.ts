@@ -97,6 +97,85 @@ export async function createSettlement(
   }
 }
 
+/**
+ * Deletes a settlement by marking the entry as unsettled
+ * and resetting settlement metadata.
+ */
+export async function deleteSettlement(entryId: string): Promise<SettleEntryResult> {
+  const ctx = "settlements/deleteSettlement";
+
+  try {
+    const supabase = await createSupabaseServerClient();
+
+    // Auth check
+    const { user, initialError } = await getOrRefreshUser(supabase);
+
+    if (!user) {
+      console.error(
+        `[Auth Fail] No user in ${ctx}${
+          initialError ? ` – error: ${initialError.message}` : ""
+        }`,
+        initialError ?? undefined,
+      );
+      return { success: false, error: "You must be signed in to delete settlements." };
+    }
+
+    // Get the entry to verify ownership and get original amount
+    const { data: entry, error: fetchError } = await supabase
+      .from("entries")
+      .select("id, user_id, amount, settled, entry_type")
+      .eq("id", entryId)
+      .single();
+
+    if (fetchError || !entry) {
+      return { success: false, error: "Entry not found or no longer accessible." };
+    }
+
+    // Verify ownership
+    if (entry.user_id !== user.id) {
+      return { success: false, error: "You can only delete your own settlements." };
+    }
+
+    // Verify it's actually settled
+    if (!entry.settled) {
+      return { success: false, error: "Entry is not settled." };
+    }
+
+    // Verify it's a Credit or Advance entry
+    if (entry.entry_type !== "Credit" && entry.entry_type !== "Advance") {
+      return { success: false, error: "Only Credit and Advance settlement deletions are supported." };
+    }
+
+    // Mark as unsettled and restore remaining_amount to original amount
+    const { error: updateError } = await supabase
+      .from("entries")
+      .update({
+        settled: false,
+        settled_at: null,
+        remaining_amount: entry.amount, // Restore to original amount
+      })
+      .eq("id", entryId);
+
+    if (updateError) {
+      console.error("Failed to delete settlement", updateError);
+      return { success: false, error: updateError.message };
+    }
+
+    // Revalidate all affected pages
+    revalidatePath("/daily-entries");
+    revalidatePath("/analytics/cashpulse");
+    revalidatePath("/analytics/profitlens");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete settlement", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Unable to delete settlement.",
+    };
+  }
+}
+
 function normalizeAmount(value: unknown, fallback: number): number {
   const candidate =
     typeof value === "number" ? value : Number.isFinite(Number(value)) ? Number(value) : fallback;
