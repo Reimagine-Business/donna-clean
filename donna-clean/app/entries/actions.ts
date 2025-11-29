@@ -190,26 +190,71 @@ async function generateAlertsForEntry(
 }
 
 export async function getEntries() {
-  const supabase = await createSupabaseServerClient()
-  const { user } = await getOrRefreshUser(supabase)
+  try {
+    console.log('🔄 [GET_ENTRIES] Starting data fetch...')
 
-  if (!user) {
-    return { entries: [], error: "Not authenticated" }
+    const supabase = await createSupabaseServerClient()
+    console.log('✅ [GET_ENTRIES] Supabase client created')
+
+    const { user } = await getOrRefreshUser(supabase)
+    console.log('🔍 [GET_ENTRIES] User authentication check:', user ? `User ID: ${user.id}` : 'No user')
+
+    if (!user) {
+      console.error('❌ [GET_ENTRIES] Not authenticated')
+      return { entries: [], error: "Not authenticated" }
+    }
+
+    console.log('🔍 [GET_ENTRIES] Fetching entries for user:', user.id)
+    console.log('📅 [GET_ENTRIES] Query: SELECT * FROM entries WHERE user_id =', user.id)
+
+    const { data, error } = await supabase
+      .from('entries')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('entry_date', { ascending: false })
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      console.error('❌ [GET_ENTRIES] Supabase query error:', error)
+      console.error('❌ [GET_ENTRIES] Error details:', JSON.stringify(error, null, 2))
+      return { entries: [], error: error.message }
+    }
+
+    console.log('✅ [GET_ENTRIES] Query successful')
+    console.log('📊 [GET_ENTRIES] Total entries fetched:', data?.length || 0)
+
+    if (data && data.length > 0) {
+      console.log('📊 [GET_ENTRIES] Entry breakdown:', {
+        total: data.length,
+        cashIn: data.filter(e => e.entry_type === 'Cash IN').length,
+        cashOut: data.filter(e => e.entry_type === 'Cash OUT').length,
+        credit: data.filter(e => e.entry_type === 'Credit').length,
+        advance: data.filter(e => e.entry_type === 'Advance').length,
+      })
+      console.log('📊 [GET_ENTRIES] Category breakdown:', {
+        sales: data.filter(e => e.category === 'Sales').length,
+        cogs: data.filter(e => e.category === 'COGS').length,
+        opex: data.filter(e => e.category === 'Opex').length,
+        assets: data.filter(e => e.category === 'Assets').length,
+      })
+      console.log('📊 [GET_ENTRIES] First 3 entries:', data.slice(0, 3).map(e => ({
+        id: e.id.substring(0, 8),
+        type: e.entry_type,
+        category: e.category,
+        amount: e.amount,
+        date: e.entry_date,
+        settled: e.settled,
+      })))
+    } else {
+      console.warn('⚠️ [GET_ENTRIES] No entries found in database')
+    }
+
+    return { entries: data as Entry[], error: null }
+  } catch (error) {
+    console.error('❌ [GET_ENTRIES] Unexpected error:', error)
+    console.error('❌ [GET_ENTRIES] Error stack:', error instanceof Error ? error.stack : 'No stack trace')
+    return { entries: [], error: error instanceof Error ? error.message : 'Unknown error occurred' }
   }
-
-  const { data, error } = await supabase
-    .from('entries')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('entry_date', { ascending: false })
-    .order('created_at', { ascending: false })
-
-  if (error) {
-    console.error('Failed to fetch entries:', error)
-    return { entries: [], error: error.message }
-  }
-
-  return { entries: data as Entry[], error: null }
 }
 
 export async function getCategories() {
