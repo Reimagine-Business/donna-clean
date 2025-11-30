@@ -500,9 +500,15 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
           {settlementHistory.length > 0 ? (
             <div className="space-y-2">
               {settlementHistory.map((settlement) => {
-                // Parse the original entry info from notes
-                const originalEntryMatch = settlement.notes?.match(/Settlement of (.*?) \(ID: (.*?)\)/)
-                const entryType = originalEntryMatch?.[1] || 'Unknown'
+                // Parse the original entry ID from notes
+                // Pattern: "Settlement of Credit Sales (ID: xxx)" or "Settlement of credit sales (xxx)"
+                const originalEntryMatch = settlement.notes?.match(/\(ID:\s*([^)]+)\)/) ||
+                                         settlement.notes?.match(/\(([a-f0-9-]{36})\)/);
+                const originalEntryId = originalEntryMatch?.[1];
+
+                // Parse entry type for display
+                const entryTypeMatch = settlement.notes?.match(/Settlement of (.*?) \(/);
+                const entryType = entryTypeMatch?.[1] || 'Unknown';
 
                 return (
                   <div key={settlement.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
@@ -526,10 +532,11 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
                       </div>
                     </div>
                     <button
-                      onClick={() => handleDeleteSettlement(settlement.id)}
-                      disabled={deletingId === settlement.id}
+                      onClick={() => originalEntryId && handleDeleteSettlement(originalEntryId)}
+                      disabled={deletingId === originalEntryId || !originalEntryId}
                       className="p-2 text-red-500 hover:bg-red-500/10 rounded-md transition-colors disabled:opacity-50"
                       aria-label="Delete settlement"
+                      title={!originalEntryId ? 'Cannot delete: Original entry ID not found' : 'Delete settlement'}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
