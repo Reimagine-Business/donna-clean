@@ -227,11 +227,12 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
 
       console.log('📊 [DELETE] Result received:', result)
       console.log('📊 [DELETE] Result.success:', result.success)
-      console.log('📊 [DELETE] Result.error:', result.error)
+      console.log('📊 [DELETE] Result.error:', 'error' in result ? result.error : 'none')
 
       if (!result.success) {
-        console.error('❌ [DELETE] Action returned failure:', result.error)
-        showError(result.error || 'Failed to delete settlement')
+        const errorMsg = 'error' in result ? result.error : 'Failed to delete settlement'
+        console.error('❌ [DELETE] Action returned failure:', errorMsg)
+        showError(errorMsg || 'Failed to delete settlement')
         return
       }
 
