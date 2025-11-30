@@ -310,7 +310,7 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
 
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">See how much you have!</h1>
+        <h1 className="text-2xl font-bold text-white">Check what you Have!</h1>
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Period:</span>
