@@ -160,42 +160,34 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
     <div className="space-y-3">
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Profit Lens</h1>
-          <p className="text-purple-300 text-xs mt-0.5">Profit & loss analysis</p>
-        </div>
+        <h1 className="text-2xl font-bold text-white">See what you earned!</h1>
+
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="p-2 bg-purple-900/50 hover:bg-purple-900/70 text-white rounded-lg transition-colors disabled:opacity-50"
-            aria-label="Refresh data"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
+          {/* Period Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Period:</span>
+            <select
+              value={dateRange}
+              onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | '6months' | 'all')}
+              className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="month">This Month</option>
+              <option value="3months">Last 3 Months</option>
+              <option value="6months">Last 6 Months</option>
+              <option value="all">All Time</option>
+            </select>
+          </div>
+
+          {/* Export Button */}
           <button
             onClick={handleExportCSV}
-            className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+            className="px-4 py-2 bg-purple-500 text-white rounded-md text-sm font-medium flex items-center gap-2 hover:bg-purple-600 transition-colors"
             aria-label="Export CSV"
           >
             <Download className="w-4 h-4" />
+            Export CSV
           </button>
         </div>
-      </div>
-
-      {/* Date Range Filter */}
-      <div className="flex items-center gap-2">
-        <label className="text-purple-300 text-xs">Period:</label>
-        <select
-          value={dateRange}
-          onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | '6months' | 'all')}
-          className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-        >
-          <option value="month">This Month</option>
-          <option value="3months">Last 3 Months</option>
-          <option value="6months">Last 6 Months</option>
-          <option value="all">All Time</option>
-        </select>
       </div>
 
       {/* Sales Overview */}

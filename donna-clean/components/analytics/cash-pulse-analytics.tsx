@@ -255,6 +255,53 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
     }
   }
 
+  const handleExportSettlements = () => {
+    console.log('📥 [EXPORT] Exporting settlement history...')
+
+    // Prepare CSV data
+    const csvData = settlementHistory.map(item => {
+      const originalEntryMatch = item.notes?.match(/\(ID:\s*([^)]+)\)/) ||
+                                item.notes?.match(/\(([a-f0-9-]{36})\)/);
+      const originalEntryId = originalEntryMatch?.[1];
+
+      const entryTypeMatch = item.notes?.match(/Settlement of (.*?) \(/);
+      const entryType = entryTypeMatch?.[1] || 'Unknown';
+
+      return {
+        Date: format(new Date(item.entry_date), 'dd MMM yyyy'),
+        Type: entryType,
+        Category: item.category,
+        Amount: item.amount,
+        'Settled On': item.created_at ? format(new Date(item.created_at), 'dd MMM yyyy') : 'N/A',
+        'Original Entry ID': originalEntryId || 'N/A',
+        Notes: item.notes || ''
+      }
+    })
+
+    // Convert to CSV
+    const headers = Object.keys(csvData[0]).join(',')
+    const rows = csvData.map(row =>
+      Object.values(row).map(val =>
+        typeof val === 'string' && val.includes(',') ? `"${val}"` : val
+      ).join(',')
+    ).join('\n')
+    const csv = `${headers}\n${rows}`
+
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `settlement-history-${format(new Date(), 'yyyy-MM-dd')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+
+    showSuccess('Settlement history exported successfully!')
+    console.log('✅ [EXPORT] Export complete')
+  }
+
   return (
     <div className="space-y-3">
       {/* ═══════════════════════════════════════════════════════════ */}
@@ -263,41 +310,20 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
 
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Cash Pulse</h1>
-          <p className="text-purple-300 text-xs mt-0.5">Cash flow tracking</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-            className="p-2 bg-purple-900/50 hover:bg-purple-900/70 text-white rounded-lg transition-colors disabled:opacity-50"
-            aria-label="Refresh data"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
-          <button
-            onClick={handleExportCSV}
-            className="p-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-            aria-label="Export CSV"
-          >
-            <Download className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+        <h1 className="text-2xl font-bold text-white">See how much you have!</h1>
 
-      {/* Date Range Filter */}
-      <div className="flex items-center gap-2">
-        <label className="text-purple-300 text-xs">Period:</label>
-        <select
-          value={dateRange}
-          onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | 'year')}
-          className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-        >
-          <option value="month">This Month</option>
-          <option value="3months">Last 3 Months</option>
-          <option value="year">This Year</option>
-        </select>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Period:</span>
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | 'year')}
+            className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="month">This Month</option>
+            <option value="3months">Last 3 Months</option>
+            <option value="year">This Year</option>
+          </select>
+        </div>
       </div>
 
       {/* Total Cash Balance */}
@@ -524,7 +550,18 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
               <span className="text-2xl">📋</span>
               <h3 className="text-sm font-semibold text-white">SETTLEMENT HISTORY</h3>
             </div>
-            <span className="text-xs text-muted-foreground">Last 10 settlements</span>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Showing {Math.min(visibleSettlements, settlementHistory.length)} of {settlementHistory.length}</span>
+              <button
+                onClick={handleExportSettlements}
+                className="px-3 py-1.5 bg-purple-500 text-white rounded-md text-xs font-medium flex items-center gap-1 hover:bg-purple-600 transition-colors"
+                type="button"
+              >
+                <Download className="w-3 h-3" />
+                Export
+              </button>
+            </div>
           </div>
 
           {settlementHistory.length > 0 ? (

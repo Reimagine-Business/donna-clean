@@ -254,7 +254,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
       <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
         <div className="flex-1 p-4 md:p-6">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold">Entries</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Record what happened today!</h1>
           </div>
           <NoEntries onAddEntry={() => setShowCreateModal(true)} />
         </div>
@@ -286,7 +286,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Entries</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Record what happened today!</h1>
             <p className="text-sm text-purple-300 mt-1">
               {filteredEntries.length} {filteredEntries.length === 1 ? 'entry' : 'entries'}
               {filters.type !== 'all' && ` • ${filters.type}`}
