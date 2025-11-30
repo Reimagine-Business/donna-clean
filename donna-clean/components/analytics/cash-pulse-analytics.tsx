@@ -214,7 +214,13 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
 
     setDeletingId(settlementId)
     try {
-      await deleteSettlement(settlementId)
+      const result = await deleteSettlement(settlementId)
+
+      if (!result.success) {
+        showError(result.error || 'Failed to delete settlement')
+        return
+      }
+
       showSuccess('Settlement deleted successfully!')
       router.refresh()
     } catch (error) {
