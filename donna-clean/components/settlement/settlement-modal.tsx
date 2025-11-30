@@ -3,13 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { X, Check } from "lucide-react";
+import { X, ArrowLeft } from "lucide-react";
 import { type Entry } from "@/app/entries/actions";
 import { createSettlement } from "@/app/settlements/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { showSuccess, showError } from "@/lib/toast";
 
 type SettlementType = 'credit-sales' | 'credit-bills' | 'advance-sales' | 'advance-expenses';
@@ -21,14 +20,11 @@ type SettlementModalProps = {
   onSuccess?: () => void;
 };
 
-type SelectedItem = {
-  entry: Entry;
-  amount: number;
-};
-
 export function SettlementModal({ type, pendingItems, onClose, onSuccess }: SettlementModalProps) {
   const router = useRouter();
-  const [selectedItems, setSelectedItems] = useState<Map<string, SelectedItem>>(new Map());
+  const [view, setView] = useState<'list' | 'details'>('list');
+  const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
+  const [settlementAmount, setSettlementAmount] = useState("");
   const [settlementDate, setSettlementDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [paymentMethod, setPaymentMethod] = useState<'Cash' | 'Bank'>('Cash');
   const [notes, setNotes] = useState("");
@@ -60,68 +56,62 @@ export function SettlementModal({ type, pendingItems, onClose, onSuccess }: Sett
     }
   };
 
-  const handleToggleItem = (entry: Entry, selected: boolean) => {
-    const newSelected = new Map(selectedItems);
-    if (selected) {
-      const remainingAmount = entry.remaining_amount ?? entry.amount;
-      newSelected.set(entry.id, { entry, amount: remainingAmount });
-    } else {
-      newSelected.delete(entry.id);
-    }
-    setSelectedItems(newSelected);
+  const handleSelectItem = (entry: Entry) => {
+    setSelectedEntry(entry);
+    const remainingAmount = entry.remaining_amount ?? entry.amount;
+    setSettlementAmount(remainingAmount.toString());
+    setView('details');
   };
 
-  const handleAmountChange = (entryId: string, newAmount: string) => {
-    const amount = parseFloat(newAmount) || 0;
-    const item = selectedItems.get(entryId);
-    if (item) {
-      const newSelected = new Map(selectedItems);
-      newSelected.set(entryId, { ...item, amount });
-      setSelectedItems(newSelected);
-    }
+  const handleBackToList = () => {
+    setView('list');
+    setSelectedEntry(null);
+    setSettlementAmount("");
+    setNotes("");
   };
-
-  const totalAmount = Array.from(selectedItems.values()).reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
 
   const handleSettle = async () => {
-    if (selectedItems.size === 0) {
-      showError("Please select at least one item to settle");
+    if (!selectedEntry) return;
+
+    const amount = parseFloat(settlementAmount) || 0;
+    if (amount <= 0) {
+      showError("Please enter a valid settlement amount");
+      return;
+    }
+
+    const remainingAmount = selectedEntry.remaining_amount ?? selectedEntry.amount;
+    if (amount > remainingAmount) {
+      showError("Settlement amount cannot exceed remaining amount");
       return;
     }
 
     setIsSaving(true);
 
     try {
-      const results = await Promise.all(
-        Array.from(selectedItems.values()).map(({ entry, amount }) =>
-          createSettlement(entry.id, amount, settlementDate)
-        )
-      );
+      const result = await createSettlement(selectedEntry.id, amount, settlementDate);
 
-      const failedCount = results.filter(r => !r.success).length;
-
-      if (failedCount > 0) {
-        showError(`${failedCount} item(s) failed to settle. Please check and try again.`);
+      if (!result.success) {
+        showError(result.error || "Failed to settle item");
       } else {
-        showSuccess(`${selectedItems.size} item(s) settled successfully!`);
+        showSuccess("Item settled successfully!");
+        handleBackToList();
         onSuccess?.();
         onClose();
         router.refresh();
       }
     } catch (error) {
       console.error("Settlement failed:", error);
-      showError("Failed to settle items");
+      showError("Failed to settle item");
     } finally {
       setIsSaving(false);
     }
   };
 
+  const isCredit = type === 'credit-sales' || type === 'credit-bills';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 overflow-y-auto py-8">
-      <div className="w-full max-w-3xl rounded-2xl border border-border bg-slate-950 shadow-2xl">
+      <div className="w-full max-w-2xl rounded-2xl border border-border bg-slate-950 shadow-2xl">
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-border">
           <div>
@@ -139,173 +129,186 @@ export function SettlementModal({ type, pendingItems, onClose, onSuccess }: Sett
 
         {/* Content */}
         <div className="p-6 max-h-[60vh] overflow-y-auto">
-          {pendingItems.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No pending items to settle
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {pendingItems.map((entry) => {
-                const remainingAmount = entry.remaining_amount ?? entry.amount;
-                const isSelected = selectedItems.has(entry.id);
-                const selectedItem = selectedItems.get(entry.id);
+          {view === 'list' ? (
+            // LIST VIEW
+            pendingItems.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No pending items to settle
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {pendingItems.map((entry) => {
+                  const remainingAmount = entry.remaining_amount ?? entry.amount;
 
-                return (
-                  <div
-                    key={entry.id}
-                    className={`p-4 rounded-lg border transition-colors ${
-                      isSelected
-                        ? 'border-purple-500 bg-purple-500/10'
-                        : 'border-border bg-card/50'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <Checkbox
-                        checked={isSelected}
-                        onCheckedChange={(checked) => handleToggleItem(entry, checked as boolean)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-semibold text-white">
-                                {entry.category}
-                              </span>
-                              <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded">
-                                {entry.entry_type}
-                              </span>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                              Entry Date: {format(new Date(entry.entry_date), 'dd MMM yyyy')}
-                            </p>
-                            {entry.notes && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Note: {entry.notes}
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="text-sm font-medium text-white">
-                              ₹{remainingAmount.toLocaleString('en-IN')}
-                            </p>
-                            {entry.remaining_amount !== entry.amount && (
-                              <p className="text-xs text-muted-foreground">
-                                of ₹{entry.amount.toLocaleString('en-IN')}
-                              </p>
-                            )}
-                          </div>
+                  return (
+                    <div
+                      key={entry.id}
+                      className="bg-muted/50 rounded-lg p-3 border border-border hover:border-purple-500/30 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-white">
+                            {entry.category}
+                          </span>
+                          <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded">
+                            {entry.entry_type}
+                          </span>
                         </div>
+                        <span className="text-lg font-bold text-white">
+                          ₹{remainingAmount.toLocaleString('en-IN')}
+                        </span>
+                      </div>
 
-                        {isSelected && (
-                          <div className="mt-3 p-3 bg-muted/30 rounded-lg">
-                            <Label className="text-xs text-muted-foreground mb-1">
-                              Settlement Amount
-                            </Label>
-                            <Input
-                              type="number"
-                              min={0}
-                              max={remainingAmount}
-                              step="0.01"
-                              value={selectedItem?.amount || ''}
-                              onChange={(e) => handleAmountChange(entry.id, e.target.value)}
-                              className="bg-card border-border text-white"
-                            />
+                      <div className="text-xs text-muted-foreground mb-3">
+                        <div>Entry Date: {format(new Date(entry.entry_date), 'dd MMM yyyy')}</div>
+                        {entry.notes && <div className="mt-1">Note: {entry.notes}</div>}
+                        {entry.remaining_amount !== entry.amount && (
+                          <div className="mt-1 text-purple-400">
+                            Remaining: ₹{remainingAmount.toLocaleString('en-IN')} of ₹{entry.amount.toLocaleString('en-IN')}
                           </div>
                         )}
                       </div>
+
+                      <button
+                        onClick={() => handleSelectItem(entry)}
+                        className="w-full px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
+                      >
+                        Settle This Item
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )
+          ) : (
+            // DETAILS VIEW
+            selectedEntry && (
+              <div className="space-y-3">
+                {/* Back Button */}
+                <button
+                  onClick={handleBackToList}
+                  disabled={isSaving}
+                  className="flex items-center gap-2 text-sm text-purple-400 hover:text-purple-300 transition-colors mb-3"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to List
+                </button>
+
+                {/* Selected Item Summary */}
+                <div className="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-white">
+                        {selectedEntry.category}
+                      </span>
+                      <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded">
+                        {selectedEntry.entry_type}
+                      </span>
+                    </div>
+                    <span className="text-xl font-bold text-white">
+                      ₹{(selectedEntry.remaining_amount ?? selectedEntry.amount).toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Entry Date: {format(new Date(selectedEntry.entry_date), 'dd MMM yyyy')}
+                  </div>
+                </div>
+
+                {/* Settlement Form */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1">Settlement Amount</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={selectedEntry.remaining_amount ?? selectedEntry.amount}
+                    step="0.01"
+                    value={settlementAmount}
+                    onChange={(e) => setSettlementAmount(e.target.value)}
+                    className="bg-card border-border text-white"
+                  />
+                </div>
+
+                {/* Date and Payment Method */}
+                {isCredit ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1">Settlement Date</Label>
+                      <Input
+                        type="date"
+                        value={settlementDate}
+                        max={format(new Date(), "yyyy-MM-dd")}
+                        onChange={(e) => setSettlementDate(e.target.value)}
+                        className="bg-card border-border text-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1">Payment Method</Label>
+                      <select
+                        value={paymentMethod}
+                        onChange={(e) => setPaymentMethod(e.target.value as 'Cash' | 'Bank')}
+                        className="w-full px-3 py-2 bg-card border border-border rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="Cash">Cash</option>
+                        <option value="Bank">Bank</option>
+                      </select>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                ) : (
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1">Settlement Date</Label>
+                    <Input
+                      type="date"
+                      value={settlementDate}
+                      max={format(new Date(), "yyyy-MM-dd")}
+                      onChange={(e) => setSettlementDate(e.target.value)}
+                      className="bg-card border-border text-white"
+                    />
+                  </div>
+                )}
+
+                {/* Notes */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1">Notes (Optional)</Label>
+                  <Input
+                    type="text"
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Add any additional notes..."
+                    className="bg-card border-border text-white"
+                  />
+                </div>
+
+                {/* Summary */}
+                <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Amount to Settle:</span>
+                    <span className="text-lg font-bold text-purple-400">
+                      ₹{parseFloat(settlementAmount || "0").toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Settle Button */}
+                <Button
+                  onClick={handleSettle}
+                  disabled={isSaving || !settlementAmount || parseFloat(settlementAmount) <= 0}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {isSaving ? "Settling..." : "Settle Now"}
+                </Button>
+              </div>
+            )
           )}
         </div>
 
-        {/* Settlement Details */}
-        {selectedItems.size > 0 && (
-          <div className="p-6 border-t border-border bg-muted/20">
-            <h3 className="text-sm font-semibold text-white mb-4">Settlement Details</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1">Settlement Date</Label>
-                <Input
-                  type="date"
-                  value={settlementDate}
-                  max={format(new Date(), "yyyy-MM-dd")}
-                  onChange={(e) => setSettlementDate(e.target.value)}
-                  className="bg-card border-border text-white"
-                />
-              </div>
-
-              {(type === 'credit-sales' || type === 'credit-bills') && (
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1">Payment Method</Label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value as 'Cash' | 'Bank')}
-                    className="w-full px-3 py-2 bg-card border border-border rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option value="Cash">Cash</option>
-                    <option value="Bank">Bank</option>
-                  </select>
-                </div>
-              )}
-            </div>
-
-            <div className="mb-4">
-              <Label className="text-xs text-muted-foreground mb-1">Notes (Optional)</Label>
-              <Input
-                type="text"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Add any additional notes..."
-                className="bg-card border-border text-white"
-              />
-            </div>
-
-            {/* Summary */}
-            <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Total Selected Items:</span>
-                <span className="text-sm font-semibold text-white">{selectedItems.size}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Amount to Settle:</span>
-                <span className="text-lg font-bold text-purple-400">
-                  ₹{totalAmount.toLocaleString('en-IN')}
-                </span>
-              </div>
-            </div>
+        {/* Footer - Only show in list view */}
+        {view === 'list' && pendingItems.length > 0 && (
+          <div className="p-4 border-t border-border">
+            <p className="text-xs text-center text-muted-foreground">
+              Select an item above to settle it
+            </p>
           </div>
         )}
-
-        {/* Footer */}
-        <div className="p-6 border-t border-border flex justify-end gap-3">
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            disabled={isSaving}
-            className="text-foreground/70 hover:text-white"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSettle}
-            disabled={isSaving || selectedItems.size === 0}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isSaving ? (
-              "Settling..."
-            ) : (
-              <>
-                <Check className="w-4 h-4 mr-2" />
-                Settle Selected ({selectedItems.size})
-              </>
-            )}
-          </Button>
-        </div>
       </div>
     </div>
   );

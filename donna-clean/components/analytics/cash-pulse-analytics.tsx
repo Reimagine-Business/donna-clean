@@ -327,9 +327,9 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
         </div>
       </div>
 
-      {/* Payment Method Breakdown */}
+      {/* Balances */}
       <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-3">
-        <h3 className="text-sm font-semibold text-white mb-2">Payment Method Breakdown</h3>
+        <h3 className="text-sm font-semibold text-white mb-2">Balances</h3>
 
         {/* Cash */}
         <div className="space-y-1 mb-2">
@@ -369,11 +369,10 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
         <div className="bg-card rounded-lg p-4 border-l-4 border-orange-500">
           <div className="flex items-start justify-between">
             <div className="w-full">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">💰</span>
                 <h3 className="text-sm font-semibold text-white">PENDING COLLECTIONS</h3>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Credit Sales to collect</p>
 
               {pendingCollections.count > 0 ? (
                 <div className="space-y-1">
@@ -406,11 +405,10 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
         <div className="bg-card rounded-lg p-4 border-l-4 border-red-500">
           <div className="flex items-start justify-between">
             <div className="w-full">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">💸</span>
                 <h3 className="text-sm font-semibold text-white">PENDING BILLS</h3>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Credit expenses to pay</p>
 
               {pendingBills.count > 0 ? (
                 <div className="space-y-1">
@@ -443,11 +441,10 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
         <div className="bg-card rounded-lg p-4 border-l-4 border-purple-500">
           <div className="flex items-start justify-between">
             <div className="w-full">
-              <div className="flex items-center gap-2 mb-2">
+              <div className="flex items-center gap-2 mb-3">
                 <span className="text-2xl">⏰</span>
                 <h3 className="text-sm font-semibold text-white">ADVANCE</h3>
               </div>
-              <p className="text-xs text-muted-foreground mb-3">Prepayments pending delivery</p>
 
               {(advance.received.count > 0 || advance.paid.count > 0) ? (
                 <div className="space-y-2">
