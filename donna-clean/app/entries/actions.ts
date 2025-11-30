@@ -438,6 +438,23 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
   return { success: true, error: null }
 }
 
+/**
+ * Deletes an entry and reverses ALL impacts on dashboards.
+ *
+ * For settled Credit entries:
+ * - Deletes the original Credit entry
+ * - Also deletes the Cash IN/OUT settlement entry that was created
+ * - Reverses impacts on: Cash Pulse, Profit Lens, Pending boxes, Settlement History
+ *
+ * For settled Advance entries:
+ * - Deletes the original Advance entry
+ * - No settlement entry to delete (Advance doesn't create new entry on settlement)
+ * - Reverses impacts on: Cash Pulse, Profit Lens, Advance boxes, Settlement History
+ *
+ * For unsettled entries:
+ * - Simply deletes the entry
+ * - Reverses impacts on: Cash Pulse (for Cash/Advance), Profit Lens, Pending boxes
+ */
 export async function deleteEntry(id: string) {
   const supabase = await createSupabaseServerClient()
   const { user } = await getOrRefreshUser(supabase)
@@ -446,6 +463,45 @@ export async function deleteEntry(id: string) {
     return { success: false, error: "Not authenticated" }
   }
 
+  // First, get the entry to check if it's settled and its type
+  const { data: entry, error: fetchError } = await supabase
+    .from('entries')
+    .select('id, user_id, entry_type, category, settled, amount')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .single()
+
+  if (fetchError || !entry) {
+    console.error('Failed to fetch entry for deletion:', fetchError)
+    return { success: false, error: 'Entry not found or no longer accessible' }
+  }
+
+  // If entry is settled, we need to handle associated settlement entries
+  if (entry.settled) {
+    // For Credit entries, delete the Cash IN/OUT settlement entry
+    if (entry.entry_type === 'Credit') {
+      // Find and delete the settlement Cash entry
+      // It will have notes like "Settlement of credit sales (original_entry_id)"
+      const settlementNotePattern = `Settlement of credit ${entry.category.toLowerCase()} (${id})`;
+
+      const { error: deleteSettlementError } = await supabase
+        .from('entries')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('notes', settlementNotePattern);
+
+      if (deleteSettlementError) {
+        console.error('Failed to delete settlement entry:', deleteSettlementError)
+        // Continue anyway - we'll still delete the original entry
+      } else {
+        console.log(`✅ Deleted associated settlement entry for Credit ${entry.category}`)
+      }
+    }
+    // For Advance entries, no settlement entry to delete (just marks as settled)
+    // So we only need to delete the original entry
+  }
+
+  // Now delete the original entry
   const { error } = await supabase
     .from('entries')
     .delete()
