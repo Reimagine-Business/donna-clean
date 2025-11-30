@@ -160,7 +160,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
     <div className="space-y-3">
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">See what you earned!</h1>
+        <h1 className="text-2xl font-bold text-white">Check what you Earned!</h1>
 
         {/* Period Dropdown */}
         <div className="flex items-center gap-2">
