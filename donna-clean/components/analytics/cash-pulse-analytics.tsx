@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Download, RefreshCw } from 'lucide-react'
+import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Download, RefreshCw, Trash2 } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
 import { type Entry } from '@/app/entries/actions'
 import {
@@ -12,7 +12,8 @@ import {
   getMonthlyComparison,
   getEntryCount,
 } from '@/lib/analytics-new'
-import { showSuccess } from '@/lib/toast'
+import { showSuccess, showError } from '@/lib/toast'
+import { deleteSettlement } from '@/app/settlements/actions'
 
 interface CashPulseAnalyticsProps {
   entries: Entry[]
@@ -46,6 +47,7 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
   const router = useRouter()
   const [dateRange, setDateRange] = useState<'month' | '3months' | 'year'>('month')
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     router.refresh()
@@ -103,6 +105,64 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
   const cashPercentage = totalPayment > 0 ? (cashAmount / totalPayment) * 100 : 0
   const bankPercentage = totalPayment > 0 ? (bankAmount / totalPayment) * 100 : 0
 
+  // Calculate Pending Collections (Credit Sales to collect)
+  const pendingCollections = useMemo(() => {
+    const pending = entries.filter(e =>
+      e.entry_type === 'Credit' &&
+      e.category === 'Sales' &&
+      !e.settled
+    )
+    return {
+      count: pending.length,
+      amount: pending.reduce((sum, e) => sum + e.amount, 0)
+    }
+  }, [entries])
+
+  // Calculate Pending Bills (Credit expenses to pay)
+  const pendingBills = useMemo(() => {
+    const pending = entries.filter(e =>
+      e.entry_type === 'Credit' &&
+      ['COGS', 'Opex', 'Assets'].includes(e.category) &&
+      !e.settled
+    )
+    return {
+      count: pending.length,
+      amount: pending.reduce((sum, e) => sum + e.amount, 0)
+    }
+  }, [entries])
+
+  // Calculate Advance (Received and Paid)
+  const advance = useMemo(() => {
+    const received = entries.filter(e =>
+      e.entry_type === 'Advance' &&
+      e.category === 'Sales' &&
+      !e.settled
+    )
+    const paid = entries.filter(e =>
+      e.entry_type === 'Advance' &&
+      ['COGS', 'Opex', 'Assets'].includes(e.category) &&
+      !e.settled
+    )
+    return {
+      received: {
+        count: received.length,
+        amount: received.reduce((sum, e) => sum + e.amount, 0)
+      },
+      paid: {
+        count: paid.length,
+        amount: paid.reduce((sum, e) => sum + e.amount, 0)
+      }
+    }
+  }, [entries])
+
+  // Get Settlement History (last 10 settlements)
+  const settlementHistory = useMemo(() => {
+    return entries
+      .filter(e => e.notes && e.notes.startsWith('Settlement of'))
+      .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
+      .slice(0, 10)
+  }, [entries])
+
   const handleRefresh = async () => {
     setIsRefreshing(true)
     router.refresh()
@@ -139,8 +199,30 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
     showSuccess('Exported to CSV successfully!')
   }
 
+  const handleDeleteSettlement = async (settlementId: string) => {
+    if (!confirm('Are you sure you want to delete this settlement? The original entry will be marked as unsettled.')) {
+      return
+    }
+
+    setDeletingId(settlementId)
+    try {
+      await deleteSettlement(settlementId)
+      showSuccess('Settlement deleted successfully!')
+      router.refresh()
+    } catch (error) {
+      console.error('Failed to delete settlement:', error)
+      showError('Failed to delete settlement')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   return (
     <div className="space-y-3">
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* COMPACT MAIN VIEW (Visible in one viewport) */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+
       {/* Header with Actions */}
       <div className="flex items-center justify-between">
         <div>
@@ -267,6 +349,193 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
           <div className="w-full bg-purple-900/30 rounded-full h-2">
             <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${bankPercentage}%` }}></div>
           </div>
+        </div>
+      </div>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* SETTLEMENT SECTIONS (Below main view - scroll to see) */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+
+      <div className="space-y-3 mt-4">
+        {/* PENDING COLLECTIONS */}
+        <div className="bg-card rounded-lg p-4 border-l-4 border-orange-500">
+          <div className="flex items-start justify-between">
+            <div className="w-full">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">💰</span>
+                <h3 className="text-sm font-semibold text-white">PENDING COLLECTIONS</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">Credit Sales to collect</p>
+
+              {pendingCollections.count > 0 ? (
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">No of Pending:</span>
+                    <span className="text-sm font-medium text-white">{pendingCollections.count}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">Amount to Collect:</span>
+                    <span className="text-sm font-bold text-orange-500">{formatCurrency(pendingCollections.amount)}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No pending collections</p>
+              )}
+            </div>
+          </div>
+
+          {pendingCollections.count > 0 && (
+            <button
+              onClick={() => router.push('/entries?filter=pending-collections')}
+              className="w-full mt-3 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              Settle Collections →
+            </button>
+          )}
+        </div>
+
+        {/* PENDING BILLS */}
+        <div className="bg-card rounded-lg p-4 border-l-4 border-red-500">
+          <div className="flex items-start justify-between">
+            <div className="w-full">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">💸</span>
+                <h3 className="text-sm font-semibold text-white">PENDING BILLS</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">Credit expenses to pay</p>
+
+              {pendingBills.count > 0 ? (
+                <div className="space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">No of Pending:</span>
+                    <span className="text-sm font-medium text-white">{pendingBills.count}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">Amount to Pay:</span>
+                    <span className="text-sm font-bold text-red-500">{formatCurrency(pendingBills.amount)}</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No pending bills</p>
+              )}
+            </div>
+          </div>
+
+          {pendingBills.count > 0 && (
+            <button
+              onClick={() => router.push('/entries?filter=pending-bills')}
+              className="w-full mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              Settle Bills →
+            </button>
+          )}
+        </div>
+
+        {/* ADVANCE */}
+        <div className="bg-card rounded-lg p-4 border-l-4 border-purple-500">
+          <div className="flex items-start justify-between">
+            <div className="w-full">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-2xl">⏰</span>
+                <h3 className="text-sm font-semibold text-white">ADVANCE</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">Prepayments pending delivery</p>
+
+              {(advance.received.count > 0 || advance.paid.count > 0) ? (
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">Received (Sales):</span>
+                    <span className="text-sm font-medium text-white">
+                      {formatCurrency(advance.received.amount)}
+                      <span className="text-xs text-muted-foreground ml-1">({advance.received.count} pending)</span>
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-muted-foreground">Paid (Expenses):</span>
+                    <span className="text-sm font-medium text-white">
+                      {formatCurrency(advance.paid.amount)}
+                      <span className="text-xs text-muted-foreground ml-1">({advance.paid.count} pending)</span>
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No pending advance payments</p>
+              )}
+            </div>
+          </div>
+
+          {(advance.received.count > 0 || advance.paid.count > 0) && (
+            <button
+              onClick={() => router.push('/entries?filter=pending-advance')}
+              className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
+            >
+              Settle Advance →
+            </button>
+          )}
+        </div>
+
+        {/* SETTLEMENT HISTORY */}
+        <div className="bg-card rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">📋</span>
+              <h3 className="text-sm font-semibold text-white">SETTLEMENT HISTORY</h3>
+            </div>
+            <span className="text-xs text-muted-foreground">Last 10 settlements</span>
+          </div>
+
+          {settlementHistory.length > 0 ? (
+            <div className="space-y-2">
+              {settlementHistory.map((settlement) => {
+                // Parse the original entry info from notes
+                const originalEntryMatch = settlement.notes?.match(/Settlement of (.*?) \(ID: (.*?)\)/)
+                const entryType = originalEntryMatch?.[1] || 'Unknown'
+
+                return (
+                  <div key={settlement.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
+                          settlement.entry_type === 'Cash IN'
+                            ? 'bg-green-500/20 text-green-500'
+                            : 'bg-red-500/20 text-red-500'
+                        }`}>
+                          {entryType}
+                        </span>
+                        <span className="text-sm font-medium text-white">{formatCurrency(settlement.amount)}</span>
+                        <span className="text-xs text-muted-foreground">{settlement.category}</span>
+                      </div>
+                      <div className="flex gap-3 text-xs text-muted-foreground">
+                        <span>Entry: {format(new Date(settlement.entry_date), 'dd MMM yyyy')}</span>
+                        {settlement.created_at && (
+                          <span>Settled: {format(new Date(settlement.created_at), 'dd MMM yyyy')}</span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteSettlement(settlement.id)}
+                      disabled={deletingId === settlement.id}
+                      className="p-2 text-red-500 hover:bg-red-500/10 rounded-md transition-colors disabled:opacity-50"
+                      aria-label="Delete settlement"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No settlement history</p>
+          )}
+
+          {settlementHistory.length >= 10 && (
+            <button
+              onClick={() => router.push('/settlements')}
+              className="w-full mt-3 px-4 py-2 border border-border rounded-md text-sm font-medium text-white hover:bg-muted/50 transition-colors"
+            >
+              Load More
+            </button>
+          )}
         </div>
       </div>
     </div>
