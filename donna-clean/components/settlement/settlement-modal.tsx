@@ -43,19 +43,6 @@ export function SettlementModal({ type, pendingItems, onClose, onSuccess }: Sett
     }
   };
 
-  const getDescription = () => {
-    switch (type) {
-      case 'credit-sales':
-        return 'Select Credit Sales to collect. This will create Cash IN entries and mark items as settled.';
-      case 'credit-bills':
-        return 'Select Credit Bills to pay. This will create Cash OUT entries and mark items as settled.';
-      case 'advance-sales':
-        return 'Select Advance Sales to recognize as revenue. This will NOT create new cash entries (already counted).';
-      case 'advance-expenses':
-        return 'Select Advance Expenses to recognize. This will NOT create new cash entries (already counted).';
-    }
-  };
-
   const handleSelectItem = (entry: Entry) => {
     setSelectedEntry(entry);
     const remainingAmount = entry.remaining_amount ?? entry.amount;
@@ -114,10 +101,7 @@ export function SettlementModal({ type, pendingItems, onClose, onSuccess }: Sett
       <div className="w-full max-w-2xl rounded-2xl border border-border bg-slate-950 shadow-2xl">
         {/* Header */}
         <div className="flex items-start justify-between p-6 border-b border-border">
-          <div>
-            <h2 className="text-2xl font-bold text-white">{getModalTitle()}</h2>
-            <p className="text-sm text-muted-foreground mt-1">{getDescription()}</p>
-          </div>
+          <h2 className="text-2xl font-bold text-white">{getModalTitle()}</h2>
           <button
             onClick={onClose}
             disabled={isSaving}
