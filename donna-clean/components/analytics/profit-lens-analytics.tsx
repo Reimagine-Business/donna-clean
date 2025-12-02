@@ -26,7 +26,7 @@ function formatCurrency(amount: number): string {
 
 export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   const router = useRouter()
-  const [dateRange, setDateRange] = useState<'month' | '3months' | '6months' | 'all'>('month')
+  const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time'>('this-month')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   // Log received data
@@ -55,28 +55,41 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
 
   // Calculate date ranges
   const { startDate, endDate } = useMemo(() => {
-    // If 'all' is selected, don't apply any date filters
-    if (dateRange === 'all') {
-      console.log('📅 [PROFIT_LENS_COMPONENT] Date range: ALL TIME (no filters)')
-      return { startDate: undefined, endDate: undefined }
+    const now = new Date()
+    const currentYear = now.getFullYear()
+
+    switch (dateRange) {
+      case 'this-month':
+        return {
+          startDate: startOfMonth(now),
+          endDate: endOfMonth(now)
+        }
+      case 'last-month':
+        return {
+          startDate: startOfMonth(subMonths(now, 1)),
+          endDate: endOfMonth(subMonths(now, 1))
+        }
+      case 'this-year':
+        return {
+          startDate: new Date(currentYear, 0, 1),
+          endDate: now
+        }
+      case 'last-year':
+        return {
+          startDate: new Date(currentYear - 1, 0, 1),
+          endDate: new Date(currentYear - 1, 11, 31)
+        }
+      case 'all-time':
+        return {
+          startDate: undefined,
+          endDate: undefined
+        }
+      default:
+        return {
+          startDate: startOfMonth(now),
+          endDate: endOfMonth(now)
+        }
     }
-
-    const end = endOfMonth(new Date())
-    let start = startOfMonth(new Date())
-
-    if (dateRange === '3months') {
-      start = startOfMonth(subMonths(new Date(), 2))
-    } else if (dateRange === '6months') {
-      start = startOfMonth(subMonths(new Date(), 5))
-    }
-
-    console.log('📅 [PROFIT_LENS_COMPONENT] Date range calculated:', {
-      range: dateRange,
-      startDate: start.toISOString(),
-      endDate: end.toISOString(),
-    })
-
-    return { startDate: start, endDate: end }
   }, [dateRange])
 
   // Calculate metrics
@@ -167,13 +180,14 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
           <span className="text-sm text-muted-foreground">Period:</span>
           <select
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | '6months' | 'all')}
+            onChange={(e) => setDateRange(e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time')}
             className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value="month">This Month</option>
-            <option value="3months">Last 3 Months</option>
-            <option value="6months">Last 6 Months</option>
-            <option value="all">All Time</option>
+            <option value="this-month">This Month</option>
+            <option value="last-month">Last Month</option>
+            <option value="this-year">This Year</option>
+            <option value="last-year">Last Year</option>
+            <option value="all-time">All Time</option>
           </select>
         </div>
       </div>
