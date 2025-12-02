@@ -44,15 +44,17 @@ export default async function DailyEntriesPage() {
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
-      <div className="flex flex-col">
+      <div className="flex flex-col min-h-screen">
         <SiteHeader />
         <TopNavMobile />
-        <section className="px-4 pb-12 md:px-8">
+
+        <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
           <div className="mx-auto w-full max-w-6xl">
             <DailyEntriesShell initialEntries={entries} userId={user.id} />
           </div>
         </section>
       </div>
+
       <BottomNav />
     </main>
   );

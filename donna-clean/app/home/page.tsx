@@ -46,16 +46,12 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="flex flex-col">
-        {/* Desktop Header */}
+    <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
+      <div className="flex flex-col min-h-screen">
         <SiteHeader />
-
-        {/* Mobile Header */}
         <TopNavMobile />
 
-        {/* Main Content */}
-        <section className="px-4 pb-24 md:px-8 md:pb-8">
+        <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
           <div className="mx-auto w-full max-w-6xl">
             <HomeShell
               initialReminders={reminders || []}
@@ -64,10 +60,9 @@ export default async function HomePage() {
             />
           </div>
         </section>
-
-        {/* Bottom Navigation */}
-        <BottomNav />
       </div>
+
+      <BottomNav />
     </main>
   );
 }
