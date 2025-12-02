@@ -10,6 +10,9 @@ import { EntryListSkeleton } from '@/components/skeletons/entry-skeleton'
 import { NoEntries } from '@/components/empty-states/no-entries'
 import { ErrorState } from '@/components/ui/error-state'
 import { showSuccess, showError } from '@/lib/toast'
+import { SiteHeader } from '@/components/site-header'
+import { TopNavMobile } from '@/components/navigation/top-nav-mobile'
+import { BottomNav } from '@/components/navigation/bottom-nav'
 
 interface EntriesShellProps {
   initialEntries: Entry[]
@@ -236,27 +239,43 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
   // Show error state
   if (error && entries.length === 0) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
-        <div className="flex-1 p-4 md:p-6">
-          <ErrorState
-            title="Failed to load entries"
-            message={error}
-            onRetry={handleRefresh}
-          />
+      <main className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
+        <div className="flex flex-col min-h-screen">
+          <SiteHeader />
+          <TopNavMobile />
+
+          <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
+            <div className="mx-auto w-full max-w-6xl">
+              <ErrorState
+                title="Failed to load entries"
+                message={error}
+                onRetry={handleRefresh}
+              />
+            </div>
+          </section>
         </div>
-      </div>
+
+        <BottomNav />
+      </main>
     )
   }
 
   // Show empty state
   if (!loading && entries.length === 0) {
     return (
-      <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
-        <div className="flex-1 p-4 md:p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl md:text-3xl font-bold">Record what happen!</h1>
-          </div>
-          <NoEntries onAddEntry={() => setShowCreateModal(true)} />
+      <main className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
+        <div className="flex flex-col min-h-screen">
+          <SiteHeader />
+          <TopNavMobile />
+
+          <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
+            <div className="mx-auto w-full max-w-6xl">
+              <div className="flex items-center justify-between mb-6">
+                <h1 className="text-2xl md:text-3xl font-bold">Record what happen!</h1>
+              </div>
+              <NoEntries onAddEntry={() => setShowCreateModal(true)} />
+            </div>
+          </section>
         </div>
 
         {/* Floating Action Button */}
@@ -276,14 +295,21 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
             onClose={() => setShowCreateModal(false)}
           />
         )}
-      </div>
+
+        <BottomNav />
+      </main>
     )
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
-      <div className="flex-1 p-4 md:p-6 space-y-6">
-        {/* Header */}
+    <main className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
+      <div className="flex flex-col min-h-screen">
+        <SiteHeader />
+        <TopNavMobile />
+
+        <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
+          <div className="mx-auto w-full max-w-6xl space-y-6">
+            {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">Record what happen!</h1>
@@ -429,6 +455,8 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
             </button>
           </div>
         )}
+          </div>
+        </section>
       </div>
 
       {/* Floating Action Button */}
@@ -448,6 +476,8 @@ export function EntriesShell({ initialEntries, categories, error: initialError }
           onClose={() => setShowCreateModal(false)}
         />
       )}
-    </div>
+
+      <BottomNav />
+    </main>
   )
 }
