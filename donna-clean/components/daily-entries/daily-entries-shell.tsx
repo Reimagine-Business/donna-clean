@@ -21,7 +21,7 @@ import {
   type PaymentMethod,
   normalizeEntry,
 } from "@/lib/entries";
-import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
+import { SettleEntryDialog } from "@/components/settlements/settle-entry-dialog";
 import { addEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/daily-entries/actions";
 import { showError, showWarning } from "@/lib/toast";
 
