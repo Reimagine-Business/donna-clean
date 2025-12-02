@@ -48,7 +48,7 @@ type SettlementModalType = 'credit-sales' | 'credit-bills' | 'advance-sales' | '
 
 export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
   const router = useRouter()
-  const [dateRange, setDateRange] = useState<'month' | '3months' | 'year'>('month')
+  const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time'>('this-month')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [settlementModalType, setSettlementModalType] = useState<SettlementModalType>(null)
@@ -59,16 +59,42 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
   }, [router])
 
   const { startDate, endDate } = useMemo(() => {
-    const end = endOfMonth(new Date())
-    let start = startOfMonth(new Date())
+    const now = new Date()
+    const currentYear = now.getFullYear()
+    const currentMonth = now.getMonth()
 
-    if (dateRange === '3months') {
-      start = startOfMonth(subMonths(new Date(), 2))
-    } else if (dateRange === 'year') {
-      start = startOfMonth(subMonths(new Date(), 11))
+    switch (dateRange) {
+      case 'this-month':
+        return {
+          startDate: startOfMonth(now),
+          endDate: endOfMonth(now)
+        }
+      case 'last-month':
+        return {
+          startDate: startOfMonth(subMonths(now, 1)),
+          endDate: endOfMonth(subMonths(now, 1))
+        }
+      case 'this-year':
+        return {
+          startDate: new Date(currentYear, 0, 1),
+          endDate: now
+        }
+      case 'last-year':
+        return {
+          startDate: new Date(currentYear - 1, 0, 1),
+          endDate: new Date(currentYear - 1, 11, 31)
+        }
+      case 'all-time':
+        return {
+          startDate: new Date(2000, 0, 1),
+          endDate: now
+        }
+      default:
+        return {
+          startDate: startOfMonth(now),
+          endDate: endOfMonth(now)
+        }
     }
-
-    return { startDate: start, endDate: end }
   }, [dateRange])
 
   const cashBalance = useMemo(() => calculateCashBalance(entries), [entries])
@@ -316,12 +342,14 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
           <span className="text-sm text-muted-foreground">Period:</span>
           <select
             value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as 'month' | '3months' | 'year')}
+            onChange={(e) => setDateRange(e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time')}
             className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
-            <option value="month">This Month</option>
-            <option value="3months">Last 3 Months</option>
-            <option value="year">This Year</option>
+            <option value="this-month">This Month</option>
+            <option value="last-month">Last Month</option>
+            <option value="this-year">This Year</option>
+            <option value="last-year">Last Year</option>
+            <option value="all-time">All Time</option>
           </select>
         </div>
       </div>
