@@ -76,6 +76,30 @@ const entryTypeIsCredit = (type: EntryType): boolean => type === "Credit";
 const entryTypeRequiresCashMovement = (type: EntryType): boolean =>
   type === "Cash IN" || type === "Cash OUT" || type === "Advance";
 
+// Get valid categories for an entry type
+const getValidCategories = (entryType: EntryType): readonly CategoryType[] => {
+  if (entryType === "Cash IN") {
+    return ["Sales"] as const;
+  }
+  if (entryType === "Cash OUT") {
+    return ["COGS", "Opex", "Assets"] as const;
+  }
+  // Credit and Advance allow all categories
+  return CATEGORIES;
+};
+
+// Check if a category is valid for an entry type
+const isCategoryValid = (entryType: EntryType, category: CategoryType): boolean => {
+  const validCategories = getValidCategories(entryType);
+  return validCategories.includes(category);
+};
+
+// Get the first valid category for an entry type
+const getDefaultCategoryForEntryType = (entryType: EntryType): CategoryType => {
+  const validCategories = getValidCategories(entryType);
+  return validCategories[0];
+};
+
 const enforcePaymentMethodForType = (
   entryType: EntryType,
   paymentMethod: PaymentMethod,
@@ -137,11 +161,20 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   ) => {
     if (name === "entry_type") {
       const nextEntryType = value as EntryType;
-      setFormValues((prev) => ({
-        ...prev,
-        entry_type: nextEntryType,
-        payment_method: enforcePaymentMethodForType(nextEntryType, prev.payment_method),
-      }));
+      setFormValues((prev) => {
+        // Check if current category is valid for the new entry type
+        const currentCategoryValid = isCategoryValid(nextEntryType, prev.category);
+        const newCategory = currentCategoryValid
+          ? prev.category
+          : getDefaultCategoryForEntryType(nextEntryType);
+
+        return {
+          ...prev,
+          entry_type: nextEntryType,
+          category: newCategory,
+          payment_method: enforcePaymentMethodForType(nextEntryType, prev.payment_method),
+        };
+      });
       setPaymentMethodError(null);
       return;
     }
@@ -427,6 +460,15 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         ? "This entry type requires actual payment"
         : "Use Cash or Bank to match how money moved";
 
+    // Get valid categories for current entry type
+    const validCategories = getValidCategories(formValues.entry_type);
+    const categoryHelperText =
+      formValues.entry_type === "Cash IN"
+        ? "Cash IN entries must use Sales category"
+        : formValues.entry_type === "Cash OUT"
+          ? "Cash OUT entries must use expense categories (COGS, Opex, Assets)"
+          : "All categories available for Credit and Advance entries";
+
   return (
     <div className="flex flex-col gap-4 text-white">
       {/* Page Header */}
@@ -465,12 +507,21 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 }
                 className="w-full rounded-lg border border-border bg-secondary/50 px-3 py-1.5 md:py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
-                {CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
+                {CATEGORIES.map((category) => {
+                  const isValid = validCategories.includes(category);
+                  return (
+                    <option
+                      key={category}
+                      value={category}
+                      disabled={!isValid}
+                      className={!isValid ? "text-muted-foreground opacity-50" : ""}
+                    >
+                      {category}{!isValid ? " (not available)" : ""}
+                    </option>
+                  );
+                })}
               </select>
+              <p className="text-[10px] md:text-xs text-muted-foreground">{categoryHelperText}</p>
             </div>
             <div className="space-y-1.5 md:space-y-2">
               <Label className="text-xs md:text-sm uppercase text-muted-foreground">Payment Method</Label>
