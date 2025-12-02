@@ -27,16 +27,19 @@ export default async function DailyEntriesPage() {
 
   // Then continue with your queries using this supabase client
 
-  // Now fetch entries for this specific user
+  // Now fetch entries for this specific user with party information
   const { data, error } = await supabase
     .from("entries")
-    .select(
-      "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at",
-    )
+    .select(`
+      id, user_id, entry_type, category, payment_method, amount, remaining_amount,
+      entry_date, notes, image_url, settled, settled_at, created_at, party_id,
+      party:parties(name)
+    `)
     .eq("user_id", user.id)
-    .order("entry_date", { ascending: false });
+    .order("entry_date", { ascending: false })
+    .order("created_at", { ascending: false });
 
-  const entries: Entry[] = data?.map((entry) => normalizeEntry(entry)) ?? [];
+  const entries: Entry[] = data?.map((entry) => normalizeEntry(entry as any)) ?? [];
 
   if (error) {
     console.error('❌ [SERVER] Error fetching entries:', error);

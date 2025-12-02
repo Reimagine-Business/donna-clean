@@ -39,11 +39,14 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
   const isAdvance = entry.entry_type === "Advance";
   const canSettle = isCredit || isAdvance;
 
+  const partyName = entry.party?.name ||
+    (entry.category === "Sales" ? "Unknown Customer" : "Unknown Vendor");
+
   const modalTitle = isCredit && entry.category === "Sales"
-    ? "Settle Collection - Cash Inflow"
+    ? "Collect Payment"
     : isCredit
-      ? "Settle Bill - Cash Outflow"
-      : "Recognise Advance - Accrual Only";
+      ? "Pay Bill"
+      : "Recognise Advance";
 
   const handleConfirm = async () => {
     if (!canSettle) {
@@ -91,16 +94,22 @@ export function SettleEntryDialog({ entry, onClose }: SettleEntryDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
       <div className="w-full max-w-md rounded-2xl border border-border bg-slate-950 p-6 shadow-2xl">
-        <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Settle Entry</p>
-          <h3 className="text-2xl font-semibold text-white">{modalTitle}</h3>
-          <p className="text-sm text-muted-foreground">
-            Category: <span className="text-white">{entry.category}</span> · Amount:{" "}
-            <span className="text-white">₹{entry.amount.toLocaleString("en-IN")}</span>
+        <div className="space-y-2">
+          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">{modalTitle}</p>
+          {/* Party Name - Most Prominent */}
+          <div className="flex items-start justify-between">
+            <h3 className="text-2xl font-bold text-white">{partyName}</h3>
+            <span className="text-2xl font-bold text-white">
+              ₹{remainingAmount.toLocaleString("en-IN")}
+            </span>
+          </div>
+          {/* Secondary Info */}
+          <p className="text-sm text-gray-400">
+            {entry.entry_type} {entry.category} • {format(new Date(entry.entry_date), "dd MMM yyyy")}
           </p>
           {entry.remaining_amount !== undefined && entry.remaining_amount !== entry.amount && (
-            <p className="text-xs text-muted-foreground">
-              Remaining: ₹{remainingAmount.toLocaleString("en-IN")}
+            <p className="text-xs text-purple-400">
+              Remaining: ₹{remainingAmount.toLocaleString("en-IN")} of ₹{entry.amount.toLocaleString("en-IN")}
             </p>
           )}
         </div>

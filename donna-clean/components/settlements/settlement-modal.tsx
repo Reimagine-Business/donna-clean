@@ -123,41 +123,50 @@ export function SettlementModal({ type, pendingItems, onClose, onSuccess }: Sett
               <div className="space-y-2">
                 {pendingItems.map((entry) => {
                   const remainingAmount = entry.remaining_amount ?? entry.amount;
+                  const partyName = entry.party?.name ||
+                    (entry.category === 'Sales' ? 'Unknown Customer' : 'Unknown Vendor');
+                  const actionButtonText = entry.category === 'Sales'
+                    ? 'Collect Payment'
+                    : 'Pay Now';
 
                   return (
                     <div
                       key={entry.id}
-                      className="bg-muted/50 rounded-lg p-3 border border-border hover:border-purple-500/30 transition-colors"
+                      className="bg-muted/50 rounded-lg p-4 border border-border hover:border-purple-500/30 transition-colors"
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-white">
-                            {entry.category}
-                          </span>
-                          <span className="px-2 py-0.5 bg-purple-500/20 text-purple-400 text-xs rounded">
-                            {entry.entry_type}
-                          </span>
-                        </div>
+                      {/* Party Name & Amount - Most Prominent */}
+                      <div className="flex items-start justify-between mb-1">
                         <span className="text-lg font-bold text-white">
+                          {partyName}
+                        </span>
+                        <span className="text-xl font-bold text-white">
                           ₹{remainingAmount.toLocaleString('en-IN')}
                         </span>
                       </div>
 
-                      <div className="text-xs text-muted-foreground mb-3">
-                        <div>Entry Date: {format(new Date(entry.entry_date), 'dd MMM yyyy')}</div>
-                        {entry.notes && <div className="mt-1">Note: {entry.notes}</div>}
-                        {entry.remaining_amount !== entry.amount && (
-                          <div className="mt-1 text-purple-400">
-                            Remaining: ₹{remainingAmount.toLocaleString('en-IN')} of ₹{entry.amount.toLocaleString('en-IN')}
-                          </div>
-                        )}
+                      {/* Secondary Info - Type + Date */}
+                      <div className="text-sm text-gray-400 mb-3">
+                        {entry.entry_type} {entry.category} • {format(new Date(entry.entry_date), 'dd MMM yyyy')}
                       </div>
 
+                      {/* Additional Info */}
+                      {entry.notes && (
+                        <div className="text-xs text-muted-foreground mb-2">
+                          Note: {entry.notes}
+                        </div>
+                      )}
+                      {entry.remaining_amount !== entry.amount && (
+                        <div className="text-xs text-purple-400 mb-3">
+                          Remaining: ₹{remainingAmount.toLocaleString('en-IN')} of ₹{entry.amount.toLocaleString('en-IN')}
+                        </div>
+                      )}
+
+                      {/* Action Button */}
                       <button
                         onClick={() => handleSelectItem(entry)}
-                        className="w-full px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
+                        className="w-full px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors flex items-center justify-center gap-2"
                       >
-                        Settle This Item
+                        {actionButtonText} →
                       </button>
                     </div>
                   );

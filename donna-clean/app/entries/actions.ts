@@ -42,6 +42,8 @@ export type Entry = {
   image_url: string | null
   settled: boolean
   settled_at: string | null
+  party_id?: string | null
+  party?: { name: string } | null
   created_at: string
   updated_at: string
 }
@@ -206,11 +208,14 @@ export async function getEntries() {
     }
 
     console.log('🔍 [GET_ENTRIES] Fetching entries for user:', user.id)
-    console.log('📅 [GET_ENTRIES] Query: SELECT * FROM entries WHERE user_id =', user.id)
+    console.log('📅 [GET_ENTRIES] Query: SELECT entries with party info WHERE user_id =', user.id)
 
     const { data, error } = await supabase
       .from('entries')
-      .select('*')
+      .select(`
+        *,
+        party:parties(name)
+      `)
       .eq('user_id', user.id)
       .order('entry_date', { ascending: false })
       .order('created_at', { ascending: false })

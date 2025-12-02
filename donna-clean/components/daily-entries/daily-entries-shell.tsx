@@ -705,7 +705,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 <th className="px-2 md:px-3 py-1.5 md:py-2">Amount</th>
                 <th className="px-2 md:px-3 py-1.5 md:py-2">Payment</th>
                 <th className="px-2 md:px-3 py-1.5 md:py-2 hidden md:table-cell">Notes</th>
-                <th className="px-2 md:px-3 py-1.5 md:py-2 hidden md:table-cell">Image</th>
+                <th className="px-2 md:px-3 py-1.5 md:py-2 hidden md:table-cell">Party</th>
                 <th className="px-2 md:px-3 py-1.5 md:py-2 text-right">Actions</th>
               </tr>
             </thead>
@@ -742,21 +742,9 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                   </td>
                   <td className="px-2 md:px-3 py-2 md:py-3 text-[10px] md:text-sm">{entry.payment_method}</td>
                   <td className="px-3 py-3 max-w-[200px] truncate text-sm hidden md:table-cell">{entry.notes ?? "—"}</td>
-                  <td className="px-3 py-3 hidden md:table-cell">
-                    {entry.image_url ? (
-                      <a
-                        href={entry.image_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-block rounded border border-border"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={entry.image_url}
-                          alt="Receipt"
-                          className="h-12 w-12 rounded object-cover"
-                        />
-                      </a>
+                  <td className="px-3 py-3 text-sm hidden md:table-cell">
+                    {entry.party?.name ? (
+                      <span className="text-white">{entry.party.name}</span>
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
