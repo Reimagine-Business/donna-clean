@@ -8,7 +8,7 @@ import { User, Settings, Users, LogOut, ChevronDown } from "lucide-react";
 import { logoutAction } from "@/app/auth/actions";
 
 interface DesktopUserMenuProps {
-  userEmail?: string;
+  userName?: string;
 }
 
 const menuItems = [
@@ -17,7 +17,7 @@ const menuItems = [
   { href: "/admin/users", label: "User Management", icon: Users, adminOnly: true },
 ];
 
-export function DesktopUserMenu({ userEmail }: DesktopUserMenuProps) {
+export function DesktopUserMenu({ userName }: DesktopUserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -53,9 +53,9 @@ export function DesktopUserMenu({ userEmail }: DesktopUserMenuProps) {
         <div className="flex items-center justify-center w-8 h-8 bg-purple-500/20 rounded-full">
           <User className="w-4 h-4 text-purple-300" />
         </div>
-        {userEmail && (
+        {userName && (
           <span className="text-purple-200 text-sm max-w-[150px] truncate hidden lg:block">
-            {userEmail}
+            {userName}
           </span>
         )}
         <ChevronDown
@@ -70,10 +70,10 @@ export function DesktopUserMenu({ userEmail }: DesktopUserMenuProps) {
       {isOpen && (
         <div className="absolute right-0 mt-2 w-64 bg-[#1a1a2e] border border-purple-500/30 rounded-lg shadow-xl z-50">
           {/* User Info */}
-          {userEmail && (
+          {userName && (
             <div className="px-4 py-3 border-b border-purple-500/30">
               <p className="text-purple-300 text-xs">Signed in as</p>
-              <p className="text-white text-sm font-medium truncate mt-1">{userEmail}</p>
+              <p className="text-white text-sm font-medium truncate mt-1">{userName}</p>
             </div>
           )}
 

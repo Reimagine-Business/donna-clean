@@ -1,6 +1,5 @@
 'use client'
 
-import { DeployButton } from "@/components/deploy-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { DesktopNav } from "@/components/navigation/desktop-nav";
 import { DesktopUserMenu } from "@/components/navigation/desktop-user-menu";
@@ -22,6 +21,26 @@ export function SiteHeader() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Fetch profile data including username
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("username, business_name")
+        .eq("user_id", user.id)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Display username with fallback to email
+  const displayName = profile?.username || user?.email || undefined;
+
   return (
     <nav className="hidden w-full md:flex justify-center border-b border-b-foreground/10 h-16 bg-card">
       <div className="w-full max-w-6xl flex justify-between items-center p-3 px-5 text-sm">
@@ -30,11 +49,10 @@ export function SiteHeader() {
 
         {/* Auth & Utility Buttons */}
         <div className="flex items-center gap-3">
-          <DeployButton />
           {!hasEnvVars ? (
             <EnvVarWarning />
           ) : user ? (
-            <DesktopUserMenu userEmail={user.email || undefined} />
+            <DesktopUserMenu userName={displayName} />
           ) : (
             <div className="flex gap-2">
               <a
