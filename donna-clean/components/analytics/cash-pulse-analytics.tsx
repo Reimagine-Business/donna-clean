@@ -14,10 +14,12 @@ import {
 } from '@/lib/analytics-new'
 import { showSuccess, showError } from '@/lib/toast'
 import { deleteSettlement } from '@/app/settlements/actions'
+import { deleteSettlementHistory, type SettlementHistoryRecord } from '@/app/settlements/settlement-history-actions'
 import { SettlementModal } from '@/components/settlement/settlement-modal'
 
 interface CashPulseAnalyticsProps {
   entries: Entry[]
+  settlementHistory: SettlementHistoryRecord[]
 }
 
 function formatCurrency(amount: number): string {
@@ -46,7 +48,7 @@ function formatCurrencyLakhs(amount: number): string {
 
 type SettlementModalType = 'credit-sales' | 'credit-bills' | 'advance-sales' | 'advance-expenses' | null;
 
-export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
+export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnalyticsProps) {
   const router = useRouter()
   const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time'>('this-month')
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -190,13 +192,8 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
     }
   }, [entries])
 
-  // Get Settlement History (all settlements, display limited by visibleSettlements)
-  const settlementHistory = useMemo(() => {
-    return entries
-      .filter(e => e.notes && e.notes.startsWith('Settlement of'))
-      .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
-      // No slice here - we'll slice in the render based on visibleSettlements
-  }, [entries])
+  // Settlement History is now passed as a prop from the settlement_history table
+  // No need to filter from entries anymore - includes both Credit and Advance settlements
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
@@ -237,8 +234,6 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
   const handleDeleteSettlement = async (settlementId: string) => {
     console.log('🔴 [DELETE] Button clicked!')
     console.log('🔴 [DELETE] Settlement ID:', settlementId)
-    console.log('🔴 [DELETE] Settlement ID type:', typeof settlementId)
-    console.log('🔴 [DELETE] Settlement ID length:', settlementId?.length)
 
     if (!confirm('Are you sure you want to delete this settlement? The original entry will be marked as unsettled.')) {
       console.log('❌ [DELETE] User cancelled confirmation')
@@ -249,17 +244,14 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
     setDeletingId(settlementId)
 
     try {
-      console.log('⏳ [DELETE] Calling deleteSettlement action...')
-      const result = await deleteSettlement(settlementId)
+      console.log('⏳ [DELETE] Calling deleteSettlementHistory action...')
+      const result = await deleteSettlementHistory(settlementId)
 
       console.log('📊 [DELETE] Result received:', result)
-      console.log('📊 [DELETE] Result.success:', result.success)
-      console.log('📊 [DELETE] Result.error:', 'error' in result ? result.error : 'none')
 
       if (!result.success) {
-        const errorMsg = 'error' in result ? result.error : 'Failed to delete settlement'
-        console.error('❌ [DELETE] Action returned failure:', errorMsg)
-        showError(errorMsg || 'Failed to delete settlement')
+        console.error('❌ [DELETE] Action returned failure:', result.error)
+        showError(result.error || 'Failed to delete settlement')
         return
       }
 
@@ -272,8 +264,6 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
       console.log('✅ [DELETE] Complete!')
     } catch (error) {
       console.error('❌ [DELETE] Exception caught:', error)
-      console.error('❌ [DELETE] Error type:', typeof error)
-      console.error('❌ [DELETE] Error message:', error instanceof Error ? error.message : String(error))
       showError('Failed to delete settlement')
     } finally {
       console.log('🧹 [DELETE] Cleaning up, setting deletingId to null')
@@ -284,22 +274,17 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
   const handleExportSettlements = () => {
     console.log('📥 [EXPORT] Exporting settlement history...')
 
-    // Prepare CSV data
+    // Prepare CSV data from settlement_history table
     const csvData = settlementHistory.map(item => {
-      const originalEntryMatch = item.notes?.match(/\(ID:\s*([^)]+)\)/) ||
-                                item.notes?.match(/\(([a-f0-9-]{36})\)/);
-      const originalEntryId = originalEntryMatch?.[1];
-
-      const entryTypeMatch = item.notes?.match(/Settlement of (.*?) \(/);
-      const entryType = entryTypeMatch?.[1] || 'Unknown';
-
       return {
-        Date: format(new Date(item.entry_date), 'dd MMM yyyy'),
-        Type: entryType,
+        Date: format(new Date(item.settlement_date), 'dd MMM yyyy'),
+        Type: `${item.entry_type} ${item.category}`,  // e.g., "Credit Sales" or "Advance Sales"
+        'Settlement Type': item.settlement_type,  // 'credit' or 'advance'
         Category: item.category,
         Amount: item.amount,
-        'Settled On': item.created_at ? format(new Date(item.created_at), 'dd MMM yyyy') : 'N/A',
-        'Original Entry ID': originalEntryId || 'N/A',
+        'Settled On': format(new Date(item.created_at), 'dd MMM yyyy'),
+        'Original Entry ID': item.original_entry_id,
+        'Settlement Entry ID': item.settlement_entry_id || 'N/A',  // NULL for Advance
         Notes: item.notes || ''
       }
     })
@@ -595,46 +580,27 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
           {settlementHistory.length > 0 ? (
             <div className="space-y-2">
               {settlementHistory.slice(0, visibleSettlements).map((settlement, index) => {
-                // Parse the original entry ID from notes
-                // Pattern: "Settlement of Credit Sales (ID: xxx)" or "Settlement of credit sales (xxx)"
-                const originalEntryMatch = settlement.notes?.match(/\(ID:\s*([^)]+)\)/) ||
-                                         settlement.notes?.match(/\(([a-f0-9-]{36})\)/);
-                const originalEntryId = originalEntryMatch?.[1];
-
-                // 🔍 DIAGNOSTIC: Log settlement data with index
-                console.log(`🔍 [RENDER] Settlement item #${index}:`, {
-                  index: index,
-                  settlementId: settlement.id,
-                  settlementType: settlement.entry_type,
-                  notes: settlement.notes,
-                  originalEntryMatch: originalEntryMatch,
-                  originalEntryId: originalEntryId,
-                  isDisabled: deletingId === originalEntryId || !originalEntryId,
-                  willBeDisabled: !originalEntryId
-                })
-
-                // Parse entry type for display
-                const entryTypeMatch = settlement.notes?.match(/Settlement of (.*?) \(/);
-                const entryType = entryTypeMatch?.[1] || 'Unknown';
+                // ✅ NEW: Using settlement_history table structure
+                // No more parsing from notes - we have typed data!
 
                 return (
                   <div key={settlement.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md relative">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        {/* ✅ NEW: Badge shows Credit (green) vs Advance (purple) */}
                         <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                          settlement.entry_type === 'Cash IN'
+                          settlement.settlement_type === 'credit'
                             ? 'bg-green-500/20 text-green-500'
-                            : 'bg-red-500/20 text-red-500'
+                            : 'bg-purple-500/20 text-purple-500'
                         }`}>
-                          {entryType}
+                          {settlement.entry_type} {settlement.category}
                         </span>
                         <span className="text-sm font-medium text-white">{formatCurrency(settlement.amount)}</span>
-                        <span className="text-xs text-muted-foreground">{settlement.category}</span>
                       </div>
                       <div className="flex gap-3 text-xs text-muted-foreground">
-                        <span>Entry: {format(new Date(settlement.entry_date), 'dd MMM yyyy')}</span>
-                        {settlement.created_at && (
-                          <span>Settled: {format(new Date(settlement.created_at), 'dd MMM yyyy')}</span>
+                        <span>Settled: {format(new Date(settlement.settlement_date), 'dd MMM yyyy')}</span>
+                        {settlement.settlement_type === 'advance' && (
+                          <span className="text-purple-400">⚡ Advance</span>
                         )}
                       </div>
                     </div>
@@ -642,34 +608,15 @@ export function CashPulseAnalytics({ entries }: CashPulseAnalyticsProps) {
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        console.log(`🗑️ [DELETE_BUTTON_CLICKED] Index: ${index}`)
-                        console.log('🖱️ [BUTTON] Delete button clicked!')
-                        console.log('🖱️ [BUTTON] Item index:', index)
-                        console.log('🖱️ [BUTTON] Event:', e)
-                        console.log('🔍 Settlement:', settlement)
-                        console.log('🆔 Original Entry ID:', originalEntryId)
-                        console.log('🖱️ [BUTTON] Button disabled?', deletingId === originalEntryId || !originalEntryId)
-
-                        if (!originalEntryId) {
-                          console.error('❌ [BUTTON] No originalEntryId, cannot delete!')
-                          alert('Cannot delete: Original entry ID not found in settlement notes')
-                          return
-                        }
-
-                        if (deletingId === originalEntryId) {
-                          console.log('⏳ Already deleting this settlement...')
-                          return
-                        }
-
-                        console.log('✅ [BUTTON] Calling handleDeleteSettlement with ID:', originalEntryId)
-                        handleDeleteSettlement(originalEntryId)
+                        console.log(`🗑️ [DELETE] Settlement #${index}:`, settlement.id)
+                        handleDeleteSettlement(settlement.id)
                       }}
-                      disabled={deletingId === originalEntryId || !originalEntryId}
+                      disabled={deletingId === settlement.id}
                       className="p-2 text-red-500 hover:bg-red-500/10 rounded-md transition-colors disabled:opacity-50 relative z-10 cursor-pointer"
                       style={{ pointerEvents: 'auto' }}
                       type="button"
                       aria-label="Delete settlement"
-                      title={!originalEntryId ? 'Cannot delete: Original entry ID not found' : 'Delete settlement'}
+                      title="Delete settlement"
                     >
                       <Trash2 className="w-4 h-4 pointer-events-none" />
                     </button>
