@@ -40,6 +40,7 @@ export type Entry = {
   image_url: string | null;
   settled: boolean;
   settled_at: string | null;
+  party_id: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -97,6 +98,7 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
     image_url: entry.image_url ?? null,
     settled: Boolean(entry.settled),
     settled_at: entry.settled_at ?? null,
+    party_id: (entry as any).party_id ?? null,
     created_at: entry.created_at ?? new Date().toISOString(),
     updated_at: entry.updated_at ?? new Date().toISOString(),
   };

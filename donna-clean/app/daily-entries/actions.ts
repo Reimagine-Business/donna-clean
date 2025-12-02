@@ -20,6 +20,7 @@ type AddEntryInput = {
   entry_date: string;
   notes: string | null;
   image_url: string | null;
+  party_id?: string; // Optional party (customer/vendor) ID - backward compatible
 };
 
 export async function addEntry(data: AddEntryInput) {
@@ -63,6 +64,7 @@ export async function addEntry(data: AddEntryInput) {
     entry_date: data.entry_date,
     notes: data.notes,
     image_url: data.image_url,
+    party_id: data.party_id || null,
   };
 
   const { error } = await supabase.from("entries").insert(payload);
@@ -93,6 +95,7 @@ type UpdateEntryInput = {
   entry_date: string;
   notes: string | null;
   image_url: string | null;
+  party_id?: string; // Optional party (customer/vendor) ID - backward compatible
 };
 
 export async function updateEntry(entryId: string, data: UpdateEntryInput) {
@@ -135,6 +138,7 @@ export async function updateEntry(entryId: string, data: UpdateEntryInput) {
     entry_date: data.entry_date,
     notes: data.notes,
     image_url: data.image_url,
+    party_id: data.party_id || null,
   };
 
   const { error } = await supabase

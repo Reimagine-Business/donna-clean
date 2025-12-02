@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
-import { Download, Edit3, Trash2, UploadCloud, X, Handshake } from "lucide-react";
+import { Edit3, Trash2, Handshake } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ import {
   normalizeEntry,
 } from "@/lib/entries";
 import { SettleEntryDialog } from "@/components/settlements/settle-entry-dialog";
+import { PartySelector } from "@/components/entries/party-selector";
 import { addEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/daily-entries/actions";
 import { showError, showWarning } from "@/lib/toast";
 
@@ -48,6 +49,7 @@ type EntryFormState = {
   amount: string;
   entry_date: string;
   notes: string;
+  party_id?: string;
 };
 
 type DateFilterOption = "this-month" | "last-month" | "this-year" | "last-year" | "all-time" | "customize";
@@ -113,10 +115,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   }, [initialEntries]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [paymentMethodError, setPaymentMethodError] = useState<string | null>(null);
   const [dateFilter, setDateFilter] = useState("this-month");
@@ -175,33 +174,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const resetForm = () => {
     setFormValues(buildInitialFormState());
     setEditingEntryId(null);
-    setReceiptFile(null);
-    setReceiptPreview(null);
-    setExistingImageUrl(null);
     setFormError(null);
     setPaymentMethodError(null);
-  };
-
-  const uploadReceipt = async (): Promise<string | null> => {
-    if (!receiptFile) {
-      return existingImageUrl;
-    }
-
-    const fileExt = receiptFile.name.split(".").pop() ?? "jpg";
-    const filePath = `${userId}/${Date.now()}.${fileExt}`;
-
-    const { error } = await supabase.storage.from("receipts").upload(filePath, receiptFile, {
-      cacheControl: "3600",
-      upsert: true,
-      contentType: receiptFile.type,
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    const { data } = supabase.storage.from("receipts").getPublicUrl(filePath);
-    return data.publicUrl;
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -232,11 +206,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         return;
       }
 
-      let uploadedUrl = existingImageUrl;
-      if (receiptFile) {
-        uploadedUrl = await uploadReceipt();
-      }
-
       const normalizedPaymentMethod = entryTypeIsCredit(selectedEntryType)
         ? CREDIT_PAYMENT_METHOD
         : paymentMethod;
@@ -248,7 +217,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         amount: numericAmount,
         entry_date: formValues.entry_date,
         notes: formValues.notes || null,
-        image_url: uploadedUrl,
+        image_url: null,
+        party_id: formValues.party_id,
       };
 
       if (editingEntryId) {
@@ -291,16 +261,14 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         amount: numberFormatter.format(entry.amount),
         entry_date: entry.entry_date,
         notes: entry.notes ?? "",
+        party_id: entry.party_id ?? undefined,
       });
-      setExistingImageUrl(entry.image_url);
-      setReceiptPreview(entry.image_url);
-      setReceiptFile(null);
     };
 
   const handleDelete = async (entryId: string) => {
     const confirmed = window.confirm("Delete this entry?");
     if (!confirmed) return;
-    
+
     try {
       // Use Server Action for delete
       const result = await deleteEntryAction(entryId);
@@ -312,17 +280,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       console.error("Failed to delete entry:", error);
       showError("Failed to delete entry. Please try again.");
     }
-  };
-
-  const handleReceiptChange = (fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0) {
-      setReceiptFile(null);
-      setReceiptPreview(null);
-      return;
-    }
-    const file = fileList[0];
-    setReceiptFile(file);
-    setReceiptPreview(URL.createObjectURL(file));
   };
 
   // Function to get date range based on filter
@@ -540,6 +497,12 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 <p className="text-xs text-rose-400">{paymentMethodError}</p>
               )}
             </div>
+            <PartySelector
+              entryType={formValues.entry_type}
+              category={formValues.category}
+              value={formValues.party_id}
+              onChange={(partyId) => handleInputChange("party_id", partyId)}
+            />
             <div className="space-y-1.5 md:space-y-2">
               <Label className="text-xs md:text-sm uppercase text-muted-foreground">Amount</Label>
               <Input
@@ -577,97 +540,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 placeholder="Add quick context"
                 className="min-h-[60px] md:min-h-[80px] w-full rounded-lg border border-border bg-secondary/50 px-3 py-1.5 md:py-2 text-xs md:text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
-            </div>
-          </div>
-
-          <div className="space-y-1.5 md:space-y-2">
-            <Label className="text-xs md:text-sm uppercase text-muted-foreground">Receipt / Image</Label>
-
-            {/* Compact mobile version */}
-            <div className="md:hidden">
-              <label
-                htmlFor="receipt-upload-mobile"
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-primary/30 bg-primary/10 p-2 text-xs text-accent transition hover:bg-primary/20"
-              >
-                <UploadCloud className="h-4 w-4" />
-                <span>Upload Receipt</span>
-              </label>
-              <Input
-                id="receipt-upload-mobile"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => handleReceiptChange(event.target.files)}
-              />
-              {(receiptPreview || existingImageUrl) && (
-                <div className="mt-2 flex items-center gap-2 rounded-lg border border-border bg-secondary/50 p-2">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={receiptPreview || existingImageUrl || ""}
-                    alt="Receipt preview"
-                    className="h-10 w-10 rounded object-cover"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-[10px] text-red-300 hover:text-red-200 p-1"
-                    onClick={() => {
-                      setReceiptFile(null);
-                      setReceiptPreview(null);
-                      setExistingImageUrl(null);
-                    }}
-                  >
-                    <X className="mr-1 h-3 w-3" />
-                    Remove
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            {/* Full desktop version */}
-            <div className="hidden md:flex md:flex-col gap-4 rounded-xl border border-dashed border-primary/40 p-4">
-              <label
-                htmlFor="receipt-upload"
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm transition hover:border-primary/80"
-              >
-                <UploadCloud className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-medium">Upload receipt</p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG up to 5 MB</p>
-                </div>
-              </label>
-              <Input
-                id="receipt-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => handleReceiptChange(event.target.files)}
-              />
-              {(receiptPreview || existingImageUrl) && (
-                <div className="flex items-center gap-3 rounded-lg border border-border bg-secondary/50 p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={receiptPreview || existingImageUrl || ""}
-                    alt="Receipt preview"
-                    className="h-16 w-16 rounded object-cover"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-300 hover:text-red-200"
-                    onClick={() => {
-                      setReceiptFile(null);
-                      setReceiptPreview(null);
-                      setExistingImageUrl(null);
-                    }}
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Remove
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
 
