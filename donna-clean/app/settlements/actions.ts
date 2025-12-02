@@ -75,11 +75,15 @@ export async function createSettlement(
       return { success: false, error: error.message };
     }
 
-    // Parse JSON response from database function
-    const result = data as { success: boolean; error?: string };
-    
+    // ✅ FIX: RPC returns an ARRAY, so check data[0]
+    if (!data || data.length === 0) {
+      return { success: false, error: "No response from settlement function" };
+    }
+
+    const result = data[0] as { success: boolean; message?: string };
+
     if (!result.success) {
-      return { success: false, error: result.error || "Settlement failed" };
+      return { success: false, error: result.message || "Settlement failed" };
     }
 
     // Revalidate all affected pages
