@@ -76,6 +76,7 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
   const [showCustomDatePickers, setShowCustomDatePickers] = useState(false);
   const [customFromDate, setCustomFromDate] = useState<Date>();
   const [customToDate, setCustomToDate] = useState<Date>();
+  const [editingId, setEditingId] = useState<string | null>(null); // Track which reminder is being edited
 
   // Filter reminders based on date range AND status filter
   const filteredReminders = useMemo(() => {
@@ -121,8 +122,15 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
   };
 
   const handleEdit = (reminder: Reminder) => {
+    // Prevent double-clicks by checking if already editing
+    if (editingId) return;
+
+    setEditingId(reminder.id);
     setEditingReminder(reminder);
     setIsEditDialogOpen(true);
+
+    // Clear loading state after dialog opens (instant for modal)
+    setTimeout(() => setEditingId(null), 100);
   };
 
   const handleEditSuccess = () => {
@@ -314,10 +322,20 @@ export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps) 
                         </button>
                         <button
                           onClick={() => handleEdit(reminder)}
-                          disabled={isPending}
-                          className="rounded-md bg-blue-500/10 px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-xs font-medium text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={isPending || editingId === reminder.id}
+                          className="rounded-md bg-blue-500/10 px-2 md:px-3 py-1 md:py-1.5 text-[10px] md:text-xs font-medium text-blue-400 transition-colors hover:bg-blue-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                         >
-                          Edit
+                          {editingId === reminder.id ? (
+                            <>
+                              <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              <span className="hidden md:inline">Opening...</span>
+                            </>
+                          ) : (
+                            "Edit"
+                          )}
                         </button>
                       </div>
                     )}
