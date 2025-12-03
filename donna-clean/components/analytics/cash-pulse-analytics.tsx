@@ -148,7 +148,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
     return {
       items: pending,
       count: pending.length,
-      amount: pending.reduce((sum, e) => sum + e.amount, 0)
+      amount: pending.reduce((sum, e) => sum + (e.remaining_amount ?? e.amount), 0)
     }
   }, [entries])
 
@@ -162,7 +162,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
     return {
       items: pending,
       count: pending.length,
-      amount: pending.reduce((sum, e) => sum + e.amount, 0)
+      amount: pending.reduce((sum, e) => sum + (e.remaining_amount ?? e.amount), 0)
     }
   }, [entries])
 
@@ -182,12 +182,12 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       received: {
         items: received,
         count: received.length,
-        amount: received.reduce((sum, e) => sum + e.amount, 0)
+        amount: received.reduce((sum, e) => sum + (e.remaining_amount ?? e.amount), 0)
       },
       paid: {
         items: paid,
         count: paid.length,
-        amount: paid.reduce((sum, e) => sum + e.amount, 0)
+        amount: paid.reduce((sum, e) => sum + (e.remaining_amount ?? e.amount), 0)
       }
     }
   }, [entries])
