@@ -12,19 +12,29 @@ interface PartySelectorProps {
   category: string;
   value?: string;
   onChange: (partyId: string | undefined) => void;
+  required?: boolean; // NEW: Whether party selection is required
 }
 
 /**
  * PartySelector - Smart party (customer/vendor) selection component
  *
- * Shows party selection field for Credit and Advance entries.
+ * Shows party selection field for:
+ * - Credit/Advance entries (REQUIRED)
+ * - Cash IN/OUT entries (OPTIONAL)
+ *
  * Automatically filters parties based on entry type:
- * - Credit Sales / Advance Received → Shows Customers
- * - Credit Purchases / Advance Paid → Shows Vendors
+ * - Cash IN / Credit Sales / Advance Received → Shows Customers
+ * - Cash OUT / Credit Purchases / Advance Paid → Shows Vendors
  *
  * Allows inline creation of new parties without leaving the form.
  */
-export function PartySelector({ entryType, category, value, onChange }: PartySelectorProps) {
+export function PartySelector({
+  entryType,
+  category,
+  value,
+  onChange,
+  required = false // Default to optional (for backward compatibility)
+}: PartySelectorProps) {
   const [parties, setParties] = useState<Party[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNewPartyInput, setShowNewPartyInput] = useState(false);
@@ -33,8 +43,24 @@ export function PartySelector({ entryType, category, value, onChange }: PartySel
   const [creating, setCreating] = useState(false);
 
   // Determine if party field should be shown and what type
-  const requiredPartyType = getRequiredPartyType(entryType, category);
-  const shouldShow = requiredPartyType !== null;
+  // For Credit/Advance, use the existing helper function
+  // For Cash IN/OUT, determine type based on entry type
+  const getPartyType = (): PartyType | null => {
+    // Credit and Advance - use existing logic
+    const creditAdvanceType = getRequiredPartyType(entryType, category);
+    if (creditAdvanceType) return creditAdvanceType;
+
+    // Cash IN → Customer
+    if (entryType === "Cash IN") return "Customer";
+
+    // Cash OUT → Vendor
+    if (entryType === "Cash OUT") return "Vendor";
+
+    return null;
+  };
+
+  const partyType = getPartyType();
+  const shouldShow = partyType !== null;
 
   useEffect(() => {
     loadParties();
@@ -55,14 +81,14 @@ export function PartySelector({ entryType, category, value, onChange }: PartySel
       return;
     }
 
-    if (!requiredPartyType) return;
+    if (!partyType) return;
 
     setCreating(true);
 
     const result = await createParty({
       name: newPartyName.trim(),
       mobile: newPartyMobile.trim() || undefined,
-      party_type: requiredPartyType,
+      party_type: partyType,
     });
 
     setCreating(false);
@@ -79,7 +105,7 @@ export function PartySelector({ entryType, category, value, onChange }: PartySel
       setNewPartyName("");
       setNewPartyMobile("");
 
-      showSuccess(`${requiredPartyType} "${result.party.name}" created successfully`);
+      showSuccess(`${partyType} "${result.party.name}" created successfully`);
     } else {
       showError(result.error || "Failed to create party");
     }
@@ -91,20 +117,21 @@ export function PartySelector({ entryType, category, value, onChange }: PartySel
     setNewPartyMobile("");
   }
 
-  // Don't show for Cash IN/OUT or other non-party entries
-  if (!shouldShow || !requiredPartyType) {
+  // Don't show if party type cannot be determined
+  if (!shouldShow || !partyType) {
     return null;
   }
 
   // Filter parties based on required type
-  const filteredParties = filterPartiesByType(parties, requiredPartyType);
+  const filteredParties = filterPartiesByType(parties, partyType);
 
-  const partyLabel = requiredPartyType === 'Customer' ? 'CUSTOMER' : 'VENDOR';
+  const partyLabel = partyType === 'Customer' ? 'CUSTOMER' : 'VENDOR';
 
   return (
     <div className="space-y-2">
       <label className="block text-sm font-medium text-purple-200">
-        {partyLabel} <span className="text-red-400">*</span>
+        {partyLabel} {required && <span className="text-red-400">*</span>}
+        {!required && <span className="text-gray-400 ml-2">(Optional)</span>}
       </label>
 
       {!showNewPartyInput ? (
@@ -120,11 +147,17 @@ export function PartySelector({ entryType, category, value, onChange }: PartySel
               }
             }}
             className="w-full px-4 py-2.5 rounded-lg bg-purple-900/20 border border-purple-500/30 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-colors"
-            required
+            required={required}
             disabled={loading}
           >
+            {/* Different placeholder based on required/optional */}
             <option value="">
-              {loading ? "Loading parties..." : `Select ${partyLabel.toLowerCase()}...`}
+              {loading
+                ? "Loading parties..."
+                : required
+                  ? `Select ${partyLabel.toLowerCase()}...`
+                  : `— Skip (No ${partyLabel.toLowerCase()}) —`
+              }
             </option>
 
             {filteredParties.map((party) => (
@@ -222,9 +255,15 @@ export function PartySelector({ entryType, category, value, onChange }: PartySel
 
       {/* Helper Text */}
       <p className="text-xs text-purple-400/70">
-        {requiredPartyType === 'Customer'
-          ? "Select or create a customer for this sale/collection"
-          : "Select or create a vendor for this purchase/payment"}
+        {required ? (
+          partyType === 'Customer'
+            ? "Select or create a customer for this sale/collection"
+            : "Select or create a vendor for this purchase/payment"
+        ) : (
+          partyType === 'Customer'
+            ? "Optionally link this entry to a customer"
+            : "Optionally link this entry to a vendor"
+        )}
       </p>
     </div>
   );
