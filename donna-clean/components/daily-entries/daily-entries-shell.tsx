@@ -553,6 +553,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
               category={formValues.category}
               value={formValues.party_id}
               onChange={(partyId) => handleInputChange("party_id", partyId)}
+              required={formValues.entry_type === "Credit" || formValues.entry_type === "Advance"}
             />
             <div className="space-y-1.5 md:space-y-2">
               <Label className="text-xs md:text-sm uppercase text-muted-foreground">Amount</Label>
