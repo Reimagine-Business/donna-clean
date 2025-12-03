@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
-import { ProfitCashDashboard } from "@/components/dashboard/profit-cash-dashboard";
+import { FinancialHealthDashboard } from "@/components/dashboard/financial-health-dashboard";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
 import { getEntries } from "@/app/entries/actions";
@@ -38,7 +38,7 @@ export default async function HomePage() {
         <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
           <div className="mx-auto w-full max-w-6xl">
             <Suspense fallback={<EntryListSkeleton />}>
-              <ProfitCashDashboard entries={entries} />
+              <FinancialHealthDashboard entries={entries} />
             </Suspense>
           </div>
         </section>
