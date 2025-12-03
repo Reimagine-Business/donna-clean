@@ -1,10 +1,16 @@
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
-import { HomeShell } from "@/components/home/home-shell";
+import { ProfitCashDashboard } from "@/components/dashboard/profit-cash-dashboard";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
+import { getEntries } from "@/app/entries/actions";
+import { EntryListSkeleton } from "@/components/skeletons/entry-skeleton";
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export default async function HomePage() {
   const supabase = await createSupabaseServerClient();
@@ -20,30 +26,8 @@ export default async function HomePage() {
     redirect("/auth/login");
   }
 
-  // Fetch reminders from database
-  const { data: reminders, error: remindersError } = await supabase
-    .from("reminders")
-    .select("*")
-    .eq("user_id", user.id)
-    .order("due_date", { ascending: true });
-
-  if (remindersError) {
-    console.error("Error fetching reminders:", remindersError);
-  }
-
-  // Fetch critical and warning alerts (unread only)
-  const { data: alerts, error: alertsError } = await supabase
-    .from("alerts")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("is_read", false)
-    .in("type", ["critical", "warning"])
-    .order("priority", { ascending: false })
-    .order("created_at", { ascending: false });
-
-  if (alertsError) {
-    console.error("Error fetching alerts:", alertsError);
-  }
+  // Fetch entries for dashboard
+  const { entries } = await getEntries();
 
   return (
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
@@ -53,11 +37,9 @@ export default async function HomePage() {
 
         <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
           <div className="mx-auto w-full max-w-6xl">
-            <HomeShell
-              initialReminders={reminders || []}
-              initialAlerts={alerts || []}
-              userId={user.id}
-            />
+            <Suspense fallback={<EntryListSkeleton />}>
+              <ProfitCashDashboard entries={entries} />
+            </Suspense>
           </div>
         </section>
       </div>
