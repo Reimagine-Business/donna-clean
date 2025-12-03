@@ -193,12 +193,12 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
       </div>
 
       {/* Sales Overview */}
-      <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-500/50 rounded-lg p-4">
+      <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border-2 border-purple-500/50 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-2">
-          <TrendingUpIcon className="w-5 h-5 text-green-400" />
-          <span className="text-xs text-green-300 uppercase tracking-wider font-medium">SALES</span>
+          <TrendingUpIcon className="w-5 h-5 text-purple-400" />
+          <span className="text-xs text-purple-300 uppercase tracking-wider font-medium">SALES</span>
         </div>
-        <div className="text-4xl font-bold mb-1 text-green-400">
+        <div className="text-4xl font-bold mb-1 text-purple-400">
           {formatCurrency(currentMetrics.revenue)}
         </div>
         <div className="flex items-center gap-3 text-xs">
