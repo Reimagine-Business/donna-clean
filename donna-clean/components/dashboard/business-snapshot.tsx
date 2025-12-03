@@ -15,13 +15,12 @@ interface BusinessSnapshotProps {
 export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
   const router = useRouter();
   const [period, setPeriod] = useState<PeriodType>("all-time");
-  const [customStart, setCustomStart] = useState<Date>();
-  const [customEnd, setCustomEnd] = useState<Date>();
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [expandedOwn, setExpandedOwn] = useState(false);
   const [expandedOwe, setExpandedOwe] = useState(false);
 
   const snapshotData = useMemo(() => {
-    const { start, end } = getDateRangeForPeriod(period, customStart, customEnd);
+    const { start, end } = getDateRangeForPeriod(period, selectedYear);
 
     // Filter entries for the selected period (for profit calculation)
     const filteredEntries = start && end
@@ -84,7 +83,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
       totalOwe,
       profit
     };
-  }, [entries, period, customStart, customEnd]);
+  }, [entries, period, selectedYear]);
 
   return (
     <div className="space-y-6">
@@ -99,12 +98,8 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
         <PeriodFilter
           value={period}
           onChange={setPeriod}
-          customStart={customStart}
-          customEnd={customEnd}
-          onCustomDatesChange={(start, end) => {
-            setCustomStart(start);
-            setCustomEnd(end);
-          }}
+          selectedYear={selectedYear}
+          onYearChange={setSelectedYear}
         />
       </div>
 
@@ -197,12 +192,18 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
       {/* Total Profit */}
       <div className="bg-purple-900/20 border border-purple-500/30 rounded-xl p-4">
         <div className="text-sm text-gray-400 mb-1">
-          📊 TOTAL PROFIT ({period === "all-time" ? "All Time" : period === "this-year" ? "This Year" : period === "this-month" ? "This Month" : "Custom Range"})
+          📊 TOTAL PROFIT ({period === "all-time" ? "All Time" : selectedYear})
         </div>
         <div className={`text-3xl font-bold ${snapshotData.profit >= 0 ? 'text-purple-400' : 'text-red-400'}`}>
           ₹{snapshotData.profit.toLocaleString('en-IN')}
         </div>
         <div className="text-xs text-gray-500 mt-1">What you earned in selected period</div>
+
+        {period !== "all-time" && (
+          <div className="mt-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-200">
+            ℹ️ Assets & Liabilities show current balances. Profit shows {selectedYear} earnings only.
+          </div>
+        )}
       </div>
 
       {/* Quick Action Buttons */}
