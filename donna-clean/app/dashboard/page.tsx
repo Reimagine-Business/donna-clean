@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { SiteHeader } from "@/components/site-header";
+
+export const dynamic = 'force-dynamic'
 import {
   Card,
   CardContent,

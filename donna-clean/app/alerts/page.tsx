@@ -1,4 +1,7 @@
 'use client'
+
+export const dynamic = 'force-dynamic'
+
 import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
