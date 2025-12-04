@@ -338,12 +338,12 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       </div>
 
       {/* Total Cash Balance */}
-      <div className="bg-gradient-to-br from-purple-900/60 to-purple-800/60 border-2 border-purple-500/40 rounded-lg p-4">
+      <div className="bg-gradient-to-br from-green-900/40 to-green-800/40 border-2 border-green-500/40 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Wallet className="w-5 h-5 text-purple-300" />
-          <span className="text-xs text-purple-300 uppercase tracking-wider font-medium">Total Cash Balance</span>
+          <Wallet className="w-5 h-5 text-green-300" />
+          <span className="text-xs text-green-300 uppercase tracking-wider font-medium">Total Cash Balance</span>
         </div>
-        <div className="text-3xl font-bold text-white mb-1">
+        <div className={`text-3xl font-bold mb-1 ${cashBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
           {formatCurrency(cashBalance)}
         </div>
         <div className="flex items-center justify-between">
@@ -351,7 +351,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             {cashBalance >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
             <span className="font-semibold">{cashBalance >= 0 ? 'Positive' : 'Negative'}</span>
           </div>
-          <span className="text-xs text-purple-400">As of {format(new Date(), 'dd MMM yyyy')}</span>
+          <span className="text-xs text-green-400">As of {format(new Date(), 'dd MMM yyyy')}</span>
         </div>
       </div>
 
@@ -363,7 +363,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             <ArrowUpRight className="w-4 h-4 text-green-400" />
             <span className="text-xs text-green-300 uppercase tracking-wider font-medium">Cash IN</span>
           </div>
-          <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashIn)}</div>
+          <div className="text-xl font-bold text-green-400 mb-1">{formatCurrency(totalCashIn)}</div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-green-200">{cashInCount} entries</span>
             {monthlyComparison.percentChange.cashIn !== 0 && (
@@ -381,7 +381,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             <ArrowDownRight className="w-4 h-4 text-red-400" />
             <span className="text-xs text-red-300 uppercase tracking-wider font-medium">Cash OUT</span>
           </div>
-          <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashOut)}</div>
+          <div className="text-xl font-bold text-red-400 mb-1">{formatCurrency(totalCashOut)}</div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-red-200">{cashOutCount} entries</span>
             {monthlyComparison.percentChange.cashOut !== 0 && (
@@ -395,33 +395,33 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       </div>
 
       {/* Balances */}
-      <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-3">
+      <div className="bg-green-900/10 border border-green-500/20 rounded-lg p-3">
         <h3 className="text-sm font-semibold text-white mb-2">Balances</h3>
 
         {/* Cash */}
         <div className="space-y-1 mb-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-purple-200">Cash</span>
+            <span className="text-sm text-green-200">Cash</span>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-white">{formatCurrency(cashAmount)}</span>
-              <span className="text-xs text-purple-400">{cashPercentage.toFixed(1)}%</span>
+              <span className="text-sm font-medium text-green-400">{formatCurrency(cashAmount)}</span>
+              <span className="text-xs text-green-400">{cashPercentage.toFixed(1)}%</span>
             </div>
           </div>
-          <div className="w-full bg-purple-900/30 rounded-full h-2">
-            <div className="bg-purple-500 h-2 rounded-full transition-all" style={{ width: `${cashPercentage}%` }}></div>
+          <div className="w-full bg-green-900/30 rounded-full h-2">
+            <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${cashPercentage}%` }}></div>
           </div>
         </div>
 
         {/* Bank */}
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-purple-200">Bank</span>
+            <span className="text-sm text-green-200">Bank</span>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-white">{formatCurrency(bankAmount)}</span>
-              <span className="text-xs text-purple-400">{bankPercentage.toFixed(1)}%</span>
+              <span className="text-sm font-medium text-green-400">{formatCurrency(bankAmount)}</span>
+              <span className="text-xs text-green-400">{bankPercentage.toFixed(1)}%</span>
             </div>
           </div>
-          <div className="w-full bg-purple-900/30 rounded-full h-2">
+          <div className="w-full bg-green-900/30 rounded-full h-2">
             <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${bankPercentage}%` }}></div>
           </div>
         </div>
