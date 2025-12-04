@@ -6,38 +6,21 @@ const nextConfig = {
   turbopack: {},   // this disables Turbopack and forces stable Webpack
 }
 
-// Wrap with Sentry config
-export default withSentryConfig(
-  nextConfig,
-  {
-    // For all available options, see:
-    // https://github.com/getsentry/sentry-webpack-plugin#options
+// Wrap with Sentry config - simplified with only valid options
+export default withSentryConfig(nextConfig, {
+  // Suppresses source map uploading logs during build
+  silent: !process.env.CI,
 
-    // Suppresses source map uploading logs during build
-    silent: true,
-    org: process.env.SENTRY_ORG,
-    project: process.env.SENTRY_PROJECT,
-  },
-  {
-    // For all available options, see:
-    // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
+  // For uploading source maps to Sentry
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
 
-    // Upload a larger set of source maps for prettier stack traces (increases build time)
-    widenClientFileUpload: true,
+  // Upload a larger set of source maps for prettier stack traces
+  widenClientFileUpload: true,
 
-    // Transpiles SDK to be compatible with IE11 (increases bundle size)
-    transpileClientSDK: false,
+  // Routes browser requests to Sentry through a Next.js rewrite
+  tunnelRoute: "/monitoring",
 
-    // Routes browser requests to Sentry through a Next.js rewrite to circumvent ad-blockers. (increases server load)
-    tunnelRoute: "/monitoring",
-
-    // Hides source maps from generated client bundles
-    hideSourceMaps: true,
-
-    // Automatically tree-shake Sentry logger statements to reduce bundle size
-    disableLogger: true,
-
-    // Enables automatic instrumentation of Vercel Cron Monitors.
-    automaticVercelMonitors: true,
-  }
-);
+  // Enables automatic instrumentation of Vercel Cron Monitors
+  automaticVercelMonitors: true,
+});
