@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 
 export const ENTRY_TYPES = ["Cash IN", "Cash OUT", "Credit", "Advance"] as const;
-export const CATEGORIES = ["Sales", "COGS", "Opex", "Assets"] as const;
+export const CATEGORIES = ["Sales", "COGS", "Opex", "Assets", "Collection", "Payment"] as const;
 export const PAYMENT_METHODS = ["Cash", "Bank"] as const;
 
 const PAYMENT_METHOD_OPTIONS = [...PAYMENT_METHODS, "None"] as const;
@@ -40,18 +40,17 @@ export type Entry = {
   image_url: string | null;
   settled: boolean;
   settled_at: string | null;
-  party_id: string | null;
+  party_id?: string | null;
   party?: { name: string } | null;
   created_at: string;
   updated_at: string;
 };
 
-export type EntryRecord = Omit<Entry, "amount" | "remaining_amount" | "settled" | "settled_at" | "party"> & {
+export type EntryRecord = Omit<Entry, "amount" | "remaining_amount" | "settled" | "settled_at"> & {
   amount: number | string;
   remaining_amount: number | string | null;
   settled: boolean;
   settled_at: string | null;
-  party?: { name: string } | null;
 };
 
 export type SupabaseEntry = Partial<EntryRecord> & {
@@ -59,7 +58,6 @@ export type SupabaseEntry = Partial<EntryRecord> & {
   remaining_amount?: number | string | null;
   settled?: boolean | null;
   settled_at?: string | null;
-  party?: { name: string } | { name: string }[] | null;
 };
 
 const ensureOption = <const T extends readonly string[]>(
@@ -84,12 +82,6 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
       ? entry.id
       : globalThis.crypto?.randomUUID?.() ?? `${Date.now()}`;
 
-  // Handle party data - Supabase returns it as an array when using LEFT JOIN
-  const partyData = (entry as any).party;
-  const party = Array.isArray(partyData)
-    ? (partyData.length > 0 ? partyData[0] : null)
-    : partyData;
-
   return {
     id: safeId,
     user_id: entry.user_id ?? "",
@@ -107,8 +99,6 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
     image_url: entry.image_url ?? null,
     settled: Boolean(entry.settled),
     settled_at: entry.settled_at ?? null,
-    party_id: (entry as any).party_id ?? null,
-    party: party,
     created_at: entry.created_at ?? new Date().toISOString(),
     updated_at: entry.updated_at ?? new Date().toISOString(),
   };

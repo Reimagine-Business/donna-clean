@@ -1,15 +1,13 @@
+// Temporarily commented out due to build environment network restrictions
+// import { Geist } from "next/font/google";
 import "./globals.css";
 import ClientProviders from "./client-providers";
-import { Toaster } from "@/components/ui/toaster";
-import { ErrorBoundary } from "@/components/error-boundary";
-import type { Viewport } from 'next';
 
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
+// const geistSans = Geist({
+//   variable: "--font-geist-sans",
+//   display: "swap",
+//   subsets: ["latin"],
+// });
 
 export default function RootLayout({
   children,
@@ -18,13 +16,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans">
-        <Toaster />
-        <ErrorBoundary>
-          <ClientProviders>
-            {children}
-          </ClientProviders>
-        </ErrorBoundary>
+      <body className="font-sans">
+        <ClientProviders>
+          {children}
+        </ClientProviders>
       </body>
     </html>
   );

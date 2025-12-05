@@ -3,7 +3,6 @@
 export const dynamic = 'force-dynamic'
 
 import { useState } from 'react';
-import { SiteHeader } from "@/components/site-header";
 import { BottomNav } from "@/components/navigation/bottom-nav";
 import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
 import { createClient } from "@/lib/supabase/client";
@@ -67,7 +66,6 @@ export default function AdminUsersPage() {
     return (
       <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
         <div className="flex flex-col gap-10">
-          <SiteHeader />
           <TopNavMobile />
           <section className="px-4 pb-12 md:px-8">
             <div className="mx-auto w-full max-w-4xl">
@@ -83,7 +81,6 @@ export default function AdminUsersPage() {
   return (
     <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
       <div className="flex flex-col gap-10">
-        <SiteHeader />
         <TopNavMobile />
 
         <section className="px-4 pb-12 md:px-8">

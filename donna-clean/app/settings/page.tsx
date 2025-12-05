@@ -2,30 +2,14 @@
 
 export const dynamic = 'force-dynamic'
 
-import { SiteHeader } from '@/components/site-header'
 import { BottomNav } from '@/components/navigation/bottom-nav'
 import { TopNavMobile } from '@/components/navigation/top-nav-mobile'
 import { FileText } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { createClient } from '@/lib/supabase/client'
 
 export default function SettingsPage() {
-  const supabase = createClient()
-
-  // Fetch user for top nav
-  useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) return null
-      return user
-    },
-    staleTime: 5 * 60 * 1000,
-  })
 
   return (
     <div className="min-h-screen bg-[#0f0f1e] pb-24 md:pb-8">
-      <SiteHeader />
       <TopNavMobile />
 
       <div className="container mx-auto px-4 pt-2 pb-24 md:p-6 max-w-3xl">

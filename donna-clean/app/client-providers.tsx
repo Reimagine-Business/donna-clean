@@ -1,31 +1,25 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState, type ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { useState } from 'react'
 
-// Note: With @supabase/ssr, we no longer need a global Supabase provider
+// Note: With @supabase/ssr, we no longer need a global provider
 // Each component creates its own client using createClient() from @/lib/supabase/client
 
-export default function ClientProviders({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            // Data stays fresh for 60 seconds
-            staleTime: 60 * 1000,
-            // Keep unused data in cache for 5 minutes
-            gcTime: 5 * 60 * 1000,
-            // Don't refetch when window regains focus
-            refetchOnWindowFocus: false,
-            // Retry failed requests once
-            retry: 1,
-          },
-        },
-      })
-  );
+export default function ClientProviders({ children }: { children: React.ReactNode }) {
+  // Create a client that persists for the lifetime of the component
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // 1 minute
+        refetchOnWindowFocus: false,
+      },
+    },
+  }))
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
+  )
 }

@@ -2,8 +2,8 @@
  * Database Migration Script: Update Entry Types
  *
  * This script updates all existing entries in the database:
- * - 'Cash Inflow' → 'Cash IN'
- * - 'Cash Outflow' → 'Cash OUT'
+ * - 'Cash IN' → 'Cash IN'
+ * - 'Cash OUT' → 'Cash OUT'
  *
  * Run this script ONCE after deploying the code changes.
  */
@@ -24,12 +24,12 @@ async function migrateEntryTypes() {
   console.log('Starting entry type migration...')
 
   try {
-    // Update 'Cash Inflow' to 'Cash IN'
+    // Update 'Cash IN' to 'Cash IN'
     console.log('Updating Cash Inflow entries...')
     const { data: inflowData, error: inflowError } = await supabase
       .from('entries')
       .update({ entry_type: 'Cash IN' })
-      .eq('entry_type', 'Cash Inflow')
+      .eq('entry_type', 'Cash IN')
       .select('id')
 
     if (inflowError) {
@@ -39,12 +39,12 @@ async function migrateEntryTypes() {
 
     console.log(`✓ Updated ${inflowData?.length || 0} Cash Inflow entries to Cash IN`)
 
-    // Update 'Cash Outflow' to 'Cash OUT'
+    // Update 'Cash OUT' to 'Cash OUT'
     console.log('Updating Cash Outflow entries...')
     const { data: outflowData, error: outflowError } = await supabase
       .from('entries')
       .update({ entry_type: 'Cash OUT' })
-      .eq('entry_type', 'Cash Outflow')
+      .eq('entry_type', 'Cash OUT')
       .select('id')
 
     if (outflowError) {

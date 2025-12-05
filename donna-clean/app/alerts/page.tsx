@@ -1,95 +1,51 @@
-'use client'
-
-export const dynamic = 'force-dynamic'
-
-import { SiteHeader } from "@/components/site-header";
+import { redirect } from "next/navigation";
 import { BottomNav } from "@/components/navigation/bottom-nav";
-import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
-import { AlertsPageClient } from "@/components/alerts/alerts-page-client";
-import { createClient } from "@/lib/supabase/client";
-import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { HamburgerMenu } from "@/components/navigation/hamburger-menu";
+import { AlertsShell } from "@/components/alerts/alerts-shell";
+import { getOrRefreshUser } from "@/lib/supabase/get-user";
+import { createSupabaseServerClient } from "@/utils/supabase/server";
 
-export default function AlertsPage() {
-  const supabase = createClient();
-  const router = useRouter();
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
-  // Fetch user with React Query
-  const { data: userData, isLoading: userLoading } = useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      return user;
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+export default async function AlertsPage() {
+  const supabase = await createSupabaseServerClient();
+  const { user, initialError } = await getOrRefreshUser(supabase);
 
-  // Fetch reminders with React Query (only when user is available)
-  const { data: reminders, isLoading: remindersLoading } = useQuery({
-    queryKey: ['alerts-reminders', userData?.id],
-    queryFn: async () => {
-      if (!userData?.id) return [];
-
-      const { data, error } = await supabase
-        .from("reminders")
-        .select("*")
-        .eq("user_id", userData.id)
-        .order("due_date", { ascending: true });
-
-      if (error) {
-        console.error("Error fetching reminders:", error);
-        return [];
-      }
-      return data || [];
-    },
-    enabled: !!userData?.id, // Only run when user is available
-    staleTime: 60 * 1000, // 1 minute
-  });
-
-  // Redirect if no user (after loading completes)
-  if (!userLoading && !userData) {
-    router.push("/auth/login");
-    return null;
-  }
-
-  // Show loading skeleton while fetching
-  if (userLoading || remindersLoading) {
-    return (
-      <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
-        <div className="flex flex-col min-h-screen">
-          <SiteHeader />
-          <TopNavMobile />
-
-          <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
-            <div className="mx-auto w-full max-w-6xl">
-              <div className="animate-pulse space-y-4">
-                <div className="h-8 bg-purple-500/20 rounded w-48"></div>
-                <div className="h-64 bg-purple-500/10 rounded"></div>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <BottomNav />
-      </main>
+  if (!user) {
+    console.error(
+      `[Auth Fail] No user in alerts/page${
+        initialError ? ` – error: ${initialError.message}` : ""
+      }`,
+      initialError ?? undefined,
     );
+    redirect("/auth/login");
   }
 
   return (
-    <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
-      <div className="flex flex-col min-h-screen">
-        <SiteHeader />
-        <TopNavMobile />
+    <main className="min-h-screen bg-slate-950 text-white">
+      <div className="flex flex-col">
+        {/* Mobile Header */}
+        <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-900 md:hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            <HamburgerMenu businessName="Donna Clean" userEmail={user.email || undefined} />
+            <h1 className="text-lg font-semibold">Alerts</h1>
+            <button className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-800 hover:text-white">
+              <span className="text-xl">➕</span>
+            </button>
+          </div>
+        </header>
 
-        <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
+        {/* Main Content */}
+        <section className="px-4 pb-24 pt-6 md:px-8 md:pb-8">
           <div className="mx-auto w-full max-w-6xl">
-            <AlertsPageClient initialReminders={reminders || []} />
+            <AlertsShell />
           </div>
         </section>
-      </div>
 
-      <BottomNav />
+        {/* Bottom Navigation */}
+        <BottomNav />
+      </div>
     </main>
   );
 }

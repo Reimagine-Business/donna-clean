@@ -94,11 +94,11 @@ export default function DiagnosticsPage() {
             ))}
           </div>
 
-          {(stats?.byType['Cash Inflow'] || stats?.byType['Cash Outflow']) && (
+          {(stats?.byType['Cash IN'] || stats?.byType['Cash OUT']) && (
             <div className="mt-4 p-4 bg-red-900/30 border border-red-500/50 rounded">
               <div className="font-bold text-red-400">⚠️ OLD TERMINOLOGY DETECTED!</div>
               <div className="text-sm text-red-300 mt-2">
-                You have {stats.byType['Cash Inflow'] || 0} "Cash Inflow" and {stats.byType['Cash Outflow'] || 0} "Cash Outflow" entries.
+                You have {stats.byType['Cash IN'] || 0} "Cash IN" and {stats.byType['Cash OUT'] || 0} "Cash OUT" entries.
                 <br />
                 Run the migration at <a href="/admin/migrate-entry-types" className="underline">/admin/migrate-entry-types</a>
               </div>

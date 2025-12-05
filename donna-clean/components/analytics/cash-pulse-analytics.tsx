@@ -13,7 +13,6 @@ import {
   getEntryCount,
 } from '@/lib/analytics-new'
 import { showSuccess, showError } from '@/lib/toast'
-import { deleteSettlement } from '@/app/settlements/actions'
 import { deleteSettlementHistory, type SettlementHistoryRecord } from '@/app/settlements/settlement-history-actions'
 import { SettlementModal } from '@/components/settlements/settlement-modal'
 

@@ -34,6 +34,8 @@ export function getDisplayCategory(dbCategory: CategoryType): string {
     'COGS': 'COGS',
     'Opex': 'OPEX',
     'Assets': 'Assets',
+    'Collection': 'Collection',
+    'Payment': 'Payment',
   };
 
   return mapping[dbCategory] || dbCategory;

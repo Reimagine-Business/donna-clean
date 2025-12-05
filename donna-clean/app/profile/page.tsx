@@ -5,7 +5,6 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { SiteHeader } from '@/components/site-header'
 import { BottomNav } from '@/components/navigation/bottom-nav'
 import { TopNavMobile } from '@/components/navigation/top-nav-mobile'
 import { User, Building2, MapPin, Mail, ImageIcon, Lock, LogOut } from 'lucide-react'
@@ -125,7 +124,6 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0f0f1e] pb-24 md:pb-8">
-        <SiteHeader />
         <TopNavMobile />
         <div className="container mx-auto px-4 pt-2 pb-24 md:p-6 max-w-3xl">
           <ProfileSkeleton />
@@ -137,7 +135,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-[#0f0f1e] pb-24 md:pb-8">
-      <SiteHeader />
       <TopNavMobile />
 
       <div className="container mx-auto px-4 pt-2 pb-24 md:p-6 max-w-3xl">
