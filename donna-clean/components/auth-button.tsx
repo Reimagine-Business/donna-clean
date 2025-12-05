@@ -1,15 +1,24 @@
+'use client'
+
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
 import { LogoutButton } from "./logout-button";
+import { useQuery } from "@tanstack/react-query";
 
-export async function AuthButton() {
-  const supabase = await createSupabaseServerClient();
+export function AuthButton() {
+  const supabase = createClient();
 
-  // You can also use getUser() which will be slower.
-  const { data } = await supabase.auth.getClaims();
-
-  const user = data?.claims;
+  // Fetch user with React Query
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) return null;
+      return user;
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   return user ? (
     <div className="flex items-center gap-4">

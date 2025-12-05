@@ -25,7 +25,7 @@ export type SettleEntryResult =
       error: string;
     };
 
-const DASHBOARD_PATHS = ["/cashpulse", "/profit-lens", "/daily-entries"];
+const DASHBOARD_PATHS = ["/analytics/cashpulse", "/analytics/profitlens", "/daily-entries"];
 
 export async function createSettlement({
   supabase,
@@ -86,7 +86,7 @@ export async function createSettlement({
         amount: settledAmount,
         remaining_amount: settledAmount,
         entry_date: settlementDate,
-        notes: `Settlement of credit ${latestEntry.category.toLowerCase()} (${latestEntry.id})`,
+        notes: `Settlement of Credit ${latestEntry.category} (${latestEntry.id})`,
       });
 
       if (cashEntryError) {
@@ -151,8 +151,8 @@ async function revalidateDashboards() {
   try {
     if (typeof window === "undefined") {
       const { revalidatePath } = await import("next/cache");
-      revalidatePath("/cashpulse");
-      revalidatePath("/profit-lens");
+      revalidatePath("/analytics/cashpulse");
+      revalidatePath("/analytics/profitlens");
       revalidatePath("/daily-entries");
       return;
     }

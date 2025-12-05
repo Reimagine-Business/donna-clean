@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { InfoIcon } from "lucide-react";
+
+export const dynamic = 'force-dynamic'
 import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";

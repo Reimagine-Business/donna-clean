@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { SiteHeader } from "@/components/site-header";
+
+export const dynamic = 'force-dynamic'
 import {
   Card,
   CardContent,
@@ -42,16 +44,18 @@ export default async function DashboardPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select("business_name, role")
-        .eq("id", user.id)
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (error && error.code !== "PGRST116") {
+        console.error("Profile fetch error:", error);
         throw error;
       }
 
       if (data) {
         profile = data;
       } else {
+        // Profile doesn't exist, try to create it
         const defaultBusinessName =
           metadata.business_name ?? user.email?.split("@")[0] ?? "Not set";
         const defaultRole = metadata.role ?? "owner";
@@ -59,7 +63,7 @@ export default async function DashboardPage() {
         const { data: createdProfile, error: createError } = await supabase
           .from("profiles")
           .insert({
-            id: user.id,
+            user_id: user.id,
             business_name: defaultBusinessName,
             role: defaultRole,
           })
@@ -67,14 +71,32 @@ export default async function DashboardPage() {
           .single();
 
         if (createError) {
-          throw createError;
-        }
+          // If insert fails due to duplicate user_id (23505), try fetching again
+          if (createError.code === "23505") {
+            console.log("Profile already exists, fetching again...");
+            const { data: existingProfile, error: refetchError } = await supabase
+              .from("profiles")
+              .select("business_name, role")
+              .eq("user_id", user.id)
+              .single();
 
-        profile = createdProfile;
+            if (refetchError) {
+              console.error("Failed to fetch existing profile:", refetchError);
+              throw new Error("Profile exists but cannot be accessed. Please check RLS policies.");
+            }
+
+            profile = existingProfile;
+          } else {
+            console.error("Profile creation error:", createError);
+            throw createError;
+          }
+        } else {
+          profile = createdProfile;
+        }
       }
     } catch (error) {
       console.error("Dashboard profile fetch failed", error);
-      sessionError = "Session error";
+      sessionError = error instanceof Error ? error.message : "Failed to load profile";
     }
   }
 
@@ -102,10 +124,9 @@ export default async function DashboardPage() {
             ) : sessionError ? (
               <Card className="border-red-500/40 bg-red-500/10">
                 <CardHeader>
-                  <CardTitle>Session error</CardTitle>
+                  <CardTitle>Profile Error</CardTitle>
                   <CardDescription>
-                    We couldn&apos;t load your profile. Please refresh and try
-                    again.
+                    {sessionError}. Please try refreshing the page or contact support if the issue persists.
                   </CardDescription>
                 </CardHeader>
               </Card>
