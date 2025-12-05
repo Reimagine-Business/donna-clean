@@ -460,7 +460,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           {pendingCollections.count > 0 && (
             <button
               onClick={() => setSettlementModalType('credit-sales')}
-              className="w-full mt-3 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm font-medium transition-colors"
+              className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
             >
               Settle Collections →
             </button>
@@ -496,7 +496,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           {pendingBills.count > 0 && (
             <button
               onClick={() => setSettlementModalType('credit-bills')}
-              className="w-full mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm font-medium transition-colors"
+              className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
             >
               Settle Bills →
             </button>
