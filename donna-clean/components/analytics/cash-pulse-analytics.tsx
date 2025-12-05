@@ -339,18 +339,18 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       {/* Total Cash Balance */}
       <div className="bg-gradient-to-br from-green-900/40 to-green-800/40 border-2 border-green-500/40 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Wallet className="w-5 h-5 text-green-300" />
-          <span className="text-xs text-green-300 uppercase tracking-wider font-medium">Total Cash Balance</span>
+          <Wallet className="w-5 h-5 text-white" />
+          <span className="text-xs text-white uppercase tracking-wider font-medium">Total Cash Balance</span>
         </div>
-        <div className={`text-3xl font-bold mb-1 ${cashBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+        <div className="text-3xl font-bold mb-1 text-white">
           {formatCurrency(cashBalance)}
         </div>
         <div className="flex items-center justify-between">
-          <div className={`flex items-center gap-1 text-sm ${cashBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className="flex items-center gap-1 text-sm text-white">
             {cashBalance >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
             <span className="font-semibold">{cashBalance >= 0 ? 'Positive' : 'Negative'}</span>
           </div>
-          <span className="text-xs text-green-400">As of {format(new Date(), 'dd MMM yyyy')}</span>
+          <span className="text-xs text-white">As of {format(new Date(), 'dd MMM yyyy')}</span>
         </div>
       </div>
 
@@ -359,14 +359,14 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         {/* Cash IN */}
         <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-500/50 rounded-lg p-3">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <ArrowUpRight className="w-4 h-4 text-green-400" />
-            <span className="text-xs text-green-300 uppercase tracking-wider font-medium">Cash IN</span>
+            <ArrowUpRight className="w-4 h-4 text-white" />
+            <span className="text-xs text-white uppercase tracking-wider font-medium">Cash IN</span>
           </div>
-          <div className="text-xl font-bold text-green-400 mb-1">{formatCurrency(totalCashIn)}</div>
+          <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashIn)}</div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-green-200">{cashInCount} entries</span>
+            <span className="text-xs text-white">{cashInCount} entries</span>
             {monthlyComparison.percentChange.cashIn !== 0 && (
-              <span className={`text-xs flex items-center gap-0.5 font-semibold ${monthlyComparison.percentChange.cashIn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+              <span className="text-xs flex items-center gap-0.5 font-semibold text-white">
                 {monthlyComparison.percentChange.cashIn >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {Math.abs(monthlyComparison.percentChange.cashIn).toFixed(1)}%
               </span>
@@ -377,14 +377,14 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         {/* Cash OUT */}
         <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-500/50 rounded-lg p-3">
           <div className="flex items-center gap-1.5 mb-1.5">
-            <ArrowDownRight className="w-4 h-4 text-red-400" />
-            <span className="text-xs text-red-300 uppercase tracking-wider font-medium">Cash OUT</span>
+            <ArrowDownRight className="w-4 h-4 text-white" />
+            <span className="text-xs text-white uppercase tracking-wider font-medium">Cash OUT</span>
           </div>
-          <div className="text-xl font-bold text-red-400 mb-1">{formatCurrency(totalCashOut)}</div>
+          <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashOut)}</div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-red-200">{cashOutCount} entries</span>
+            <span className="text-xs text-white">{cashOutCount} entries</span>
             {monthlyComparison.percentChange.cashOut !== 0 && (
-              <span className={`text-xs flex items-center gap-0.5 font-semibold ${monthlyComparison.percentChange.cashOut >= 0 ? 'text-red-400' : 'text-green-400'}`}>
+              <span className="text-xs flex items-center gap-0.5 font-semibold text-white">
                 {monthlyComparison.percentChange.cashOut >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                 {Math.abs(monthlyComparison.percentChange.cashOut).toFixed(1)}%
               </span>
