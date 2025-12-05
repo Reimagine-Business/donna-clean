@@ -19,8 +19,8 @@ import {
   type PaymentMethod,
   normalizeEntry,
 } from "@/lib/entries";
-import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
-import { addEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/daily-entries/actions";
+import { SettleEntryDialog } from "@/components/settlements/settle-entry-dialog";
+import { createEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/entries/actions";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -84,7 +84,7 @@ const CASH_PAYMENT_METHOD_OPTIONS = PAYMENT_METHODS as readonly PaymentMethod[];
 const entryTypeIsCredit = (type: EntryType): boolean => type === "Credit";
 
 const entryTypeRequiresCashMovement = (type: EntryType): boolean =>
-  type === "Cash Inflow" || type === "Cash Outflow" || type === "Advance";
+  type === "Cash IN" || type === "Cash OUT" || type === "Advance";
 
 const enforcePaymentMethodForType = (
   entryType: EntryType,
@@ -285,8 +285,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         payment_method: normalizedPaymentMethod,
         amount: numericAmount,
         entry_date: formValues.entry_date,
-        notes: formValues.notes || null,
-        image_url: uploadedUrl,
+        notes: formValues.notes || undefined,
+        image_url: uploadedUrl || undefined,
       };
 
       console.log("Saving entry payload", payload);
@@ -295,14 +295,14 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         // Use Server Action for update
         const result = await updateEntryAction(editingEntryId, payload);
         if (!result.success) {
-          throw new Error(result.error);
+          throw new Error(result.error || 'Unknown error');
         }
         setSuccessMessage("Entry updated!");
       } else {
         // Use Server Action for insert
         const result = await addEntryAction(payload);
         if (result?.error) {
-          throw new Error(result.error);
+          throw new Error(result.error || 'Unknown error');
         }
         setSuccessMessage("Entry saved!");
       }
@@ -430,7 +430,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   return (
     <div className="flex flex-col gap-10 text-white">
       <div className="space-y-4">
-        <h1 className="text-3xl font-semibold tracking-tight">Daily Entries</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">Entries</h1>
         <p className="text-sm text-slate-300">
           Record every inflow/outflow with supporting receipts to keep Donna in sync.
         </p>
@@ -599,7 +599,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 ? "Saving..."
                 : editingEntryId
                   ? "Update Entry"
-                  : "Record Daily Entry"}
+                  : "Record Entry"}
             </Button>
             {editingEntryId && (
               <Button
@@ -775,8 +775,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                     <span
                       className={cn(
                         "rounded-full px-2 py-1 text-xs font-semibold",
-                        entry.entry_type === "Cash Inflow" && "bg-emerald-500/20 text-emerald-300",
-                        entry.entry_type === "Cash Outflow" && "bg-rose-500/20 text-rose-300",
+                        entry.entry_type === "Cash IN" && "bg-emerald-500/20 text-emerald-300",
+                        entry.entry_type === "Cash OUT" && "bg-rose-500/20 text-rose-300",
                         entry.entry_type === "Credit" && "bg-amber-500/20 text-amber-200",
                         entry.entry_type === "Advance" && "bg-sky-500/20 text-sky-200",
                       )}
