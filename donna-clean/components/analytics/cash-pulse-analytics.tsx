@@ -337,7 +337,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       </div>
 
       {/* Total Cash Balance */}
-      <div className="bg-gradient-to-br from-green-900/40 to-green-800/40 border-2 border-green-500/40 rounded-lg p-4">
+      <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border-2 border-purple-500/50 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-2">
           <Wallet className="w-5 h-5 text-white" />
           <span className="text-xs text-white uppercase tracking-wider font-medium">Total Cash Balance</span>
@@ -394,7 +394,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       </div>
 
       {/* Balances */}
-      <div className="bg-green-900/10 border border-green-500/20 rounded-lg p-3">
+      <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-3">
         <h3 className="text-sm font-semibold text-white mb-2">Balances</h3>
 
         {/* Cash */}
@@ -406,8 +406,8 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
               <span className="text-xs text-white">{cashPercentage.toFixed(1)}%</span>
             </div>
           </div>
-          <div className="w-full bg-green-900/30 rounded-full h-2">
-            <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${Math.min(cashPercentage, 100)}%` }}></div>
+          <div className="w-full bg-purple-900/30 rounded-full h-2">
+            <div className="bg-purple-600 h-2 rounded-full transition-all" style={{ width: `${Math.min(cashPercentage, 100)}%` }}></div>
           </div>
         </div>
 
@@ -420,8 +420,8 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
               <span className="text-xs text-white">{bankPercentage.toFixed(1)}%</span>
             </div>
           </div>
-          <div className="w-full bg-green-900/30 rounded-full h-2">
-            <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${Math.min(bankPercentage, 100)}%` }}></div>
+          <div className="w-full bg-purple-900/30 rounded-full h-2">
+            <div className="bg-purple-600 h-2 rounded-full transition-all" style={{ width: `${Math.min(bankPercentage, 100)}%` }}></div>
           </div>
         </div>
       </div>
