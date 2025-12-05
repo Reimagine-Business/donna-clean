@@ -11,15 +11,31 @@ interface RateLimitConfig {
 }
 
 const RATE_LIMITS: Record<string, RateLimitConfig> = {
+  // Entry operations
   'create-entry': { limit: 100, window: 86400 },      // 100 per day
-  'update-entry': { limit: 200, window: 3600 },       // 200 per hour
-  'delete-entry': { limit: 50, window: 3600 },        // 50 per hour
-  'settle-entry': { limit: 100, window: 3600 },       // 100 per hour
+  'update-entry': { limit: 200, window: 86400 },      // 200 per day
+  'delete-entry': { limit: 50, window: 86400 },       // 50 per day
+  'settle-entry': { limit: 100, window: 86400 },      // 100 per day
+
+  // Party operations
   'create-party': { limit: 50, window: 86400 },       // 50 per day
-  'update-party': { limit: 100, window: 3600 },       // 100 per hour
+  'update-party': { limit: 100, window: 86400 },      // 100 per day
+  'delete-party': { limit: 50, window: 86400 },       // 50 per day
+
+  // Settlement operations
+  'create-settlement': { limit: 100, window: 3600 },  // 100 per hour
+
+  // Auth operations (STRICT limits)
+  'auth-signin': { limit: 10, window: 3600 },         // 10 per hour - STRICT
+  'auth-signup': { limit: 5, window: 3600 },          // 5 per hour - STRICT
+  'auth-forgot-password': { limit: 3, window: 3600 }, // 3 per hour - STRICT
+
+  // Legacy (keep for compatibility)
   'login': { limit: 10, window: 900 },                // 10 per 15 min
   'signup': { limit: 5, window: 3600 },               // 5 per hour
-  'default': { limit: 100, window: 3600 },            // Default: 100 per hour
+
+  // Default fallback
+  'default': { limit: 100, window: 3600 },            // 100 per hour
 }
 
 export class RateLimitError extends Error {

@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import type { Party, CreatePartyInput, UpdatePartyInput } from "@/lib/parties";
+import { protectedAction, validatePartyInput, sanitizePartyInput } from "@/lib/action-wrapper";
+import * as Sentry from '@sentry/nextjs';
 
 /**
  * Get all parties for the current user
@@ -88,59 +90,59 @@ export async function createParty(input: CreatePartyInput): Promise<{
   party?: Party;
   error?: string;
 }> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { user } = await getOrRefreshUser(supabase);
+  const supabase = await createSupabaseServerClient();
+  const { user } = await getOrRefreshUser(supabase);
 
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
+  if (!user) {
+    return { success: false, error: "Not authenticated" };
+  }
 
-    // Validate input
-    if (!input.name || input.name.trim().length === 0) {
-      return { success: false, error: "Party name is required" };
-    }
-
-    if (!input.party_type) {
-      return { success: false, error: "Party type is required" };
-    }
-
-    const { data, error } = await supabase
-      .from("parties")
-      .insert({
-        user_id: user.id,
-        name: input.name.trim(),
-        mobile: input.mobile?.trim() || null,
-        party_type: input.party_type,
-        opening_balance: input.opening_balance || 0,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating party:", error);
-
-      // Handle duplicate name error
-      if (error.code === '23505') {
-        return { success: false, error: "A party with this name already exists" };
+  // Apply security wrapper with rate limiting, validation, and error handling
+  return protectedAction(
+    user.id,
+    {
+      rateLimitKey: 'create-party',
+      validateInputs: () => validatePartyInput(input)
+    },
+    async () => {
+      if (!input.party_type) {
+        throw new Error("Party type is required");
       }
 
-      return { success: false, error: error.message };
+      // Sanitize inputs to prevent XSS
+      const sanitizedInput = sanitizePartyInput(input);
+
+      const { data, error } = await supabase
+        .from("parties")
+        .insert({
+          user_id: user.id,
+          name: sanitizedInput.name.trim(),
+          mobile: sanitizedInput.mobile?.trim() || null,
+          party_type: sanitizedInput.party_type,
+          opening_balance: sanitizedInput.opening_balance || 0,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Error creating party:", error);
+
+        // Handle duplicate name error
+        if (error.code === '23505') {
+          throw new Error("A party with this name already exists");
+        }
+
+        throw new Error(error.message);
+      }
+
+      // Revalidate paths that might show parties
+      revalidatePath("/daily-entries");
+      revalidatePath("/parties");
+      revalidatePath("/analytics/cashpulse");
+
+      return { success: true, party: data as Party };
     }
-
-    // Revalidate paths that might show parties
-    revalidatePath("/daily-entries");
-    revalidatePath("/parties");
-    revalidatePath("/analytics/cashpulse");
-
-    return { success: true, party: data as Party };
-  } catch (error) {
-    console.error("Exception in createParty:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to create party",
-    };
-  }
+  );
 }
 
 /**
@@ -153,68 +155,73 @@ export async function updateParty(
   success: boolean;
   error?: string;
 }> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { user } = await getOrRefreshUser(supabase);
+  const supabase = await createSupabaseServerClient();
+  const { user } = await getOrRefreshUser(supabase);
 
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
-
-    // Build update object
-    const updateData: any = {
-      updated_at: new Date().toISOString(),
-    };
-
-    if (updates.name !== undefined) {
-      if (updates.name.trim().length === 0) {
-        return { success: false, error: "Party name cannot be empty" };
-      }
-      updateData.name = updates.name.trim();
-    }
-
-    if (updates.mobile !== undefined) {
-      updateData.mobile = updates.mobile?.trim() || null;
-    }
-
-    if (updates.party_type !== undefined) {
-      updateData.party_type = updates.party_type;
-    }
-
-    if (updates.opening_balance !== undefined) {
-      updateData.opening_balance = updates.opening_balance;
-    }
-
-    const { error } = await supabase
-      .from("parties")
-      .update(updateData)
-      .eq("id", id)
-      .eq("user_id", user.id);
-
-    if (error) {
-      console.error("Error updating party:", error);
-
-      // Handle duplicate name error
-      if (error.code === '23505') {
-        return { success: false, error: "A party with this name already exists" };
-      }
-
-      return { success: false, error: error.message };
-    }
-
-    // Revalidate paths
-    revalidatePath("/daily-entries");
-    revalidatePath("/parties");
-    revalidatePath("/analytics/cashpulse");
-
-    return { success: true };
-  } catch (error) {
-    console.error("Exception in updateParty:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to update party",
-    };
+  if (!user) {
+    return { success: false, error: "Not authenticated" };
   }
+
+  // Apply security wrapper
+  return protectedAction(
+    user.id,
+    {
+      rateLimitKey: 'update-party',
+      validateInputs: updates.name ? () => validatePartyInput({ name: updates.name!, mobile: updates.mobile }) : undefined
+    },
+    async () => {
+      // Sanitize inputs
+      const sanitizedUpdates = updates.name || updates.mobile ? sanitizePartyInput(updates as any) : updates;
+
+      // Build update object
+      const updateData: any = {
+        updated_at: new Date().toISOString(),
+      };
+
+      if (sanitizedUpdates.name !== undefined) {
+        if (sanitizedUpdates.name.trim().length === 0) {
+          throw new Error("Party name cannot be empty");
+        }
+        updateData.name = sanitizedUpdates.name.trim();
+      }
+
+      if (sanitizedUpdates.mobile !== undefined) {
+        updateData.mobile = sanitizedUpdates.mobile?.trim() || null;
+      }
+
+      if (sanitizedUpdates.party_type !== undefined) {
+        updateData.party_type = sanitizedUpdates.party_type;
+      }
+
+      if (sanitizedUpdates.opening_balance !== undefined) {
+        updateData.opening_balance = sanitizedUpdates.opening_balance;
+      }
+
+      const { error } = await supabase
+        .from("parties")
+        .update(updateData)
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error updating party:", error);
+
+        // Handle duplicate name error
+        if (error.code === '23505') {
+          throw new Error("A party with this name already exists");
+        }
+
+        throw new Error(error.message);
+      }
+
+      // Revalidate paths
+      revalidatePath("/daily-entries");
+      revalidatePath("/parties");
+      revalidatePath("/analytics/cashpulse");
+
+      return { success: true };
+    }
+  );
 }
 
 /**
@@ -225,38 +232,39 @@ export async function deleteParty(id: string): Promise<{
   success: boolean;
   error?: string;
 }> {
-  try {
-    const supabase = await createSupabaseServerClient();
-    const { user } = await getOrRefreshUser(supabase);
+  const supabase = await createSupabaseServerClient();
+  const { user } = await getOrRefreshUser(supabase);
 
-    if (!user) {
-      return { success: false, error: "Not authenticated" };
-    }
-
-    const { error } = await supabase
-      .from("parties")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
-
-    if (error) {
-      console.error("Error deleting party:", error);
-      return { success: false, error: error.message };
-    }
-
-    // Revalidate paths
-    revalidatePath("/daily-entries");
-    revalidatePath("/parties");
-    revalidatePath("/analytics/cashpulse");
-
-    return { success: true };
-  } catch (error) {
-    console.error("Exception in deleteParty:", error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : "Failed to delete party",
-    };
+  if (!user) {
+    return { success: false, error: "Not authenticated" };
   }
+
+  // Apply security wrapper (rate limiting + error handling)
+  return protectedAction(
+    user.id,
+    {
+      rateLimitKey: 'delete-party'
+    },
+    async () => {
+      const { error } = await supabase
+        .from("parties")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error deleting party:", error);
+        throw new Error(error.message);
+      }
+
+      // Revalidate paths
+      revalidatePath("/daily-entries");
+      revalidatePath("/parties");
+      revalidatePath("/analytics/cashpulse");
+
+      return { success: true };
+    }
+  );
 }
 
 /**
