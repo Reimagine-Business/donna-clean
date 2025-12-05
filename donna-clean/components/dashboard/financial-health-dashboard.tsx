@@ -208,7 +208,7 @@ export function FinancialHealthDashboard({ entries }: FinancialHealthDashboardPr
       {/* Quick Access Buttons */}
       <div className="grid grid-cols-3 gap-3">
         <button
-          onClick={() => router.push('/daily-entries')}
+          onClick={() => router.push('/entries')}
           className="py-3 px-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium text-sm transition-colors text-white"
         >
           ➕ New Entry

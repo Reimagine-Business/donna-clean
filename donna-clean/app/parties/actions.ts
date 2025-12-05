@@ -136,7 +136,7 @@ export async function createParty(input: CreatePartyInput): Promise<{
       }
 
       // Revalidate paths that might show parties
-      revalidatePath("/daily-entries");
+      revalidatePath("/entries");
       revalidatePath("/parties");
       revalidatePath("/analytics/cashpulse");
 
@@ -215,7 +215,7 @@ export async function updateParty(
       }
 
       // Revalidate paths
-      revalidatePath("/daily-entries");
+      revalidatePath("/entries");
       revalidatePath("/parties");
       revalidatePath("/analytics/cashpulse");
 
@@ -258,7 +258,7 @@ export async function deleteParty(id: string): Promise<{
       }
 
       // Revalidate paths
-      revalidatePath("/daily-entries");
+      revalidatePath("/entries");
       revalidatePath("/parties");
       revalidatePath("/analytics/cashpulse");
 

@@ -198,7 +198,7 @@ export default async function DashboardPage() {
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
                       Add your first note on the{" "}
-                      <a className="underline" href="/daily-entries">
+                      <a className="underline" href="/entries">
                         daily entries
                       </a>{" "}
                       page to build momentum.

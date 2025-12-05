@@ -6,7 +6,7 @@ import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
 import { BusinessSnapshot } from "@/components/dashboard/business-snapshot";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
-import { getEntries } from "@/app/daily-entries/actions";
+import { getEntries } from "@/app/entries/actions";
 import { EntryListSkeleton } from "@/components/skeletons/entry-skeleton";
 
 export const dynamic = 'force-dynamic';

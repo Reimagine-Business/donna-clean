@@ -20,7 +20,7 @@ import {
   normalizeEntry,
 } from "@/lib/entries";
 import { SettleEntryDialog } from "@/components/settlements/settle-entry-dialog";
-import { addEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/daily-entries/actions";
+import { createEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/entries/actions";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -285,8 +285,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         payment_method: normalizedPaymentMethod,
         amount: numericAmount,
         entry_date: formValues.entry_date,
-        notes: formValues.notes || null,
-        image_url: uploadedUrl,
+        notes: formValues.notes || undefined,
+        image_url: uploadedUrl || undefined,
       };
 
       console.log("Saving entry payload", payload);
@@ -295,14 +295,14 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         // Use Server Action for update
         const result = await updateEntryAction(editingEntryId, payload);
         if (!result.success) {
-          throw new Error(result.error);
+          throw new Error(result.error || 'Unknown error');
         }
         setSuccessMessage("Entry updated!");
       } else {
         // Use Server Action for insert
         const result = await addEntryAction(payload);
         if (result?.error) {
-          throw new Error(result.error);
+          throw new Error(result.error || 'Unknown error');
         }
         setSuccessMessage("Entry saved!");
       }

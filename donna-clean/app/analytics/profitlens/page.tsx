@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getEntries } from '@/app/daily-entries/actions'
+import { getEntries } from '@/app/entries/actions'
 import { ProfitLensAnalytics } from '@/components/analytics/profit-lens-analytics'
 import { EntryListSkeleton } from '@/components/skeletons/entry-skeleton'
 import { SiteHeader } from '@/components/site-header'

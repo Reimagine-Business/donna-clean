@@ -25,7 +25,7 @@ export type SettleEntryResult =
       error: string;
     };
 
-const DASHBOARD_PATHS = ["/analytics/cashpulse", "/analytics/profitlens", "/daily-entries"];
+const DASHBOARD_PATHS = ["/analytics/cashpulse", "/analytics/profitlens", "/entries"];
 
 export async function createSettlement({
   supabase,
@@ -153,7 +153,7 @@ async function revalidateDashboards() {
       const { revalidatePath } = await import("next/cache");
       revalidatePath("/analytics/cashpulse");
       revalidatePath("/analytics/profitlens");
-      revalidatePath("/daily-entries");
+      revalidatePath("/entries");
       return;
     }
 

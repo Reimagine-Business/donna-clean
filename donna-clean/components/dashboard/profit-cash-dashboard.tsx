@@ -278,7 +278,7 @@ export function ProfitCashDashboard({ entries }: ProfitCashDashboardProps) {
             </button>
 
             <button
-              onClick={() => router.push('/daily-entries')}
+              onClick={() => router.push('/entries')}
               className="w-full flex justify-between items-center p-3 bg-red-900/20 hover:bg-red-900/30 border border-red-500/20 rounded-lg transition-colors text-left"
             >
               <div>

@@ -11,13 +11,13 @@ import { createSupabaseServerClient } from "@/utils/supabase/server";
 export const dynamic = 'force-dynamic';
 export const revalidate = 0; // Never cache - always fetch fresh data
 
-export default async function DailyEntriesPage() {
+export default async function EntriesPage() {
   const supabase = await createSupabaseServerClient();
   const { user, initialError } = await getOrRefreshUser(supabase);
 
   if (!user) {
     console.error(
-      `[Auth Fail] No user in daily-entries/page${
+      `[Auth Fail] No user in entries/page${
         initialError ? ` – error: ${initialError.message}` : ""
       }`,
       initialError ?? undefined,
@@ -39,26 +39,20 @@ export default async function DailyEntriesPage() {
     .order("entry_date", { ascending: false })
     .order("created_at", { ascending: false });
 
-  const entries: Entry[] = data?.map((entry) => normalizeEntry(entry as any)) ?? [];
-
   if (error) {
-    console.error('❌ [SERVER] Error fetching entries:', error);
+    console.error("Failed to fetch entries:", error);
   }
 
+  const entries: Entry[] = data?.map((entry) => normalizeEntry(entry as any)) ?? [];
+
   return (
-    <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
-      <div className="flex flex-col min-h-screen">
-        <SiteHeader />
-        <TopNavMobile />
-
-        <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
-          <div className="mx-auto w-full max-w-6xl">
-            <DailyEntriesShell initialEntries={entries} userId={user.id} />
-          </div>
-        </section>
-      </div>
-
+    <>
+      <TopNavMobile />
+      <SiteHeader />
+      <main className="flex-1 pb-32 md:pb-6">
+        <DailyEntriesShell initialEntries={entries} userId={user.id} />
+      </main>
       <BottomNav />
-    </main>
+    </>
   );
 }

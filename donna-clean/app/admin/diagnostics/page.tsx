@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { getEntries } from '@/app/daily-entries/actions'
+import { getEntries } from '@/app/entries/actions'
 
 export default function DiagnosticsPage() {
   const [entries, setEntries] = useState<any[]>([])
