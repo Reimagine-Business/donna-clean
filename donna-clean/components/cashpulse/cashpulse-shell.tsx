@@ -14,7 +14,7 @@ import {
   normalizeEntry,
 } from "@/lib/entries";
 import { cn } from "@/lib/utils";
-import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
+import { SettleEntryDialog } from "@/components/settlements/settle-entry-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download } from "lucide-react";
