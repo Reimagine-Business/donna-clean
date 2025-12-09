@@ -1,6 +1,8 @@
 // app/auth/login/page.tsx
 "use client";
 
+export const dynamic = 'force-dynamic';
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -37,15 +39,15 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-md space-y-6 rounded-2xl border border-white/10 bg-slate-950/50 p-8 shadow-2xl shadow-black/30">
+      <div className="w-full max-w-md space-y-6 rounded-2xl border border-border bg-slate-950/50 p-8 shadow-2xl shadow-black/30">
         <h1 className="text-2xl font-semibold text-white">Login</h1>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted-foreground">
           Enter your email below to login to your account
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-300">Email</label>
+            <label className="block text-sm font-medium text-foreground/70">Email</label>
             <input
               type="email"
               placeholder="m@example.com"
@@ -53,21 +55,21 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#a78bfa] disabled:opacity-50"
+              className="mt-1 w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300">Password</label>
+            <label className="block text-sm font-medium text-foreground/70">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="mt-1 w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-[#a78bfa] disabled:opacity-50"
+              className="mt-1 w-full rounded-lg border border-border bg-secondary/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
             />
-            <p className="mt-1 text-xs text-slate-400">Forgot your password?</p>
+            <p className="mt-1 text-xs text-muted-foreground">Forgot your password?</p>
           </div>
 
           {error && <p className="text-sm text-red-400">{error}</p>}
@@ -75,17 +77,10 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-[#a78bfa] py-2.5 text-sm font-semibold text-black transition hover:bg-[#9f78f5] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-black transition hover:bg-[#9f78f5] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Signing in..." : "Login"}
           </button>
-
-          <p className="text-center text-sm text-slate-400">
-            Don't have an account?{" "}
-            <a href="/auth/signup" className="text-[#a78bfa] hover:underline">
-              Sign up
-            </a>
-          </p>
         </form>
       </div>
     </div>

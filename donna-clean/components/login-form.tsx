@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { loginAction } from "@/app/auth/actions";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { showInfo } from "@/lib/toast";
 import {
   Card,
   CardContent,
@@ -26,10 +27,9 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
   useEffect(() => {
     if (
       state?.error === "Verify email" &&
-      typeof window !== "undefined" &&
-      typeof window.alert === "function"
+      typeof window !== "undefined"
     ) {
-      window.alert("Verify email");
+      showInfo("Verify email");
     }
   }, [state?.error]);
 

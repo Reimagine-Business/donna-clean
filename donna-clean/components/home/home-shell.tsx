@@ -1,231 +1,176 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTransition } from "react";
 import { cn } from "@/lib/utils";
+import { markReminderDone } from "@/app/reminders/actions";
+import { AlertsSection } from "./alerts-section";
 
-interface AlertSummary {
+interface Reminder {
+  id: string;
   title: string;
-  count: number;
-  amount: number;
-  color: "red" | "yellow" | "blue";
-  icon: string;
+  description: string | null;
+  due_date: string;
+  status: string;
+  category: string;
 }
 
-const mockAlertSummaries: AlertSummary[] = [
-  {
-    title: "Overdue",
-    count: 3,
-    amount: 45000,
-    color: "red",
-    icon: "🚨",
-  },
-  {
-    title: "Due This Week",
-    count: 5,
-    amount: 78500,
-    color: "yellow",
-    icon: "⏰",
-  },
-  {
-    title: "Collections Aging",
-    count: 8,
-    amount: 125000,
-    color: "blue",
-    icon: "💼",
-  },
-  {
-    title: "Bills Aging",
-    count: 4,
-    amount: 62000,
-    color: "blue",
-    icon: "📄",
-  },
-  {
-    title: "Advances Aging",
-    count: 2,
-    amount: 35000,
-    color: "blue",
-    icon: "💸",
-  },
-];
+interface Alert {
+  id: string;
+  user_id: string;
+  type: 'critical' | 'warning' | 'info';
+  priority: number;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
 
-const formatCurrency = (amount: number): string => {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-};
+interface HomeShellProps {
+  initialReminders: Reminder[];
+  initialAlerts: Alert[];
+  userId: string;
+}
 
-const getColorClasses = (color: "red" | "yellow" | "blue") => {
-  switch (color) {
-    case "red":
-      return {
-        bg: "bg-red-500/10 hover:bg-red-500/20",
-        border: "border-red-500/30",
-        text: "text-red-400",
-      };
-    case "yellow":
-      return {
-        bg: "bg-yellow-500/10 hover:bg-yellow-500/20",
-        border: "border-yellow-500/30",
-        text: "text-yellow-400",
-      };
-    case "blue":
-      return {
-        bg: "bg-blue-500/10 hover:bg-blue-500/20",
-        border: "border-blue-500/30",
-        text: "text-blue-400",
-      };
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  date.setHours(0, 0, 0, 0);
+
+  const diffTime = date.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return "Due today";
+  } else if (diffDays === 1) {
+    return "Due tomorrow";
+  } else {
+    return `Due in ${diffDays} ${diffDays === 1 ? 'day' : 'days'}`;
   }
 };
 
-export function HomeShell() {
-  const router = useRouter();
+const getCategoryIcon = (category: string) => {
+  switch (category) {
+    case "bills":
+      return "📦";
+    case "task":
+      return "✓";
+    case "advance_settlement":
+      return "💸";
+    case "others":
+      return "📌";
+    default:
+      return "📌";
+  }
+};
 
-  const handleCardClick = () => {
+export function HomeShell({ initialReminders, initialAlerts, userId }: HomeShellProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  // Filter for Due Soon (next 7 days, pending only)
+  const dueSoonReminders = initialReminders.filter((reminder) => {
+    if (reminder.status !== "pending") return false;
+
+    const dueDate = new Date(reminder.due_date);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    const diffTime = dueDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    return diffDays >= 0 && diffDays <= 7;
+  });
+
+  const handleMarkDone = (reminderId: string) => {
+    startTransition(async () => {
+      await markReminderDone(reminderId);
+    });
+  };
+
+  const handleViewAll = () => {
     router.push("/alerts");
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="mt-1 text-sm text-slate-400">
-          Overview of your alerts and reminders
-        </p>
+    <div className="space-y-3">
+      {/* Page Header */}
+      <div className="mb-2">
+        <h1 className="text-2xl md:text-3xl font-bold text-white">
+          Your Daily Start
+        </h1>
       </div>
 
-      {/* Overdue Alerts Section */}
+      {/* Critical Alerts Section - TOP PRIORITY */}
+      <AlertsSection initialAlerts={initialAlerts} userId={userId} />
+
+      {/* Due Soon Section */}
       <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Overdue Alerts
-        </h2>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Due Soon (Next 7 Days)
+          </h2>
+          <button
+            onClick={handleViewAll}
+            className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+          >
+            View All →
+          </button>
+        </div>
+
         <div className="space-y-3">
-          {mockAlertSummaries
-            .filter((alert) => alert.color === "red")
-            .map((alert) => {
-              const colors = getColorClasses(alert.color);
-              return (
-                <button
-                  key={alert.title}
-                  onClick={handleCardClick}
-                  className={cn(
-                    "w-full rounded-lg border p-4 text-left transition-colors",
-                    colors.bg,
-                    colors.border
-                  )}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl" aria-hidden="true">
-                        {alert.icon}
-                      </span>
-                      <div>
-                        <h3 className="font-semibold text-white">
-                          {alert.title}
-                        </h3>
-                        <p className="mt-1 text-sm text-slate-400">
-                          {alert.count} {alert.count === 1 ? "item" : "items"}
+          {dueSoonReminders.length === 0 ? (
+            <div className="rounded-lg border border-slate-800 bg-card/50 p-8 text-center">
+              <p className="text-muted-foreground">No upcoming reminders</p>
+              <button
+                onClick={handleViewAll}
+                className="mt-3 text-sm text-purple-400 hover:text-purple-300 transition-colors"
+              >
+                Go to Alerts →
+              </button>
+            </div>
+          ) : (
+            dueSoonReminders.map((reminder) => (
+              <div
+                key={reminder.id}
+                className="rounded-lg border border-border bg-card/50 p-4 transition-colors hover:bg-card"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl" aria-hidden="true">
+                    {getCategoryIcon(reminder.category)}
+                  </span>
+                  <div className="flex-1">
+                    <div>
+                      <h3 className="font-semibold text-white">
+                        {reminder.title}
+                      </h3>
+                      {reminder.description && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {reminder.description}
                         </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={cn("text-lg font-semibold", colors.text)}>
-                        {formatCurrency(alert.amount)}
+                      )}
+                      <p className="mt-2 text-sm font-medium text-yellow-400">
+                        {formatDate(reminder.due_date)}
                       </p>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-        </div>
-      </section>
 
-      {/* This Week Section */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
-          This Week
-        </h2>
-        <div className="space-y-3">
-          {mockAlertSummaries
-            .filter((alert) => alert.color === "yellow")
-            .map((alert) => {
-              const colors = getColorClasses(alert.color);
-              return (
-                <button
-                  key={alert.title}
-                  onClick={handleCardClick}
-                  className={cn(
-                    "w-full rounded-lg border p-4 text-left transition-colors",
-                    colors.bg,
-                    colors.border
-                  )}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl" aria-hidden="true">
-                        {alert.icon}
-                      </span>
-                      <div>
-                        <h3 className="font-semibold text-white">
-                          {alert.title}
-                        </h3>
-                        <p className="mt-1 text-sm text-slate-400">
-                          {alert.count} {alert.count === 1 ? "item" : "items"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={cn("text-lg font-semibold", colors.text)}>
-                        {formatCurrency(alert.amount)}
-                      </p>
+                    {/* Mark Done Button */}
+                    <div className="mt-4">
+                      <button
+                        onClick={() => handleMarkDone(reminder.id)}
+                        disabled={isPending}
+                        className="rounded-md bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-400 transition-colors hover:bg-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isPending ? "Marking..." : "Mark Done"}
+                      </button>
                     </div>
                   </div>
-                </button>
-              );
-            })}
-        </div>
-      </section>
-
-      {/* Aging Items Section */}
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
-          Aging Items
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-3">
-          {mockAlertSummaries
-            .filter((alert) => alert.color === "blue")
-            .map((alert) => {
-              const colors = getColorClasses(alert.color);
-              return (
-                <button
-                  key={alert.title}
-                  onClick={handleCardClick}
-                  className={cn(
-                    "rounded-lg border p-4 text-left transition-colors",
-                    colors.bg,
-                    colors.border
-                  )}
-                >
-                  <div className="flex flex-col gap-2">
-                    <span className="text-2xl" aria-hidden="true">
-                      {alert.icon}
-                    </span>
-                    <h3 className="text-sm font-semibold text-white">
-                      {alert.title}
-                    </h3>
-                    <p className="text-xs text-slate-400">
-                      {alert.count} {alert.count === 1 ? "item" : "items"}
-                    </p>
-                    <p className={cn("text-base font-semibold", colors.text)}>
-                      {formatCurrency(alert.amount)}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </section>
     </div>

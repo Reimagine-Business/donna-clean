@@ -15,6 +15,11 @@ interface Reminder {
   category: "collection" | "bill" | "advance" | "other";
 }
 
+interface AlertsShellProps {
+  initialReminders?: any[]; // Accept any reminder format for now
+  onAddClick?: () => void;
+}
+
 const mockReminders: Reminder[] = [
   {
     id: "1",
@@ -147,7 +152,7 @@ const getCategoryIcon = (category: Reminder["category"]) => {
   }
 };
 
-export function AlertsShell() {
+export function AlertsShell({ initialReminders, onAddClick }: AlertsShellProps = {}) {
   const [activeFilter, setActiveFilter] = useState<FilterTab>("all");
 
   const filterTabs: { id: FilterTab; label: string }[] = [
