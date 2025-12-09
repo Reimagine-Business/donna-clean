@@ -110,7 +110,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
           className="w-full p-4 flex items-center justify-between hover:bg-green-900/10 transition-colors"
         >
           <div className="text-left">
-            <div className="text-sm text-gray-400 mb-1">💰 WHAT YOU OWN</div>
+            <div className="text-sm text-white mb-1">💰 WHAT YOU OWN</div>
             <div className="text-3xl font-bold text-green-400">
               ₹{snapshotData.totalOwn.toLocaleString('en-IN')}
             </div>
@@ -159,7 +159,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
           className="w-full p-4 flex items-center justify-between hover:bg-red-900/10 transition-colors"
         >
           <div className="text-left">
-            <div className="text-sm text-gray-400 mb-1">📋 WHAT YOU OWE</div>
+            <div className="text-sm text-white mb-1">📋 WHAT YOU OWE</div>
             <div className="text-3xl font-bold text-red-400">
               ₹{snapshotData.totalOwe.toLocaleString('en-IN')}
             </div>
@@ -191,7 +191,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
 
       {/* Total Profit */}
       <div className="bg-purple-900/20 border border-purple-500/30 rounded-xl p-4">
-        <div className="text-sm text-gray-400 mb-1">
+        <div className="text-sm text-white mb-1">
           📊 TOTAL PROFIT ({period === "all-time" ? "All Time" : selectedYear})
         </div>
         <div className={`text-3xl font-bold ${snapshotData.profit >= 0 ? 'text-purple-400' : 'text-red-400'}`}>

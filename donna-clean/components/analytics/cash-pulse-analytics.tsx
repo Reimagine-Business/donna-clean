@@ -338,20 +338,20 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       </div>
 
       {/* Total Cash Balance */}
-      <div className="bg-gradient-to-br from-green-900/40 to-green-800/40 border-2 border-green-500/40 rounded-lg p-4">
+      <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border-2 border-purple-500/50 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-2">
-          <Wallet className="w-5 h-5 text-green-300" />
-          <span className="text-xs text-green-300 uppercase tracking-wider font-medium">Total Cash Balance</span>
+          <Wallet className="w-5 h-5 text-purple-300" />
+          <span className="text-xs text-white uppercase tracking-wider font-medium">Total Cash Balance</span>
         </div>
-        <div className={`text-3xl font-bold mb-1 ${cashBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+        <div className={`text-3xl font-bold mb-1 ${cashBalance >= 0 ? 'text-purple-400' : 'text-red-400'}`}>
           {formatCurrency(cashBalance)}
         </div>
         <div className="flex items-center justify-between">
-          <div className={`flex items-center gap-1 text-sm ${cashBalance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className={`flex items-center gap-1 text-sm ${cashBalance >= 0 ? 'text-purple-400' : 'text-red-400'}`}>
             {cashBalance >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
             <span className="font-semibold">{cashBalance >= 0 ? 'Positive' : 'Negative'}</span>
           </div>
-          <span className="text-xs text-green-400">As of {format(new Date(), 'dd MMM yyyy')}</span>
+          <span className="text-xs text-white">As of {format(new Date(), 'dd MMM yyyy')}</span>
         </div>
       </div>
 
@@ -401,28 +401,28 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         {/* Cash */}
         <div className="space-y-1 mb-2">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-green-200">Cash</span>
+            <span className="text-sm text-white">Cash</span>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-green-400">{formatCurrency(cashAmount)}</span>
-              <span className="text-xs text-green-400">{cashPercentage.toFixed(1)}%</span>
+              <span className="text-sm font-medium text-white">{formatCurrency(cashAmount)}</span>
+              <span className="text-xs text-white">{cashPercentage.toFixed(1)}%</span>
             </div>
           </div>
-          <div className="w-full bg-green-900/30 rounded-full h-2">
-            <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${cashPercentage}%` }}></div>
+          <div className="w-full bg-gray-700/30 rounded-full h-2 overflow-hidden">
+            <div className="bg-white h-2 rounded-full transition-all" style={{ width: `${Math.min(cashPercentage, 100)}%` }}></div>
           </div>
         </div>
 
         {/* Bank */}
         <div className="space-y-1">
           <div className="flex justify-between items-center">
-            <span className="text-sm text-green-200">Bank</span>
+            <span className="text-sm text-white">Bank</span>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-green-400">{formatCurrency(bankAmount)}</span>
-              <span className="text-xs text-green-400">{bankPercentage.toFixed(1)}%</span>
+              <span className="text-sm font-medium text-white">{formatCurrency(bankAmount)}</span>
+              <span className="text-xs text-white">{bankPercentage.toFixed(1)}%</span>
             </div>
           </div>
-          <div className="w-full bg-green-900/30 rounded-full h-2">
-            <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${bankPercentage}%` }}></div>
+          <div className="w-full bg-gray-700/30 rounded-full h-2 overflow-hidden">
+            <div className="bg-white h-2 rounded-full transition-all" style={{ width: `${Math.min(bankPercentage, 100)}%` }}></div>
           </div>
         </div>
       </div>
@@ -461,7 +461,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           {pendingCollections.count > 0 && (
             <button
               onClick={() => setSettlementModalType('credit-sales')}
-              className="w-full mt-3 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-md text-sm font-medium transition-colors"
+              className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
             >
               Settle Collections →
             </button>
@@ -497,7 +497,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           {pendingBills.count > 0 && (
             <button
               onClick={() => setSettlementModalType('credit-bills')}
-              className="w-full mt-3 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md text-sm font-medium transition-colors"
+              className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
             >
               Settle Bills →
             </button>
