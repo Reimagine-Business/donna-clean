@@ -476,17 +476,10 @@ const buildProfitStats = (entries: Entry[]): ProfitStats => {
   let opex = 0;
 
   entries.forEach((entry) => {
-    const isCashInflow = entry.entry_type === "Cash Inflow";
-    const isCashOutflow = entry.entry_type === "Cash Outflow";
+    const isCashInflow = entry.entry_type === "Cash IN";
+    const isCashOutflow = entry.entry_type === "Cash OUT";
     const isCredit = entry.entry_type === "Credit";
     const isSettledAdvance = entry.entry_type === "Advance" && entry.settled;
-
-    // ✅ FIX: Exclude "Collection" and "Payment" categories from P&L
-    // These are settlement entries that should only affect cash flow, not profit/loss
-    if (entry.category === "Collection" || entry.category === "Payment") {
-      logProfitLensSkip(entry, "Settlement entry (Collection/Payment) - excluded from P&L");
-      return;
-    }
 
     if (entry.category === "Sales") {
       if (isCashInflow || isCredit || isSettledAdvance) {

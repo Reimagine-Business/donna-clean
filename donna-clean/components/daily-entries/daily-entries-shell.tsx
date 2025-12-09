@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
-import { Download, Edit3, Trash2, UploadCloud, X, Handshake } from "lucide-react";
+import { Download, Edit3, Trash2, Handshake } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,8 @@ import {
   type PaymentMethod,
   normalizeEntry,
 } from "@/lib/entries";
-import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
-import { addEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/daily-entries/actions";
+import { SettleEntryDialog } from "@/components/settlements/settle-entry-dialog";
+import { createEntry as addEntryAction, updateEntry as updateEntryAction, deleteEntry as deleteEntryAction } from "@/app/entries/actions";
 
 const currencyFormatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -33,9 +33,16 @@ const numberFormatter = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 2,
 });
 
+type Party = {
+  id: string
+  name: string
+  party_type: string
+}
+
 type DailyEntriesShellProps = {
   initialEntries: Entry[];
   userId: string;
+  parties: Party[];
 };
 
 type EntryFormState = {
@@ -45,6 +52,7 @@ type EntryFormState = {
   amount: string;
   entry_date: string;
   notes: string;
+  party_id: string;
 };
 
 type FiltersState = {
@@ -66,6 +74,7 @@ const buildInitialFormState = (): EntryFormState => ({
   amount: "",
   entry_date: today,
   notes: "",
+  party_id: "",
 });
 
 const buildInitialFiltersState = (): FiltersState => ({
@@ -84,7 +93,7 @@ const CASH_PAYMENT_METHOD_OPTIONS = PAYMENT_METHODS as readonly PaymentMethod[];
 const entryTypeIsCredit = (type: EntryType): boolean => type === "Credit";
 
 const entryTypeRequiresCashMovement = (type: EntryType): boolean =>
-  type === "Cash Inflow" || type === "Cash Outflow" || type === "Advance";
+  type === "Cash IN" || type === "Cash OUT" || type === "Advance";
 
 const enforcePaymentMethodForType = (
   entryType: EntryType,
@@ -112,14 +121,11 @@ const paymentMethodRuleViolation = (
   return null;
 };
 
-export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellProps) {
+export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntriesShellProps) {
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [paymentMethodError, setPaymentMethodError] = useState<string | null>(null);
 
@@ -213,33 +219,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
   const resetForm = () => {
     setFormValues(buildInitialFormState());
     setEditingEntryId(null);
-    setReceiptFile(null);
-    setReceiptPreview(null);
-    setExistingImageUrl(null);
     setFormError(null);
     setPaymentMethodError(null);
-  };
-
-  const uploadReceipt = async (): Promise<string | null> => {
-    if (!receiptFile) {
-      return existingImageUrl;
-    }
-
-    const fileExt = receiptFile.name.split(".").pop() ?? "jpg";
-    const filePath = `${userId}/${Date.now()}.${fileExt}`;
-
-    const { error } = await supabase.storage.from("receipts").upload(filePath, receiptFile, {
-      cacheControl: "3600",
-      upsert: true,
-      contentType: receiptFile.type,
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    const { data } = supabase.storage.from("receipts").getPublicUrl(filePath);
-    return data.publicUrl;
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -270,11 +251,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         return;
       }
 
-      let uploadedUrl = existingImageUrl;
-      if (receiptFile) {
-        uploadedUrl = await uploadReceipt();
-      }
-
       const normalizedPaymentMethod = entryTypeIsCredit(selectedEntryType)
         ? CREDIT_PAYMENT_METHOD
         : paymentMethod;
@@ -285,8 +261,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         payment_method: normalizedPaymentMethod,
         amount: numericAmount,
         entry_date: formValues.entry_date,
-        notes: formValues.notes || null,
-        image_url: uploadedUrl,
+        notes: formValues.notes || undefined,
+        party_id: formValues.party_id || undefined,
       };
 
       console.log("Saving entry payload", payload);
@@ -295,14 +271,14 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         // Use Server Action for update
         const result = await updateEntryAction(editingEntryId, payload);
         if (!result.success) {
-          throw new Error(result.error);
+          throw new Error(result.error || 'Unknown error');
         }
         setSuccessMessage("Entry updated!");
       } else {
         // Use Server Action for insert
         const result = await addEntryAction(payload);
         if (result?.error) {
-          throw new Error(result.error);
+          throw new Error(result.error || 'Unknown error');
         }
         setSuccessMessage("Entry saved!");
       }
@@ -331,10 +307,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         amount: numberFormatter.format(entry.amount),
         entry_date: entry.entry_date,
         notes: entry.notes ?? "",
+        party_id: entry.party_id ?? "",
       });
-      setExistingImageUrl(entry.image_url);
-      setReceiptPreview(entry.image_url);
-      setReceiptFile(null);
     };
 
   const handleDelete = async (entryId: string) => {
@@ -352,17 +326,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       console.error("Failed to delete entry:", error);
       alert("Failed to delete entry. Please try again.");
     }
-  };
-
-  const handleReceiptChange = (fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0) {
-      setReceiptFile(null);
-      setReceiptPreview(null);
-      return;
-    }
-    const file = fileList[0];
-    setReceiptFile(file);
-    setReceiptPreview(URL.createObjectURL(file));
   };
 
   const filteredEntries = useMemo(() => {
@@ -394,7 +357,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       "Payment Method",
       "Amount",
       "Notes",
-      "Image URL",
     ];
     const rows = filteredEntries.map((entry) => [
       entry.entry_date,
@@ -403,7 +365,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
       entry.payment_method,
       entry.amount.toString(),
       entry.notes?.replace(/"/g, '""') ?? "",
-      entry.image_url ?? "",
     ]);
     const csvContent = [headers, ...rows]
       .map((line) => line.map((cell) => `"${cell}"`).join(","))
@@ -465,11 +426,22 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 }
                 className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
               >
-                {CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
+                {CATEGORIES.map((category) => {
+                  // Cash IN: Only Sales is enabled
+                  // Cash OUT: Only Sales is disabled (COGS, Opex, Assets enabled)
+                  // Credit/Advance: All categories enabled
+                  const isCashIn = formValues.entry_type === "Cash IN";
+                  const isCashOut = formValues.entry_type === "Cash OUT";
+                  const isDisabled =
+                    (isCashIn && category !== "Sales") ||
+                    (isCashOut && category === "Sales");
+
+                  return (
+                    <option key={category} value={category} disabled={isDisabled}>
+                      {category}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div className="space-y-2">
@@ -526,6 +498,52 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 required
               />
             </div>
+            {/* Customer/Vendor */}
+            <div className="space-y-2">
+              <Label className="text-sm uppercase text-slate-400">
+                Customer/Vendor
+                {(formValues.entry_type === 'Credit' || formValues.entry_type === 'Advance') && (
+                  <span className="text-red-400 ml-1">*</span>
+                )}
+              </Label>
+              <select
+                value={formValues.party_id}
+                onChange={(event) => handleInputChange("party_id", event.target.value)}
+                required={formValues.entry_type === 'Credit' || formValues.entry_type === 'Advance'}
+                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa] text-white"
+              >
+                <option value="">None</option>
+                {parties
+                  .filter(p => {
+                    // Filter customers for Sales, vendors for expenses
+                    if (formValues.category === 'Sales') {
+                      return p.party_type === 'Customer' || p.party_type === 'Both'
+                    }
+                    return p.party_type === 'Vendor' || p.party_type === 'Both'
+                  })
+                  .map(party => (
+                    <option key={party.id} value={party.id}>
+                      {party.name} ({party.party_type})
+                    </option>
+                  ))
+                }
+              </select>
+              <p className="text-xs text-slate-500">
+                {formValues.entry_type === 'Credit' || formValues.entry_type === 'Advance'
+                  ? 'Required for Credit/Advance entries'
+                  : 'Optional - track which customer/vendor'}
+              </p>
+              {(formValues.entry_type === 'Credit' || formValues.entry_type === 'Advance') &&
+               parties.filter(p => formValues.category === 'Sales' ?
+                 (p.party_type === 'Customer' || p.party_type === 'Both') :
+                 (p.party_type === 'Vendor' || p.party_type === 'Both')).length === 0 && (
+                <p className="text-sm text-yellow-400 mt-1">
+                  ⚠️ No {formValues.category === 'Sales' ? 'customers' : 'vendors'} found.{' '}
+                  <a href="/parties" className="underline hover:text-yellow-300">Create one first</a>
+                </p>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label className="text-sm uppercase text-slate-400">Notes</Label>
               <textarea
@@ -534,53 +552,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 placeholder="Add quick context"
                 className="min-h-[80px] w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
               />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm uppercase text-slate-400">Receipt / Image</Label>
-            <div className="flex flex-col gap-4 rounded-xl border border-dashed border-[#a78bfa]/40 p-4">
-              <label
-                htmlFor="receipt-upload"
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/10 px-4 py-3 text-sm transition hover:border-[#a78bfa]/80"
-              >
-                <UploadCloud className="h-5 w-5 text-[#a78bfa]" />
-                <div>
-                  <p className="font-medium">Upload receipt</p>
-                  <p className="text-xs text-slate-400">PNG, JPG up to 5 MB</p>
-                </div>
-              </label>
-              <Input
-                id="receipt-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => handleReceiptChange(event.target.files)}
-              />
-              {(receiptPreview || existingImageUrl) && (
-                <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-slate-950/50 p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={receiptPreview || existingImageUrl || ""}
-                    alt="Receipt preview"
-                    className="h-16 w-16 rounded object-cover"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-300 hover:text-red-200"
-                    onClick={() => {
-                      setReceiptFile(null);
-                      setReceiptPreview(null);
-                      setExistingImageUrl(null);
-                    }}
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Remove
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
 
@@ -597,7 +568,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 ? "Saving..."
                 : editingEntryId
                   ? "Update Entry"
-                  : "Record Daily Entry"}
+                  : "Record Entry"}
             </Button>
             {editingEntryId && (
               <Button
@@ -751,7 +722,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 <th className="px-3 py-2">Amount</th>
                 <th className="px-3 py-2">Payment</th>
                 <th className="px-3 py-2">Notes</th>
-                <th className="px-3 py-2">Image</th>
                 <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
@@ -773,8 +743,8 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                     <span
                       className={cn(
                         "rounded-full px-2 py-1 text-xs font-semibold",
-                        entry.entry_type === "Cash Inflow" && "bg-emerald-500/20 text-emerald-300",
-                        entry.entry_type === "Cash Outflow" && "bg-rose-500/20 text-rose-300",
+                        entry.entry_type === "Cash IN" && "bg-emerald-500/20 text-emerald-300",
+                        entry.entry_type === "Cash OUT" && "bg-rose-500/20 text-rose-300",
                         entry.entry_type === "Credit" && "bg-amber-500/20 text-amber-200",
                         entry.entry_type === "Advance" && "bg-sky-500/20 text-sky-200",
                       )}
@@ -788,25 +758,6 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                   </td>
                   <td className="px-3 py-3">{entry.payment_method}</td>
                   <td className="px-3 py-3 max-w-[200px] truncate">{entry.notes ?? "—"}</td>
-                  <td className="px-3 py-3">
-                    {entry.image_url ? (
-                      <a
-                        href={entry.image_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-block rounded border border-white/10"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={entry.image_url}
-                          alt="Receipt"
-                          className="h-12 w-12 rounded object-cover"
-                        />
-                      </a>
-                    ) : (
-                      <span className="text-slate-500">—</span>
-                    )}
-                  </td>
                   <td className="px-3 py-3 text-right">
                     <div className="flex flex-wrap justify-end gap-2">
                       <Button

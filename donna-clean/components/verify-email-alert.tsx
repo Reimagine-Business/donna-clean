@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { showInfo } from "@/lib/toast";
 
 type VerifyEmailAlertProps = {
   shouldAlert: boolean;
@@ -12,8 +13,8 @@ export function VerifyEmailAlert({ shouldAlert }: VerifyEmailAlertProps) {
       return;
     }
 
-    if (typeof window !== "undefined" && typeof window.alert === "function") {
-      window.alert("Verify email");
+    if (typeof window !== "undefined") {
+      showInfo("Verify email");
     }
   }, [shouldAlert]);
 

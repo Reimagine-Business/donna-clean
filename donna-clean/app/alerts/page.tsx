@@ -5,6 +5,9 @@ import { AlertsShell } from "@/components/alerts/alerts-shell";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AlertsPage() {
   const supabase = await createSupabaseServerClient();
   const { user, initialError } = await getOrRefreshUser(supabase);

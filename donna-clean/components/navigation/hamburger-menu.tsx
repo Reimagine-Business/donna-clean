@@ -10,11 +10,12 @@ import { DeployButton } from "@/components/deploy-button";
 interface HamburgerMenuProps {
   businessName?: string;
   userEmail?: string;
+  onClose?: () => void;
 }
 
 const menuItems = [
   { href: "/home", label: "Home", icon: "🏠" },
-  { href: "/daily-entries", label: "Daily Entries", icon: "📝" },
+  { href: "/entries", label: "Daily Entries", icon: "📝" },
   { href: "/cashpulse", label: "Cashpulse", icon: "💰" },
   { href: "/profit-lens", label: "Profit Lens", icon: "📊" },
   { href: "/alerts", label: "Alerts", icon: "🔔" },

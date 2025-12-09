@@ -1,0 +1,6 @@
+build.log
+build-test.log
+.env.local
+build-output-*.log
+build-*.log
+donna-clean/build-*.log
