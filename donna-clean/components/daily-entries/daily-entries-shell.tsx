@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { format, subDays } from "date-fns";
-import { Download, Edit3, Trash2, UploadCloud, X, Handshake } from "lucide-react";
+import { Download, Edit3, Trash2, Handshake } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -125,10 +125,7 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [receiptFile, setReceiptFile] = useState<File | null>(null);
-  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
   const [paymentMethodError, setPaymentMethodError] = useState<string | null>(null);
 
@@ -222,33 +219,8 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
   const resetForm = () => {
     setFormValues(buildInitialFormState());
     setEditingEntryId(null);
-    setReceiptFile(null);
-    setReceiptPreview(null);
-    setExistingImageUrl(null);
     setFormError(null);
     setPaymentMethodError(null);
-  };
-
-  const uploadReceipt = async (): Promise<string | null> => {
-    if (!receiptFile) {
-      return existingImageUrl;
-    }
-
-    const fileExt = receiptFile.name.split(".").pop() ?? "jpg";
-    const filePath = `${userId}/${Date.now()}.${fileExt}`;
-
-    const { error } = await supabase.storage.from("receipts").upload(filePath, receiptFile, {
-      cacheControl: "3600",
-      upsert: true,
-      contentType: receiptFile.type,
-    });
-
-    if (error) {
-      throw error;
-    }
-
-    const { data } = supabase.storage.from("receipts").getPublicUrl(filePath);
-    return data.publicUrl;
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -279,11 +251,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
         return;
       }
 
-      let uploadedUrl = existingImageUrl;
-      if (receiptFile) {
-        uploadedUrl = await uploadReceipt();
-      }
-
       const normalizedPaymentMethod = entryTypeIsCredit(selectedEntryType)
         ? CREDIT_PAYMENT_METHOD
         : paymentMethod;
@@ -295,7 +262,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
         amount: numericAmount,
         entry_date: formValues.entry_date,
         notes: formValues.notes || undefined,
-        image_url: uploadedUrl || undefined,
         party_id: formValues.party_id || undefined,
       };
 
@@ -343,9 +309,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
         notes: entry.notes ?? "",
         party_id: entry.party_id ?? "",
       });
-      setExistingImageUrl(entry.image_url);
-      setReceiptPreview(entry.image_url);
-      setReceiptFile(null);
     };
 
   const handleDelete = async (entryId: string) => {
@@ -363,17 +326,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
       console.error("Failed to delete entry:", error);
       alert("Failed to delete entry. Please try again.");
     }
-  };
-
-  const handleReceiptChange = (fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0) {
-      setReceiptFile(null);
-      setReceiptPreview(null);
-      return;
-    }
-    const file = fileList[0];
-    setReceiptFile(file);
-    setReceiptPreview(URL.createObjectURL(file));
   };
 
   const filteredEntries = useMemo(() => {
@@ -405,7 +357,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
       "Payment Method",
       "Amount",
       "Notes",
-      "Image URL",
     ];
     const rows = filteredEntries.map((entry) => [
       entry.entry_date,
@@ -414,7 +365,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
       entry.payment_method,
       entry.amount.toString(),
       entry.notes?.replace(/"/g, '""') ?? "",
-      entry.image_url ?? "",
     ]);
     const csvContent = [headers, ...rows]
       .map((line) => line.map((cell) => `"${cell}"`).join(","))
@@ -443,7 +393,7 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
       <div className="space-y-4">
         <h1 className="text-3xl font-semibold tracking-tight">Entries</h1>
         <p className="text-sm text-slate-300">
-          Record every inflow/outflow with supporting receipts to keep Donna in sync.
+          Record every inflow/outflow to keep Donna in sync.
         </p>
       </div>
 
@@ -478,11 +428,22 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
                 }
                 className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
               >
-                {CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
+                {CATEGORIES.map((category) => {
+                  // Cash IN: Only Sales is enabled
+                  // Cash OUT: Only Sales is disabled (COGS, Opex, Assets enabled)
+                  // Credit/Advance: All categories enabled
+                  const isCashIn = formValues.entry_type === "Cash IN";
+                  const isCashOut = formValues.entry_type === "Cash OUT";
+                  const isDisabled =
+                    (isCashIn && category !== "Sales") ||
+                    (isCashOut && category === "Sales");
+
+                  return (
+                    <option key={category} value={category} disabled={isDisabled}>
+                      {category}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             <div className="space-y-2">
@@ -593,53 +554,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
                 placeholder="Add quick context"
                 className="min-h-[80px] w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#a78bfa]"
               />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-sm uppercase text-slate-400">Receipt / Image</Label>
-            <div className="flex flex-col gap-4 rounded-xl border border-dashed border-[#a78bfa]/40 p-4">
-              <label
-                htmlFor="receipt-upload"
-                className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/10 px-4 py-3 text-sm transition hover:border-[#a78bfa]/80"
-              >
-                <UploadCloud className="h-5 w-5 text-[#a78bfa]" />
-                <div>
-                  <p className="font-medium">Upload receipt</p>
-                  <p className="text-xs text-slate-400">PNG, JPG up to 5 MB</p>
-                </div>
-              </label>
-              <Input
-                id="receipt-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(event) => handleReceiptChange(event.target.files)}
-              />
-              {(receiptPreview || existingImageUrl) && (
-                <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-slate-950/50 p-3">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={receiptPreview || existingImageUrl || ""}
-                    alt="Receipt preview"
-                    className="h-16 w-16 rounded object-cover"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-300 hover:text-red-200"
-                    onClick={() => {
-                      setReceiptFile(null);
-                      setReceiptPreview(null);
-                      setExistingImageUrl(null);
-                    }}
-                  >
-                    <X className="mr-2 h-4 w-4" />
-                    Remove
-                  </Button>
-                </div>
-              )}
             </div>
           </div>
 
@@ -810,7 +724,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
                 <th className="px-3 py-2">Amount</th>
                 <th className="px-3 py-2">Payment</th>
                 <th className="px-3 py-2">Notes</th>
-                <th className="px-3 py-2">Image</th>
                 <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
@@ -847,25 +760,6 @@ export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntr
                   </td>
                   <td className="px-3 py-3">{entry.payment_method}</td>
                   <td className="px-3 py-3 max-w-[200px] truncate">{entry.notes ?? "—"}</td>
-                  <td className="px-3 py-3">
-                    {entry.image_url ? (
-                      <a
-                        href={entry.image_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-block rounded border border-white/10"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={entry.image_url}
-                          alt="Receipt"
-                          className="h-12 w-12 rounded object-cover"
-                        />
-                      </a>
-                    ) : (
-                      <span className="text-slate-500">—</span>
-                    )}
-                  </td>
                   <td className="px-3 py-3 text-right">
                     <div className="flex flex-wrap justify-end gap-2">
                       <Button
