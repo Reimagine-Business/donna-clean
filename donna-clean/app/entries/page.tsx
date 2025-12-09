@@ -45,12 +45,25 @@ export default async function EntriesPage() {
 
   const entries: Entry[] = data?.map((entry) => normalizeEntry(entry as any)) ?? [];
 
+  // Fetch parties for the dropdown
+  const { data: partiesData, error: partiesError } = await supabase
+    .from("parties")
+    .select("id, name, party_type")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true });
+
+  if (partiesError) {
+    console.error("Failed to fetch parties:", partiesError);
+  }
+
+  const parties = partiesData ?? [];
+
   return (
     <>
       <TopNavMobile />
       <SiteHeader />
       <main className="flex-1 pb-32 md:pb-6">
-        <DailyEntriesShell initialEntries={entries} userId={user.id} />
+        <DailyEntriesShell initialEntries={entries} userId={user.id} parties={parties} />
       </main>
       <BottomNav />
     </>

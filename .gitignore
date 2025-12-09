@@ -1,7 +1,6 @@
 build.log
 build-test.log
 .env.local
-
-# Environment variables (use Vercel env vars only)
-.env
-.env*.local
+build-output-*.log
+build-*.log
+donna-clean/build-*.log

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { type Entry } from "@/lib/entries";
+import { type Entry } from "@/app/entries/actions";
 import { calculateCashBalance } from "@/lib/analytics-new";
 import { getProfitMetrics } from "@/lib/profit-calculations-new";
 import { calculateHealthScore } from "@/lib/calculate-health-score";
@@ -208,7 +208,7 @@ export function FinancialHealthDashboard({ entries }: FinancialHealthDashboardPr
       {/* Quick Access Buttons */}
       <div className="grid grid-cols-3 gap-3">
         <button
-          onClick={() => router.push('/entries')}
+          onClick={() => router.push('/daily-entries')}
           className="py-3 px-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium text-sm transition-colors text-white"
         >
           ➕ New Entry

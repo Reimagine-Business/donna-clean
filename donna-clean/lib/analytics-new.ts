@@ -1,4 +1,4 @@
-import { type Entry } from '@/lib/entries'
+import { type Entry } from '@/app/entries/actions'
 import { startOfMonth, endOfMonth, subMonths, format, eachDayOfInterval, startOfDay, endOfDay } from 'date-fns'
 
 export type CashFlowData = {

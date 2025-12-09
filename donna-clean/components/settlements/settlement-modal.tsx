@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { X, ChevronDown, ChevronUp } from "lucide-react";
-import { type Entry } from "@/lib/entries";
+import { type Entry } from "@/app/entries/actions";
 import { createSettlement } from "@/app/settlements/actions";
 import { showSuccess, showError } from "@/lib/toast";
 
