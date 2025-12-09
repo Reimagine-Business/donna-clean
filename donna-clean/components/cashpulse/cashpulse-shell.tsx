@@ -14,7 +14,7 @@ import {
   normalizeEntry,
 } from "@/lib/entries";
 import { cn } from "@/lib/utils";
-import { SettleEntryDialog } from "@/components/settlement/settle-entry-dialog";
+import { SettleEntryDialog } from "@/components/settlements/settle-entry-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download } from "lucide-react";
@@ -557,8 +557,8 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
 
   entries.forEach((entry) => {
     const paymentIsCash = isCashPaymentMethod(entry.payment_method);
-    const isCashInflow = entry.entry_type === "Cash Inflow";
-    const isCashOutflow = entry.entry_type === "Cash Outflow";
+    const isCashInflow = entry.entry_type === "Cash IN";
+    const isCashOutflow = entry.entry_type === "Cash OUT";
     const isCredit = entry.entry_type === "Credit";
     const isAdvance = entry.entry_type === "Advance";
     const isAdvanceSales = isAdvance && entry.category === "Sales";

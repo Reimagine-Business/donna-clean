@@ -1,129 +1,301 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# Donna - Financial Management App
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+Modern financial tracking and analytics platform for small businesses.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+---
 
-## Features
+## 🚀 Development Workflow
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+This project uses **Vercel-only development** - all builds happen in the cloud.
 
-## Demo
+### Why Vercel-Only?
+- ✅ No local environment variables needed
+- ✅ More secure (credentials never on local machine)
+- ✅ Consistent builds across team
+- ✅ Automatic preview deployments
+- ✅ Environment parity (dev/staging/prod)
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+### Development Process
 
-## Deploy to Vercel
+**1. Make Code Changes**
+```bash
+# Edit your code locally
+git add .
+git commit -m "feat: your changes"
+git push origin your-branch
+```
 
-Vercel deployment will guide you through creating a Supabase account and project.
+**2. Vercel Auto-Builds**
+- Every push triggers automatic deployment
+- Check GitHub PR for Vercel preview link
+- Build logs available in Vercel dashboard
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+**3. Test on Preview URL**
+- Vercel provides unique URL for each PR
+- Test all features on live preview
+- Share with team for review
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+**4. Merge to Main**
+- Merge PR when preview looks good
+- Automatic production deployment
+- Live at: https://donna-clean.vercel.app
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+### Local Development
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+For local development (optional):
+```bash
+npm run dev
+```
 
-## Clone and run locally
+**Note:** Local builds (`npm run build`) may show errors about missing Supabase env vars. This is expected and safe to ignore. Production builds on Vercel will succeed.
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+### Environment Variables
 
-2. Create a Next.js app using the Supabase Starter template npx command
+All environment variables are managed in Vercel:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SITE_URL`
+- `NEXT_PUBLIC_SENTRY_DSN`
+- `KV_REST_API_URL`
+- `KV_REST_API_TOKEN`
+- `SENTRY_AUTH_TOKEN`
+- `SENTRY_ORG`
+- `SENTRY_PROJECT`
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+**⚠️ Never commit `.env` files to Git!**
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+---
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+## 🏗️ Tech Stack
 
-3. Use `cd` to change into the app's directory
+- **Next.js 16** - App Router with Server Actions
+- **React 19** - Latest React features
+- **TypeScript** - Type-safe development
+- **Supabase** - Authentication + PostgreSQL Database
+- **Vercel** - Hosting + Edge Functions + KV Storage
+- **Tailwind CSS** - Utility-first styling
+- **shadcn/ui** - Beautiful UI components
+- **Recharts** - Data visualization
+- **Sentry** - Error monitoring
 
-   ```bash
-   cd with-supabase-app
-   ```
+---
 
-4. Rename `.env.example` to `.env.local` and update the following:
+## ✨ Key Features
 
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
+### Financial Management
+- ✅ **Entry Management** - Cash IN/OUT, Credit, Advance tracking
+- ✅ **Parties** - Customer & Vendor management
+- ✅ **Settlement System** - Partial payments and credit tracking
+- ✅ **Categories** - Sales, COGS, Opex, Assets
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+### Analytics & Reporting
+- ✅ **Cash Pulse** - Real-time cash flow visualization
+- ✅ **Profit Lens** - Monthly profitability analysis
+- ✅ **Business Snapshot** - Quick financial overview
+- ✅ **Export** - CSV export functionality
 
-5. You can now run the Next.js local development server:
+### User Experience
+- ✅ **Mobile-First** - Responsive design with bottom navigation
+- ✅ **Real-time Updates** - Supabase Realtime integration
+- ✅ **Image Uploads** - Receipt/document attachment
+- ✅ **Toast Notifications** - User feedback system
+- ✅ **Loading States** - Skeleton screens for better UX
 
-   ```bash
-   npm run dev
-   ```
+### Security & Performance
+- ✅ **Row-Level Security** - Database-level access control
+- ✅ **Rate Limiting** - Vercel KV-based protection
+- ✅ **Input Validation** - Comprehensive data sanitization
+- ✅ **Error Tracking** - Sentry integration
+- ✅ **Optimized Images** - Next.js Image optimization
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+---
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+## 📁 Project Structure
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+```
+donna-clean/
+├── app/                      # Next.js App Router
+│   ├── entries/             # Entry management (main feature)
+│   ├── parties/             # Customer/Vendor management
+│   ├── analytics/           # Cash Pulse & Profit Lens
+│   ├── settlements/         # Payment settlement actions
+│   ├── auth/                # Authentication pages
+│   └── profile/             # User profile
+├── components/              # React components
+│   ├── ui/                  # shadcn/ui components
+│   ├── daily-entries/       # Entry management components
+│   ├── navigation/          # Nav components
+│   ├── analytics/           # Chart components
+│   └── settlements/         # Settlement dialogs
+├── lib/                     # Utilities & helpers
+│   ├── supabase/           # Supabase client setup
+│   ├── entries.ts          # Entry types & utilities
+│   ├── validation.ts       # Input validation
+│   ├── sanitization.ts     # XSS protection
+│   └── rate-limit.ts       # Rate limiting logic
+├── utils/                   # Shared utilities
+└── supabase/               # Database schema & migrations
+```
 
-## Daily entries schema & storage
+---
 
-Run the SQL in `supabase/entries-table.sql` inside your project to provision the `entries` table with the correct RLS and updated-at trigger.
+## 🗄️ Database Setup
 
-Create a public Supabase Storage bucket named `receipts` (or update the code to use your preferred bucket name) so receipt uploads succeed. Grant authenticated users the ability to read/write inside that bucket.
+### Tables
+- `entries` - Financial transactions
+- `parties` - Customers & vendors
+- `profiles` - User profiles
+- `alerts` - User notifications
+- `reminders` - Payment reminders
+- `settlement_history` - Settlement tracking
 
-## Cashpulse dashboard
+### Setup Instructions
 
-The `/cashpulse` route reads from the same `entries` table and expects the `settled` + `settled_at` columns defined in the SQL above. Run `npm install` to ensure `recharts` is installed for the visualization layer.
+1. Create Supabase project at [database.new](https://database.new)
 
-## Profit Lens
+2. Run SQL migrations in `supabase/` folder:
+```sql
+-- Run these in Supabase SQL Editor
+supabase/entries-table.sql
+supabase/parties-table.sql
+supabase/profiles-table.sql
+```
 
-The `/profit-lens` page shares the entries dataset and visualizes monthly profitability. Update the `settled` flag when you settle credits/advances so the cash flow and profit analytics stay accurate.
+3. Create Storage bucket:
+   - Name: `receipts`
+   - Public: No
+   - Allowed MIME types: `image/*`
+   - RLS Policy: Allow authenticated users read/write
 
-## Settlement workflow
+4. Enable Realtime on `entries` table:
+   - Supabase Dashboard → Database → Publications
+   - Enable Realtime for `entries` table
 
-- Credits and advances can be settled from the Daily Entries table or the Cashpulse pending widgets.
-- Settlement inserts a corresponding cash entry (cash inflow for credits, cash outflow for advances) and marks the original entry as settled.
-- Ensure Supabase Realtime is enabled on the `entries` table so Cashpulse/Profit Lens update instantly.
+---
 
-## Feedback and issues
+## 🚦 Route Structure
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+### Public Routes
+- `/` - Landing page (redirects to /home)
+- `/auth/login` - Login page
+- `/auth/sign-up` - Registration
+- `/auth/forgot-password` - Password reset
 
-## More Supabase examples
+### Protected Routes
+- `/home` - Dashboard/Home
+- `/entries` - Entry management (was /daily-entries)
+- `/parties` - Customer/Vendor list
+- `/analytics/cashpulse` - Cash flow analytics
+- `/analytics/profitlens` - Profitability analytics
+- `/settlements` - Settlement management
+- `/alerts` - Notifications
+- `/profile` - User profile
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+### Admin Routes
+- `/admin/diagnostics` - System diagnostics
+- `/admin/users` - User management
+
+---
+
+## 🔐 Security Features
+
+### Authentication
+- **Supabase Auth** with SSR (Server-Side Rendering)
+- **Email/Password** authentication
+- **Session management** with cookies
+- **Protected routes** via middleware
+
+### Database Security
+- **Row-Level Security (RLS)** on all tables
+- **User-scoped queries** (users only see their data)
+- **Prepared statements** (SQL injection protection)
+
+### Application Security
+- **Rate limiting** via Vercel KV (Redis)
+- **Input validation** on all forms
+- **XSS protection** via sanitization
+- **CSRF protection** via Next.js
+- **Security headers** (CSP, HSTS, X-Frame-Options)
+
+---
+
+## 🧪 Testing
+
+### Local Testing
+```bash
+npm run dev
+# Visit http://localhost:3000
+```
+
+### Preview Testing
+- Push to any branch
+- Get Vercel preview URL from GitHub PR
+- Test on live preview environment
+
+### Production Testing
+- Merge to `main` branch
+- Automatic deployment to production
+- Visit https://donna-clean.vercel.app
+
+---
+
+## 📝 Recent Updates
+
+### Latest Changes (Dec 2025)
+- ✅ Consolidated `/daily-entries` → `/entries` route
+- ✅ Added mobile navigation to dashboard
+- ✅ Improved loading states across app
+- ✅ Enhanced Vercel-only workflow
+- ✅ Updated to Next.js 16.0.3
+
+### Previous Updates
+- Security features integration (rate limiting, validation)
+- Settlement system with partial payments
+- Party/Vendor management
+- Cash Pulse analytics
+- Profit Lens analytics
+
+---
+
+## 🐛 Known Issues & Notes
+
+### Build-Time Warnings
+- `/profile` page may show Supabase SSR error during local builds
+- **This is expected** - only occurs without Supabase env vars
+- Production builds (Vercel) succeed normally
+
+### Environment Requirements
+- Node.js 18+ recommended
+- Vercel account for deployment
+- Supabase project for database
+
+---
+
+## 👥 Contributing
+
+1. Create feature branch from `main`
+2. Make changes and test locally
+3. Push to GitHub
+4. Review Vercel preview
+5. Create PR with description
+6. Await review and merge
+
+---
+
+## 📧 Support
+
+For questions or issues:
+- Check GitHub Issues
+- Contact development team
+- Review Vercel deployment logs
+- Check Supabase dashboard logs
+
+---
+
+## 📜 License
+
+Proprietary - All rights reserved
+
+---
+
+**Built with ❤️ for small business financial management**

@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { SiteHeader } from "@/components/site-header";
+import { BottomNav } from "@/components/navigation/bottom-nav";
+import { HamburgerMenu } from "@/components/navigation/hamburger-menu";
 import {
   Card,
   CardContent,
@@ -10,6 +12,8 @@ import {
 } from "@/components/ui/card";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
+
+export const dynamic = 'force-dynamic'
 
 type Profile = {
   business_name: string | null;
@@ -101,10 +105,25 @@ export default async function DashboardPage() {
   const showLoading = !sessionError && !profile;
 
   return (
-    <main className="min-h-screen flex flex-col items-center">
-        <div className="flex-1 w-full flex flex-col gap-12 items-center">
+    <main className="min-h-screen bg-slate-950 text-white">
+      <div className="flex flex-col">
+        {/* Mobile Header */}
+        <header className="sticky top-0 z-30 border-b border-slate-800 bg-slate-900 md:hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            <HamburgerMenu businessName={profile?.business_name || "Donna Clean"} userEmail={user.email || undefined} />
+            <h1 className="text-lg font-semibold">Dashboard</h1>
+            <div className="w-10" /> {/* Spacer for alignment */}
+          </div>
+        </header>
+
+        {/* Desktop Header */}
+        <div className="hidden md:block">
           <SiteHeader />
-          <section className="w-full max-w-4xl p-5 flex flex-col gap-8">
+        </div>
+
+        {/* Main Content */}
+        <section className="px-4 pb-24 pt-6 md:px-8 md:pb-8">
+          <div className="mx-auto w-full max-w-4xl space-y-8">
             {showLoading ? (
               <Card>
                 <CardHeader className="flex flex-row items-center gap-3">
@@ -179,7 +198,7 @@ export default async function DashboardPage() {
                     </CardHeader>
                     <CardContent className="text-sm text-muted-foreground">
                       Add your first note on the{" "}
-                      <a className="underline" href="/daily-entries">
+                      <a className="underline" href="/entries">
                         daily entries
                       </a>{" "}
                       page to build momentum.
@@ -188,8 +207,12 @@ export default async function DashboardPage() {
                 </div>
               </>
             )}
-          </section>
-        </div>
+          </div>
+        </section>
+
+        {/* Bottom Navigation */}
+        <BottomNav />
+      </div>
     </main>
   );
 }
