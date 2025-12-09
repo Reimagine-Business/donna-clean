@@ -90,7 +90,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-white">Business Snapshot</h1>
-        <p className="text-sm text-gray-400 mt-1">Quick overview of your finances</p>
+        <p className="text-sm text-white mt-1">Quick overview of your finances</p>
       </div>
 
       {/* Period Filter */}
@@ -125,25 +125,25 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
         {expandedOwn && (
           <div className="px-4 pb-4 space-y-3 border-t border-green-500/20">
             <div className="flex justify-between items-center pt-3">
-              <span className="text-sm text-gray-300">Cash in Bank/Hand</span>
+              <span className="text-sm text-white">Cash in Bank/Hand</span>
               <span className="text-lg font-semibold text-green-400">
                 ₹{snapshotData.cash.toLocaleString('en-IN')}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-300">Money to Collect (Receivables)</span>
+              <span className="text-sm text-white">Money to Collect (Receivables)</span>
               <span className="text-lg font-semibold text-green-400">
                 ₹{snapshotData.receivables.toLocaleString('en-IN')}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-300">Advances Paid (Prepaid)</span>
+              <span className="text-sm text-white">Advances Paid (Prepaid)</span>
               <span className="text-lg font-semibold text-green-400">
                 ₹{snapshotData.prepaid.toLocaleString('en-IN')}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-300">Fixed Assets</span>
+              <span className="text-sm text-white">Fixed Assets</span>
               <span className="text-lg font-semibold text-green-400">
                 ₹{snapshotData.fixedAssets.toLocaleString('en-IN')}
               </span>
@@ -174,13 +174,13 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
         {expandedOwe && (
           <div className="px-4 pb-4 space-y-3 border-t border-red-500/20">
             <div className="flex justify-between items-center pt-3">
-              <span className="text-sm text-gray-300">Bills to Pay (Credit)</span>
+              <span className="text-sm text-white">Bills to Pay (Credit)</span>
               <span className="text-lg font-semibold text-red-400">
                 ₹{snapshotData.creditBills.toLocaleString('en-IN')}
               </span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-300">Customer Advances</span>
+              <span className="text-sm text-white">Customer Advances</span>
               <span className="text-lg font-semibold text-red-400">
                 ₹{snapshotData.customerAdvances.toLocaleString('en-IN')}
               </span>
@@ -197,7 +197,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
         <div className={`text-3xl font-bold ${snapshotData.profit >= 0 ? 'text-purple-400' : 'text-red-400'}`}>
           ₹{snapshotData.profit.toLocaleString('en-IN')}
         </div>
-        <div className="text-xs text-gray-500 mt-1">What you earned in selected period</div>
+        <div className="text-xs text-white mt-1">What you earned in selected period</div>
 
         {period !== "all-time" && (
           <div className="mt-3 p-2 bg-blue-900/20 border border-blue-500/30 rounded text-xs text-blue-200">

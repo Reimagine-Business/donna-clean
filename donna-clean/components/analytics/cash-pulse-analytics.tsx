@@ -322,7 +322,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         <h1 className="text-2xl font-bold text-white">Check what you Have!</h1>
 
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Period:</span>
+          <span className="text-sm text-white">Period:</span>
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time')}
@@ -361,11 +361,11 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-500/50 rounded-lg p-3">
           <div className="flex items-center gap-1.5 mb-1.5">
             <ArrowUpRight className="w-4 h-4 text-green-400" />
-            <span className="text-xs text-green-300 uppercase tracking-wider font-medium">Cash IN</span>
+            <span className="text-xs text-white uppercase tracking-wider font-medium">Cash IN</span>
           </div>
           <div className="text-xl font-bold text-green-400 mb-1">{formatCurrency(totalCashIn)}</div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-green-200">{cashInCount} entries</span>
+            <span className="text-xs text-white">{cashInCount} entries</span>
             {monthlyComparison.percentChange.cashIn !== 0 && (
               <span className={`text-xs flex items-center gap-0.5 font-semibold ${monthlyComparison.percentChange.cashIn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                 {monthlyComparison.percentChange.cashIn >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -379,11 +379,11 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-500/50 rounded-lg p-3">
           <div className="flex items-center gap-1.5 mb-1.5">
             <ArrowDownRight className="w-4 h-4 text-red-400" />
-            <span className="text-xs text-red-300 uppercase tracking-wider font-medium">Cash OUT</span>
+            <span className="text-xs text-white uppercase tracking-wider font-medium">Cash OUT</span>
           </div>
           <div className="text-xl font-bold text-red-400 mb-1">{formatCurrency(totalCashOut)}</div>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-red-200">{cashOutCount} entries</span>
+            <span className="text-xs text-white">{cashOutCount} entries</span>
             {monthlyComparison.percentChange.cashOut !== 0 && (
               <span className={`text-xs flex items-center gap-0.5 font-semibold ${monthlyComparison.percentChange.cashOut >= 0 ? 'text-red-400' : 'text-green-400'}`}>
                 {monthlyComparison.percentChange.cashOut >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -444,16 +444,16 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
               {pendingCollections.count > 0 ? (
                 <div className="space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">No of Pending:</span>
+                    <span className="text-xs text-white">No of Pending:</span>
                     <span className="text-sm font-medium text-white">{pendingCollections.count}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Amount to Collect:</span>
+                    <span className="text-xs text-white">Amount to Collect:</span>
                     <span className="text-sm font-bold text-orange-500">{formatCurrency(pendingCollections.amount)}</span>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No pending collections</p>
+                <p className="text-sm text-white">No pending collections</p>
               )}
             </div>
           </div>
@@ -480,16 +480,16 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
               {pendingBills.count > 0 ? (
                 <div className="space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">No of Pending:</span>
+                    <span className="text-xs text-white">No of Pending:</span>
                     <span className="text-sm font-medium text-white">{pendingBills.count}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">Amount to Pay:</span>
+                    <span className="text-xs text-white">Amount to Pay:</span>
                     <span className="text-sm font-bold text-red-500">{formatCurrency(pendingBills.amount)}</span>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No pending bills</p>
+                <p className="text-sm text-white">No pending bills</p>
               )}
             </div>
           </div>
@@ -516,22 +516,22 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
               {(advance.received.count > 0 || advance.paid.count > 0) ? (
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Received (Sales):</span>
+                    <span className="text-xs text-white">Received (Sales):</span>
                     <span className="text-sm font-medium text-white">
                       {formatCurrency(advance.received.amount)}
-                      <span className="text-xs text-muted-foreground ml-1">({advance.received.count} pending)</span>
+                      <span className="text-xs text-white ml-1">({advance.received.count} pending)</span>
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-muted-foreground">Paid (Expenses):</span>
+                    <span className="text-xs text-white">Paid (Expenses):</span>
                     <span className="text-sm font-medium text-white">
                       {formatCurrency(advance.paid.amount)}
-                      <span className="text-xs text-muted-foreground ml-1">({advance.paid.count} pending)</span>
+                      <span className="text-xs text-white ml-1">({advance.paid.count} pending)</span>
                     </span>
                   </div>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No pending advance payments</p>
+                <p className="text-sm text-white">No pending advance payments</p>
               )}
             </div>
           </div>
@@ -563,7 +563,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Showing {Math.min(visibleSettlements, settlementHistory.length)} of {settlementHistory.length}</span>
+              <span className="text-xs text-white">Showing {Math.min(visibleSettlements, settlementHistory.length)} of {settlementHistory.length}</span>
               <button
                 onClick={handleExportSettlements}
                 className="px-3 py-1.5 bg-purple-500 text-white rounded-md text-xs font-medium flex items-center gap-1 hover:bg-purple-600 transition-colors"
@@ -595,7 +595,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
                         </span>
                         <span className="text-sm font-medium text-white">{formatCurrency(settlement.amount)}</span>
                       </div>
-                      <div className="flex gap-3 text-xs text-muted-foreground">
+                      <div className="flex gap-3 text-xs text-white">
                         <span>Settled: {format(new Date(settlement.settlement_date), 'dd MMM yyyy')}</span>
                         {settlement.settlement_type === 'advance' && (
                           <span className="text-purple-400">⚡ Advance</span>
@@ -623,7 +623,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
               })}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">No settlement history</p>
+            <p className="text-sm text-white">No settlement history</p>
           )}
 
           {settlementHistory.length > visibleSettlements && (

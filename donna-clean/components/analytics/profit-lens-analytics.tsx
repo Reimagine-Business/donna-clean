@@ -177,7 +177,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
 
         {/* Period Dropdown */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">Period:</span>
+          <span className="text-sm text-white">Period:</span>
           <select
             value={dateRange}
             onChange={(e) => setDateRange(e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time')}
@@ -196,7 +196,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
       <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border-2 border-purple-500/50 rounded-lg p-4">
         <div className="flex items-center gap-2 mb-2">
           <TrendingUpIcon className="w-5 h-5 text-purple-400" />
-          <span className="text-xs text-purple-300 uppercase tracking-wider font-medium">SALES</span>
+          <span className="text-xs text-white uppercase tracking-wider font-medium">SALES</span>
         </div>
         <div className="text-4xl font-bold mb-1 text-purple-400">
           {formatCurrency(currentMetrics.revenue)}
@@ -216,11 +216,11 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
       <div className="grid grid-cols-2 gap-2">
         {/* Total Expenses */}
         <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-500/50 rounded-lg p-3">
-          <div className="text-xs text-red-300 mb-1.5 uppercase tracking-wider font-medium">TOTAL EXPENSES</div>
+          <div className="text-xs text-white mb-1.5 uppercase tracking-wider font-medium">TOTAL EXPENSES</div>
           <div className="text-2xl font-bold mb-1 text-red-400">
             {formatCurrency(currentMetrics.cogs + currentMetrics.operatingExpenses)}
           </div>
-          <div className="text-xs text-red-200">
+          <div className="text-xs text-white">
             {currentMetrics.revenue > 0
               ? (((currentMetrics.cogs + currentMetrics.operatingExpenses) / currentMetrics.revenue) * 100).toFixed(1)
               : '0.0'}% of sales
@@ -229,11 +229,11 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
 
         {/* Profit */}
         <div className={`${currentMetrics.netProfit >= 0 ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'} border-2 rounded-lg p-3`}>
-          <div className={`text-xs mb-1.5 uppercase tracking-wider font-medium ${currentMetrics.netProfit >= 0 ? 'text-green-300' : 'text-red-300'}`}>PROFIT</div>
+          <div className="text-xs text-white mb-1.5 uppercase tracking-wider font-medium">PROFIT</div>
           <div className={`text-2xl font-bold mb-1 ${currentMetrics.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
             {formatCurrency(currentMetrics.netProfit)}
           </div>
-          <div className={`text-xs ${currentMetrics.netProfit >= 0 ? 'text-green-200' : 'text-red-200'}`}>
+          <div className="text-xs text-white">
             {currentMetrics.revenue > 0
               ? ((currentMetrics.netProfit / currentMetrics.revenue) * 100).toFixed(1)
               : '0.0'}% of sales
@@ -249,7 +249,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
             {expenseBreakdown.map((cat) => (
               <div key={cat.category} className="space-y-1">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-purple-200">{cat.category}</span>
+                  <span className="text-sm text-white">{cat.category}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-white">{formatCurrency(cat.amount)}</span>
                     <span className="text-xs text-purple-400">{cat.percentage.toFixed(1)}%</span>
