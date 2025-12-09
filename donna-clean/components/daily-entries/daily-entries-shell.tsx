@@ -33,9 +33,16 @@ const numberFormatter = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 2,
 });
 
+type Party = {
+  id: string
+  name: string
+  party_type: string
+}
+
 type DailyEntriesShellProps = {
   initialEntries: Entry[];
   userId: string;
+  parties: Party[];
 };
 
 type EntryFormState = {
@@ -45,6 +52,7 @@ type EntryFormState = {
   amount: string;
   entry_date: string;
   notes: string;
+  party_id: string;
 };
 
 type FiltersState = {
@@ -66,6 +74,7 @@ const buildInitialFormState = (): EntryFormState => ({
   amount: "",
   entry_date: today,
   notes: "",
+  party_id: "",
 });
 
 const buildInitialFiltersState = (): FiltersState => ({
@@ -112,7 +121,7 @@ const paymentMethodRuleViolation = (
   return null;
 };
 
-export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellProps) {
+export function DailyEntriesShell({ initialEntries, userId, parties }: DailyEntriesShellProps) {
   const supabase = useMemo(() => createClient(), []);
   const [entries, setEntries] = useState<Entry[]>(initialEntries.map(normalizeEntry));
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -287,6 +296,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         entry_date: formValues.entry_date,
         notes: formValues.notes || undefined,
         image_url: uploadedUrl || undefined,
+        party_id: formValues.party_id || undefined,
       };
 
       console.log("Saving entry payload", payload);
@@ -331,6 +341,7 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
         amount: numberFormatter.format(entry.amount),
         entry_date: entry.entry_date,
         notes: entry.notes ?? "",
+        party_id: entry.party_id ?? "",
       });
       setExistingImageUrl(entry.image_url);
       setReceiptPreview(entry.image_url);
@@ -528,6 +539,52 @@ export function DailyEntriesShell({ initialEntries, userId }: DailyEntriesShellP
                 required
               />
             </div>
+            {/* Customer/Vendor */}
+            <div className="space-y-2">
+              <Label className="text-sm uppercase text-slate-400">
+                Customer/Vendor
+                {(formValues.entry_type === 'Credit' || formValues.entry_type === 'Advance') && (
+                  <span className="text-red-400 ml-1">*</span>
+                )}
+              </Label>
+              <select
+                value={formValues.party_id}
+                onChange={(event) => handleInputChange("party_id", event.target.value)}
+                required={formValues.entry_type === 'Credit' || formValues.entry_type === 'Advance'}
+                className="w-full rounded-lg border border-white/10 bg-slate-950/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#a78bfa] text-white"
+              >
+                <option value="">None</option>
+                {parties
+                  .filter(p => {
+                    // Filter customers for Sales, vendors for expenses
+                    if (formValues.category === 'Sales') {
+                      return p.party_type === 'Customer' || p.party_type === 'Both'
+                    }
+                    return p.party_type === 'Vendor' || p.party_type === 'Both'
+                  })
+                  .map(party => (
+                    <option key={party.id} value={party.id}>
+                      {party.name} ({party.party_type})
+                    </option>
+                  ))
+                }
+              </select>
+              <p className="text-xs text-slate-500">
+                {formValues.entry_type === 'Credit' || formValues.entry_type === 'Advance'
+                  ? 'Required for Credit/Advance entries'
+                  : 'Optional - track which customer/vendor'}
+              </p>
+              {(formValues.entry_type === 'Credit' || formValues.entry_type === 'Advance') &&
+               parties.filter(p => formValues.category === 'Sales' ?
+                 (p.party_type === 'Customer' || p.party_type === 'Both') :
+                 (p.party_type === 'Vendor' || p.party_type === 'Both')).length === 0 && (
+                <p className="text-sm text-yellow-400 mt-1">
+                  ⚠️ No {formValues.category === 'Sales' ? 'customers' : 'vendors'} found.{' '}
+                  <a href="/parties" className="underline hover:text-yellow-300">Create one first</a>
+                </p>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label className="text-sm uppercase text-slate-400">Notes</Label>
               <textarea
