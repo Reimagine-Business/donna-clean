@@ -553,63 +553,45 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
       if (paymentIsCash) {
         cashInflow += entry.amount;
         countedCashMovement = true;
-      } else {
-        logCashpulseSkip(entry, "Cash Inflow requires Cash/Bank payment");
       }
     } else if (isCashOutflow) {
       if (paymentIsCash) {
         cashOutflow += entry.amount;
         countedCashMovement = true;
-      } else {
-        logCashpulseSkip(entry, "Cash Outflow requires Cash/Bank payment");
       }
     } else if (isAdvanceSales) {
       if (paymentIsCash) {
         cashInflow += entry.amount;
         countedCashMovement = true;
-      } else {
-        logCashpulseSkip(entry, "Advance Sales must use Cash/Bank to count as cash");
       }
     } else if (isAdvanceExpense) {
       if (paymentIsCash) {
         cashOutflow += entry.amount;
         countedCashMovement = true;
-      } else {
-        logCashpulseSkip(entry, "Advance expenses must use Cash/Bank to count as cash");
       }
-    } else {
-      logCashpulseSkip(entry, "Entry excluded from cash totals");
     }
 
     if (countedCashMovement) {
       if (paymentIsCash) {
         paymentTotals[entry.payment_method as CashPaymentMethod] += entry.amount;
-      } else {
-        logCashpulseSkip(entry, "Cash movement missing Cash/Bank method");
       }
     }
 
     if (isCreditSales) {
       if (hasCollectibleBalance) {
         pendingCollections.push(entry);
-      } else {
-        logCashpulseSkip(entry, "Pending Collections skip (settled or zero balance)");
       }
     }
 
     if (isCreditExpense) {
       if (hasCollectibleBalance) {
         pendingBills.push(entry);
-      } else {
-        logCashpulseSkip(entry, "Pending Bills skip (settled or zero balance)");
       }
     }
 
     if (isAdvance) {
       if (!entry.settled && hasCollectibleBalance) {
         pendingAdvances.push(entry);
-      } else if (!entry.settled) {
-        logCashpulseSkip(entry, "Pending Advances skip (no outstanding balance)");
       }
     }
 
