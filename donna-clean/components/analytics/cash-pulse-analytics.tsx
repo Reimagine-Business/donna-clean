@@ -15,7 +15,8 @@ import {
 import { showSuccess, showError } from '@/lib/toast'
 import { deleteSettlement } from '@/app/settlements/actions'
 import { deleteSettlementHistory, type SettlementHistoryRecord } from '@/app/settlements/settlement-history-actions'
-import { SettlementModal } from '@/components/settlements/settlement-modal'
+import { PendingCollectionsDashboard } from '@/components/settlements/pending-collections-dashboard'
+import { CustomerSettlementModal } from '@/components/settlements/customer-settlement-modal'
 
 interface CashPulseAnalyticsProps {
   entries: Entry[]
@@ -48,12 +49,22 @@ function formatCurrencyLakhs(amount: number): string {
 
 type SettlementModalType = 'credit-sales' | 'credit-bills' | 'advance-sales' | 'advance-expenses' | null;
 
+type CustomerGroup = {
+  id: string;
+  name: string;
+  itemCount: number;
+  totalAmount: number;
+  items: Entry[];
+};
+
 export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnalyticsProps) {
   const router = useRouter()
   const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time'>('this-month')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [settlementModalType, setSettlementModalType] = useState<SettlementModalType>(null)
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerGroup | null>(null)
+  const [dashboardOpen, setDashboardOpen] = useState(false)
   const [visibleSettlements, setVisibleSettlements] = useState(10)
 
   useEffect(() => {
@@ -445,7 +456,10 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
 
           {pendingCollections.count > 0 && (
             <button
-              onClick={() => setSettlementModalType('credit-sales')}
+              onClick={() => {
+                setSettlementModalType('credit-sales');
+                setDashboardOpen(true);
+              }}
               className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
             >
               Settle Collections →
@@ -624,19 +638,32 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         </div>
       </div>
 
-      {/* Settlement Modal */}
-      {settlementModalType && (
-        <SettlementModal
-          type={settlementModalType}
-          pendingItems={
-            settlementModalType === 'credit-sales' ? pendingCollections.items :
-            settlementModalType === 'credit-bills' ? pendingBills.items :
-            settlementModalType === 'advance-sales' ? advance.received.items :
-            settlementModalType === 'advance-expenses' ? advance.paid.items :
-            []
-          }
-          onClose={() => setSettlementModalType(null)}
+      {/* Stage 1: Pending Collections Dashboard */}
+      {dashboardOpen && settlementModalType === 'credit-sales' && (
+        <PendingCollectionsDashboard
+          entries={pendingCollections.items}
+          open={dashboardOpen}
+          onClose={() => {
+            setDashboardOpen(false);
+            setSettlementModalType(null);
+          }}
+          onSettleCustomer={(customer) => {
+            setSelectedCustomer(customer);
+            setDashboardOpen(false);
+          }}
+        />
+      )}
+
+      {/* Stage 2: Customer Settlement Modal */}
+      {selectedCustomer && !dashboardOpen && (
+        <CustomerSettlementModal
+          customer={selectedCustomer}
+          onClose={() => {
+            setSelectedCustomer(null);
+            setSettlementModalType(null);
+          }}
           onSuccess={() => {
+            setSelectedCustomer(null);
             setSettlementModalType(null);
             router.refresh();
           }}
