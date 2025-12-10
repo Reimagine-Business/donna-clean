@@ -21,11 +21,8 @@ if (!supabaseUrl || !supabaseServiceKey) {
 const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
 async function migrateEntryTypes() {
-  console.log('Starting entry type migration...')
-
   try {
     // Update 'Cash Inflow' to 'Cash IN'
-    console.log('Updating Cash Inflow entries...')
     const { data: inflowData, error: inflowError } = await supabase
       .from('entries')
       .update({ entry_type: 'Cash IN' })
@@ -37,10 +34,7 @@ async function migrateEntryTypes() {
       throw inflowError
     }
 
-    console.log(`✓ Updated ${inflowData?.length || 0} Cash Inflow entries to Cash IN`)
-
     // Update 'Cash Outflow' to 'Cash OUT'
-    console.log('Updating Cash Outflow entries...')
     const { data: outflowData, error: outflowError } = await supabase
       .from('entries')
       .update({ entry_type: 'Cash OUT' })
@@ -52,10 +46,7 @@ async function migrateEntryTypes() {
       throw outflowError
     }
 
-    console.log(`✓ Updated ${outflowData?.length || 0} Cash Outflow entries to Cash OUT`)
-
     // Verify the migration
-    console.log('\nVerifying migration...')
     const { data: allEntries, error: verifyError } = await supabase
       .from('entries')
       .select('entry_type, count', { count: 'exact' })
@@ -65,9 +56,6 @@ async function migrateEntryTypes() {
       console.error('Error verifying migration:', verifyError)
       throw verifyError
     }
-
-    console.log('\nMigration completed successfully!')
-    console.log('Entry type distribution:')
 
     // Get counts for each entry type
     const counts = {
@@ -97,11 +85,6 @@ async function migrateEntryTypes() {
       .select('id', { count: 'exact', head: true })
       .eq('entry_type', 'Advance')
 
-    console.log(`- Cash IN: ${cashInCount}`)
-    console.log(`- Cash OUT: ${cashOutCount}`)
-    console.log(`- Credit: ${creditCount}`)
-    console.log(`- Advance: ${advanceCount}`)
-
   } catch (error) {
     console.error('Migration failed:', error)
     process.exit(1)
@@ -111,7 +94,6 @@ async function migrateEntryTypes() {
 // Run the migration
 migrateEntryTypes()
   .then(() => {
-    console.log('\n✅ Migration completed successfully')
     process.exit(0)
   })
   .catch((error) => {

@@ -232,22 +232,14 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
   }
 
   const handleDeleteSettlement = async (settlementId: string) => {
-    console.log('🔴 [DELETE] Button clicked!')
-    console.log('🔴 [DELETE] Settlement ID:', settlementId)
-
     if (!confirm('Are you sure you want to delete this settlement? The original entry will be marked as unsettled.')) {
-      console.log('❌ [DELETE] User cancelled confirmation')
       return
     }
 
-    console.log('✅ [DELETE] User confirmed, proceeding...')
     setDeletingId(settlementId)
 
     try {
-      console.log('⏳ [DELETE] Calling deleteSettlementHistory action...')
       const result = await deleteSettlementHistory(settlementId)
-
-      console.log('📊 [DELETE] Result received:', result)
 
       if (!result.success) {
         console.error('❌ [DELETE] Action returned failure:', result.error)
@@ -255,25 +247,19 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         return
       }
 
-      console.log('✅ [DELETE] Action succeeded, showing success message')
       showSuccess('Settlement deleted successfully!')
 
-      console.log('🔄 [DELETE] Refreshing router...')
       router.refresh()
 
-      console.log('✅ [DELETE] Complete!')
     } catch (error) {
       console.error('❌ [DELETE] Exception caught:', error)
       showError('Failed to delete settlement')
     } finally {
-      console.log('🧹 [DELETE] Cleaning up, setting deletingId to null')
       setDeletingId(null)
     }
   }
 
   const handleExportSettlements = () => {
-    console.log('📥 [EXPORT] Exporting settlement history...')
-
     // Prepare CSV data from settlement entries
     const csvData = settlementHistory.map(item => {
       return {
@@ -308,7 +294,6 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
     URL.revokeObjectURL(url)
 
     showSuccess('Settlement history exported successfully!')
-    console.log('✅ [EXPORT] Export complete')
   }
 
   return (
@@ -606,7 +591,6 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
                       onClick={(e) => {
                         e.preventDefault()
                         e.stopPropagation()
-                        console.log(`🗑️ [DELETE] Settlement #${index}:`, settlement.id)
                         handleDeleteSettlement(settlement.id)
                       }}
                       disabled={deletingId === settlement.id}
@@ -629,9 +613,6 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           {settlementHistory.length > visibleSettlements && (
             <button
               onClick={() => {
-                console.log('📊 [LOAD_MORE] Clicked - showing more settlements')
-                console.log('📊 Current visible:', visibleSettlements)
-                console.log('📊 Total available:', settlementHistory.length)
                 setVisibleSettlements(prev => prev + 10)
               }}
               className="w-full mt-3 px-4 py-2 border border-border rounded-md text-sm font-medium text-white hover:bg-muted/50 transition-colors"

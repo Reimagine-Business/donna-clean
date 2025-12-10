@@ -47,12 +47,6 @@ const CASH_METHOD_LOOKUP = new Set<string>(PAYMENT_METHODS);
 const isCashPaymentMethod = (method: PaymentMethod): method is CashPaymentMethod =>
   CASH_METHOD_LOOKUP.has(method);
 
-const logCashpulseSkip = (entry: Entry, reason: string) => {
-  console.log(
-    `[Cashpulse Skip] ${reason} ID ${entry.id}: type=${entry.entry_type}, category=${entry.category}, payment=${entry.payment_method}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
-  );
-};
-
 const MAX_REALTIME_RECONNECT_ATTEMPTS = 5;
 const BASE_REALTIME_DELAY_MS = 5000;
 const MAX_REALTIME_DELAY_MS = 30000;
@@ -82,10 +76,6 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
   const [history, setHistory] = useState(initialStats.history);
 
   const skipNextRecalc = useRef(false);
-
-  useEffect(() => {
-    console.log("Cashpulse is now CLIENT — real-time will work");
-  }, []);
 
   const recalcKpis = useCallback(
     (nextEntries: Entry[], nextFilters = historyFilters) => {
@@ -132,8 +122,6 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     let retryAttempt = 0;
     let hasAlertedRealtimeFailure = false;
     let isMounted = true;
-
-    console.info("[Realtime Load] Changes applied – backoff max 30s");
 
     const alertRealtimeFailure = () => {
       if (hasAlertedRealtimeFailure) return;
@@ -194,7 +182,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       channel = supabase
         .channel(`public:entries:${userId}`)
         .on("system", { event: "*" }, (systemPayload) => {
-          console.log("[Realtime System]", systemPayload);
+          // System event received
         })
         .on(
           "postgres_changes",
@@ -205,12 +193,10 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
             filter: `user_id=eq.${userId}`,
           },
           async (payload) => {
-            console.log("REAL-TIME: payload received", payload);
             const latestEntries = await refetchEntries();
             if (!latestEntries) {
               return;
             }
-            console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
             const updatedStats = recalcKpis(latestEntries);
             const realtimeSales = updatedStats.cashBreakdown
               .filter(
@@ -218,18 +204,10 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
                   channelBreakdown.method === "Cash" || channelBreakdown.method === "Bank",
               )
               .reduce((sum, channelBreakdown) => sum + channelBreakdown.value, 0);
-            console.log(
-              "REAL-TIME: KPIs recalculated → inflow:",
-              updatedStats.cashInflow,
-              "sales:",
-              realtimeSales,
-            );
           },
         )
         .subscribe(async (status) => {
-          console.log(`[Realtime] Status: ${status}`);
           if (status === "SUBSCRIBED") {
-            console.log("[Realtime] joined public:entries Cashpulse channel");
             retryAttempt = 0;
             hasAlertedRealtimeFailure = false;
             startHeartbeat();
@@ -575,63 +553,45 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
       if (paymentIsCash) {
         cashInflow += entry.amount;
         countedCashMovement = true;
-      } else {
-        logCashpulseSkip(entry, "Cash Inflow requires Cash/Bank payment");
       }
     } else if (isCashOutflow) {
       if (paymentIsCash) {
         cashOutflow += entry.amount;
         countedCashMovement = true;
-      } else {
-        logCashpulseSkip(entry, "Cash Outflow requires Cash/Bank payment");
       }
     } else if (isAdvanceSales) {
       if (paymentIsCash) {
         cashInflow += entry.amount;
         countedCashMovement = true;
-      } else {
-        logCashpulseSkip(entry, "Advance Sales must use Cash/Bank to count as cash");
       }
     } else if (isAdvanceExpense) {
       if (paymentIsCash) {
         cashOutflow += entry.amount;
         countedCashMovement = true;
-      } else {
-        logCashpulseSkip(entry, "Advance expenses must use Cash/Bank to count as cash");
       }
-    } else {
-      logCashpulseSkip(entry, "Entry excluded from cash totals");
     }
 
     if (countedCashMovement) {
       if (paymentIsCash) {
         paymentTotals[entry.payment_method as CashPaymentMethod] += entry.amount;
-      } else {
-        logCashpulseSkip(entry, "Cash movement missing Cash/Bank method");
       }
     }
 
     if (isCreditSales) {
       if (hasCollectibleBalance) {
         pendingCollections.push(entry);
-      } else {
-        logCashpulseSkip(entry, "Pending Collections skip (settled or zero balance)");
       }
     }
 
     if (isCreditExpense) {
       if (hasCollectibleBalance) {
         pendingBills.push(entry);
-      } else {
-        logCashpulseSkip(entry, "Pending Bills skip (settled or zero balance)");
       }
     }
 
     if (isAdvance) {
       if (!entry.settled && hasCollectibleBalance) {
         pendingAdvances.push(entry);
-      } else if (!entry.settled) {
-        logCashpulseSkip(entry, "Pending Advances skip (no outstanding balance)");
       }
     }
 
@@ -734,11 +694,7 @@ const accentText: Record<PendingCardProps["accent"], string> = {
 function PendingCard({ title, description, info, accent, onSettle }: PendingCardProps) {
   const accentColor = accentText[accent];
   useEffect(() => {
-    if (info.entries.length === 0) {
-      console.log(
-        `[Pending Empty] ${title}: filter unsettled Credit/Advance with remaining >0 by category (Sales=Collections, COGS/Opex=Bills, all for Advances).`,
-      );
-    }
+    // No entries to display
   }, [info.entries.length, title]);
   return (
     <div className="rounded-2xl border border-white/10 bg-slate-900/40 p-5">
@@ -757,9 +713,6 @@ function PendingCard({ title, description, info, accent, onSettle }: PendingCard
         )}
         {info.entries.slice(0, 3).map((entry) => {
           const canSettleEntry = !entry.settled && entry.remaining_amount > 0;
-          if (!canSettleEntry) {
-            console.log(`Settle disabled for ID ${entry.id}: settled or no remaining`);
-          }
           const disabledTitle = canSettleEntry ? undefined : "Settled or no balance";
             return (
               <div

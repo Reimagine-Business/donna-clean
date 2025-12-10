@@ -25,7 +25,6 @@ export async function createReminder(formData: FormData) {
     .maybeSingle();
 
   if (existing) {
-    console.log("⚠️ Duplicate reminder prevented:", { title, dueDate });
     return { error: "A reminder with this title and due date already exists" };
   }
 
@@ -116,9 +115,6 @@ export async function markReminderDone(reminderId: string) {
         status: "pending",
         parent_reminder_id: reminderId,
       });
-      console.log("✅ Created next recurring reminder:", { title: reminder.title, nextDueDate });
-    } else {
-      console.log("⚠️ Next occurrence already exists, skipping:", { title: reminder.title, nextDueDate });
     }
   }
 

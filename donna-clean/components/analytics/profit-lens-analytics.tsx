@@ -29,27 +29,8 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time'>('this-month')
   const [isRefreshing, setIsRefreshing] = useState(false)
 
-  // Log received data
-  useEffect(() => {
-    console.log('🎨 [PROFIT_LENS_COMPONENT] Component mounted/updated')
-    console.log('📊 [PROFIT_LENS_COMPONENT] Entries received:', entries?.length || 0)
-    if (entries && entries.length > 0) {
-      console.log('📊 [PROFIT_LENS_COMPONENT] First entry:', entries[0])
-      console.log('📊 [PROFIT_LENS_COMPONENT] Entry types:', {
-        cashIn: entries.filter(e => e.entry_type === 'Cash IN').length,
-        cashOut: entries.filter(e => e.entry_type === 'Cash OUT').length,
-        credit: entries.filter(e => e.entry_type === 'Credit').length,
-        advance: entries.filter(e => e.entry_type === 'Advance').length,
-      })
-    } else {
-      console.warn('⚠️ [PROFIT_LENS_COMPONENT] No entries received or entries is empty')
-      console.warn('⚠️ [PROFIT_LENS_COMPONENT] Entries value:', entries)
-    }
-  }, [entries])
-
   // Refresh data on mount to ensure latest entries are shown
   useEffect(() => {
-    console.log('🔄 [PROFIT_LENS_COMPONENT] Refreshing router')
     router.refresh()
   }, [router])
 
@@ -94,27 +75,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
 
   // Calculate metrics
   const currentMetrics = useMemo(() => {
-    console.log('🧮 [PROFIT_LENS_COMPONENT] Calculating metrics with:', entries?.length || 0, 'entries')
-    console.log('🧮 [PROFIT_LENS_COMPONENT] Date filters:', {
-      startDate: startDate?.toISOString(),
-      endDate: endDate?.toISOString(),
-      dateRange
-    })
-
-    // Log all Sales entries before calculation
-    const salesEntries = entries.filter(e => e.category === 'Sales')
-    console.log('🧮 [PROFIT_LENS_COMPONENT] Total Sales entries found:', salesEntries.length)
-    console.log('🧮 [PROFIT_LENS_COMPONENT] Sales entries breakdown:', salesEntries.map(e => ({
-      type: e.entry_type,
-      amount: e.amount,
-      date: e.entry_date,
-      settled: e.settled,
-      notes: e.notes?.substring(0, 30)
-    })))
-
     const metrics = getProfitMetrics(entries, startDate, endDate)
-    console.log('💰 [PROFIT_LENS_COMPONENT] Metrics calculated:', metrics)
-    console.log('💰 [PROFIT_LENS_COMPONENT] Revenue from metrics:', metrics.revenue)
     return metrics
   }, [entries, startDate, endDate, dateRange])
 

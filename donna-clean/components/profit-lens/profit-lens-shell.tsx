@@ -60,10 +60,6 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
   const [netMargin, setNetMargin] = useState(initialStats.netMargin);
   const skipNextRecalc = useRef(false);
 
-  useEffect(() => {
-    console.log("Profit Lens is now CLIENT — real-time will work");
-  }, []);
-
   const recalcKpis = useCallback(
     (nextEntries: Entry[], nextFilters = filters) => {
       const nextStats = buildProfitStats(nextEntries);
@@ -108,8 +104,6 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
     let retryAttempt = 0;
     let hasAlertedRealtimeFailure = false;
     let isMounted = true;
-
-    console.info("[Realtime Load] Changes applied – backoff max 30s");
 
     const alertRealtimeFailure = () => {
       if (hasAlertedRealtimeFailure) return;
@@ -170,7 +164,7 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
       channel = supabase
         .channel(`public:entries:${userId}:profit`)
         .on("system", { event: "*" }, (systemPayload) => {
-          console.log("[Realtime System]", systemPayload);
+          // System event received
         })
         .on(
           "postgres_changes",
@@ -181,25 +175,15 @@ export function ProfitLensShell({ initialEntries, userId }: ProfitLensShellProps
             filter: `user_id=eq.${userId}`,
           },
           async (payload) => {
-            console.log("REAL-TIME: payload received", payload);
             const latestEntries = await refetchEntries();
             if (!latestEntries) {
               return;
             }
-            console.log("REAL-TIME: refetch complete – entries count:", latestEntries.length);
             const updatedStats = recalcKpis(latestEntries);
-            console.log(
-              "REAL-TIME: KPIs recalculated → net profit:",
-              updatedStats.netProfit,
-              "sales:",
-              updatedStats.sales,
-            );
           },
         )
         .subscribe(async (status) => {
-          console.log(`[Realtime] Status: ${status}`);
           if (status === "SUBSCRIBED") {
-            console.log("[Realtime] joined public:entries Profit Lens channel");
             retryAttempt = 0;
             hasAlertedRealtimeFailure = false;
             startHeartbeat();
@@ -464,12 +448,6 @@ type ProfitStats = {
   netMargin: number;
 };
 
-const logProfitLensSkip = (entry: Entry, reason: string) => {
-  console.log(
-    `[ProfitLens Skip] ${reason} ID ${entry.id}: type=${entry.entry_type}, category=${entry.category}, payment=${entry.payment_method}, settled=${entry.settled}, remaining=${entry.remaining_amount}`,
-  );
-};
-
 const buildProfitStats = (entries: Entry[]): ProfitStats => {
   let sales = 0;
   let cogs = 0;
@@ -484,14 +462,6 @@ const buildProfitStats = (entries: Entry[]): ProfitStats => {
     if (entry.category === "Sales") {
       if (isCashInflow || isCredit || isSettledAdvance) {
         sales += entry.amount;
-      } else {
-        const reason =
-          entry.entry_type === "Credit"
-            ? "Ignored Credit for Sales: immediate accrual needed"
-            : entry.entry_type === "Advance"
-              ? "Ignored Advance for Sales: settle before recognition"
-              : "Ignored for Sales: requires Cash Inflow, Credit, or settled Advance";
-        logProfitLensSkip(entry, reason);
       }
       return;
     }
@@ -499,14 +469,6 @@ const buildProfitStats = (entries: Entry[]): ProfitStats => {
     if (entry.category === "COGS") {
       if (isCashOutflow || isCredit || isSettledAdvance) {
         cogs += entry.amount;
-      } else {
-        const reason =
-          entry.entry_type === "Credit"
-            ? "Ignored Credit for COGS: immediate accrual needed"
-            : entry.entry_type === "Advance"
-              ? "Ignored Advance for COGS: settle before recognition"
-              : "Ignored for COGS: requires Cash Outflow, Credit, or settled Advance";
-        logProfitLensSkip(entry, reason);
       }
       return;
     }
@@ -514,24 +476,8 @@ const buildProfitStats = (entries: Entry[]): ProfitStats => {
     if (entry.category === "Opex") {
       if (isCashOutflow || isCredit || isSettledAdvance) {
         opex += entry.amount;
-      } else {
-        const reason =
-          entry.entry_type === "Credit"
-            ? "Ignored Credit for Opex: immediate accrual needed"
-            : entry.entry_type === "Advance"
-              ? "Ignored Advance for Opex: settle before recognition"
-              : "Ignored for Opex: requires Cash Outflow, Credit, or settled Advance";
-        logProfitLensSkip(entry, reason);
       }
       return;
-    }
-
-    if (entry.entry_type === "Credit") {
-      logProfitLensSkip(entry, `Ignored Credit for ${entry.category}: immediate accrual needed`);
-    } else if (entry.entry_type === "Advance") {
-      logProfitLensSkip(entry, `Ignored Advance for ${entry.category}: settle before recognition`);
-    } else {
-      logProfitLensSkip(entry, "Ignored for P&L (balance sheet / unsupported category)");
     }
   });
 
