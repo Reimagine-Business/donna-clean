@@ -1,2 +1,15 @@
 build.log
 build-test.log
+
+# Build logs
+*.log
+build-*.log
+
+# Sentry config (use environment variables)
+donna-clean/sentry.client.config.ts
+donna-clean/sentry.server.config.ts
+
+# Temporary utility files
+donna-clean/lib/action-wrapper.ts
+donna-clean/lib/rate-limit.ts
+node_modules/
