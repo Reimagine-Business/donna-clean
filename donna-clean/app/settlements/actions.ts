@@ -111,11 +111,6 @@ export async function createSettlement(
 export async function deleteSettlement(entryId: string): Promise<SettleEntryResult> {
   const ctx = "settlements/deleteSettlement";
 
-  console.log('🗑️ [SERVER_ACTION] deleteSettlement called')
-  console.log('🗑️ [SERVER_ACTION] Entry ID:', entryId)
-  console.log('🗑️ [SERVER_ACTION] Entry ID type:', typeof entryId)
-  console.log('🗑️ [SERVER_ACTION] Entry ID length:', entryId?.length)
-
   try {
     const supabase = await createSupabaseServerClient();
 
@@ -132,24 +127,17 @@ export async function deleteSettlement(entryId: string): Promise<SettleEntryResu
       return { success: false, error: "You must be signed in to delete settlements." };
     }
 
-    console.log('✅ [SERVER_ACTION] User authenticated:', user.id)
-
     // Get the entry to verify ownership and get original amount
-    console.log('🔍 [SERVER_ACTION] Fetching entry from database...')
     const { data: entry, error: fetchError } = await supabase
       .from("entries")
       .select("id, user_id, amount, settled, entry_type, category")
       .eq("id", entryId)
       .single();
 
-    console.log('📊 [SERVER_ACTION] Fetch result:', { entry, fetchError })
-
     if (fetchError || !entry) {
       console.error('❌ [SERVER_ACTION] Entry not found:', fetchError)
       return { success: false, error: "Entry not found or no longer accessible." };
     }
-
-    console.log('✅ [SERVER_ACTION] Entry found:', entry)
 
     // Verify ownership
     if (entry.user_id !== user.id) {
@@ -187,7 +175,6 @@ export async function deleteSettlement(entryId: string): Promise<SettleEntryResu
           .select();
 
         if (!deleteError && data && data.length > 0) {
-          console.log(`✅ Deleted settlement entry with pattern: ${pattern}`);
           deleted = true;
           break;
         }
@@ -207,8 +194,6 @@ export async function deleteSettlement(entryId: string): Promise<SettleEntryResu
         if (deleteError) {
           console.error("Failed to delete settlement cash entry", deleteError);
           // Continue anyway - we'll still mark the original as unsettled
-        } else {
-          console.log("✅ Deleted settlement entry using LIKE search");
         }
       }
     }

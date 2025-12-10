@@ -53,9 +53,6 @@ export type CategoryExpense = {
 // 2. ALL Credit Sales (both settled AND unsettled)
 // 3. ONLY settled Advance Sales
 export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: Date): number {
-  console.log('💰 [REVENUE] ========== CALCULATING REVENUE ==========')
-  console.log('💰 [REVENUE] Total entries received:', entries.length)
-
   let total = 0
   let counted = 0
   let skipped = 0
@@ -68,12 +65,10 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
 
     // Apply date filters if provided
     if (startDate && new Date(entry.entry_date) < startDate) {
-      console.log(`  ⏭️ SKIP (before startDate): ${entry.entry_type} ₹${entry.amount} on ${entry.entry_date}`)
       skipped++
       continue
     }
     if (endDate && new Date(entry.entry_date) > endDate) {
-      console.log(`  ⏭️ SKIP (after endDate): ${entry.entry_type} ₹${entry.amount} on ${entry.entry_date}`)
       skipped++
       continue
     }
@@ -81,10 +76,8 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
     // RULE 1: Cash IN Sales (excluding settlements)
     if (entry.entry_type === 'Cash IN') {
       if (entry.notes?.startsWith('Settlement')) {
-        console.log(`  ❌ SKIP Cash IN Settlement: ₹${entry.amount} (${entry.notes?.substring(0, 30)})`)
         skipped++
       } else {
-        console.log(`  ✅ COUNT Cash IN Sale: ₹${entry.amount}`)
         total += entry.amount
         counted++
       }
@@ -94,7 +87,6 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
     // RULE 2: ALL Credit Sales (BOTH settled AND unsettled)
     // CRITICAL: No settled check here!
     if (entry.entry_type === 'Credit') {
-      console.log(`  ✅ COUNT Credit Sale: ₹${entry.amount} (settled=${entry.settled})`)
       total += entry.amount
       counted++
       continue
@@ -103,43 +95,23 @@ export function calculateRevenue(entries: Entry[], startDate?: Date, endDate?: D
     // RULE 3: ONLY settled Advance Sales
     if (entry.entry_type === 'Advance') {
       if (entry.settled === true) {
-        console.log(`  ✅ COUNT Settled Advance Sale: ₹${entry.amount}`)
         total += entry.amount
         counted++
       } else {
-        console.log(`  ❌ SKIP Unsettled Advance Sale: ₹${entry.amount}`)
         skipped++
       }
       continue
     }
 
     // Unknown entry type
-    console.log(`  ❓ UNKNOWN entry type: ${entry.entry_type}`)
     skipped++
   }
-
-  console.log('💰 [REVENUE] ========================================')
-  console.log('💰 [REVENUE] Entries COUNTED:', counted)
-  console.log('💰 [REVENUE] Entries SKIPPED:', skipped)
-  console.log('💰 [REVENUE] FINAL REVENUE:', `₹${total.toLocaleString('en-IN')}`)
-  console.log('💰 [REVENUE] ========================================')
 
   return total
 }
 
 // Calculate COGS (Cost of Goods Sold from Cash OUT + Credit + Settled Advance)
 export function calculateCOGS(entries: Entry[], startDate?: Date, endDate?: Date): number {
-  console.log('🔍 [COGS] Total entries received:', entries.length)
-
-  const allCOGSEntries = entries.filter(e => e.category === 'COGS')
-  console.log('🔍 [COGS] COGS entries found:', allCOGSEntries.length)
-  console.log('🔍 [COGS] COGS breakdown:', allCOGSEntries.map(e => ({
-    type: e.entry_type,
-    amount: e.amount,
-    settled: e.settled,
-    notes: e.notes
-  })))
-
   let filtered = entries.filter(e =>
     e.category === 'COGS' &&
     (
@@ -150,8 +122,6 @@ export function calculateCOGS(entries: Entry[], startDate?: Date, endDate?: Date
     )
   )
 
-  console.log('🔍 [COGS] Filtered COGS entries (for P&L):', filtered.length)
-
   if (startDate) {
     filtered = filtered.filter(e => new Date(e.entry_date) >= startDate)
   }
@@ -160,7 +130,6 @@ export function calculateCOGS(entries: Entry[], startDate?: Date, endDate?: Date
   }
 
   const total = filtered.reduce((sum, e) => sum + e.amount, 0)
-  console.log('🔍 [COGS] Total COGS calculated:', total)
 
   return total
 }
@@ -172,17 +141,6 @@ export function calculateGrossProfit(revenue: number, cogs: number): number {
 
 // Calculate Operating Expenses (Opex from Cash OUT + Credit + Settled Advance, NO Assets)
 export function calculateOperatingExpenses(entries: Entry[], startDate?: Date, endDate?: Date): number {
-  console.log('🔍 [OPEX] Total entries received:', entries.length)
-
-  const allOpexEntries = entries.filter(e => e.category === 'Opex')
-  console.log('🔍 [OPEX] Opex entries found:', allOpexEntries.length)
-  console.log('🔍 [OPEX] Opex breakdown:', allOpexEntries.map(e => ({
-    type: e.entry_type,
-    amount: e.amount,
-    settled: e.settled,
-    notes: e.notes
-  })))
-
   let filtered = entries.filter(e =>
     e.category === 'Opex' &&
     (
@@ -193,8 +151,6 @@ export function calculateOperatingExpenses(entries: Entry[], startDate?: Date, e
     )
   )
 
-  console.log('🔍 [OPEX] Filtered Opex entries (for P&L):', filtered.length)
-
   if (startDate) {
     filtered = filtered.filter(e => new Date(e.entry_date) >= startDate)
   }
@@ -203,7 +159,6 @@ export function calculateOperatingExpenses(entries: Entry[], startDate?: Date, e
   }
 
   const total = filtered.reduce((sum, e) => sum + e.amount, 0)
-  console.log('🔍 [OPEX] Total Opex calculated:', total)
 
   return total
 }

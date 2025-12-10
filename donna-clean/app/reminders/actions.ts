@@ -25,7 +25,6 @@ export async function createReminder(formData: FormData) {
     .maybeSingle();
 
   if (existing) {
-    console.log("⚠️ Duplicate reminder prevented:", { title, dueDate });
     return { error: "A reminder with this title and due date already exists" };
   }
 

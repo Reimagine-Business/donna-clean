@@ -75,7 +75,6 @@ export default async function DashboardPage() {
         if (createError) {
           // If insert fails due to duplicate user_id (23505), try fetching again
           if (createError.code === "23505") {
-            console.log("Profile already exists, fetching again...");
             const { data: existingProfile, error: refetchError } = await supabase
               .from("profiles")
               .select("business_name, role")
