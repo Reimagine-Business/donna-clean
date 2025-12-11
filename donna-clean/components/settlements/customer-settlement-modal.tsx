@@ -138,113 +138,84 @@ export function CustomerSettlementModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-      <div className="w-full max-w-2xl bg-background rounded-lg shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div className="w-full max-w-2xl bg-background rounded-lg shadow-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
         {/* Header */}
-        <div className="sticky top-0 bg-background border-b px-6 py-4 z-10">
-          <h2 className="text-2xl font-bold">Settle Credit for {customer.name}</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Select an item and enter settlement details
-          </p>
+        <div className="mb-4">
+          <h2 className="text-xl font-bold">Settle Credit for {customer.name}</h2>
         </div>
 
-        <div className="p-6 space-y-6">
-          {/* Customer Summary */}
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold text-lg">{customer.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {customer.itemCount} pending item{customer.itemCount !== 1 ? 's' : ''}
-                </p>
-              </div>
-              <div className="text-right">
-                <p className="text-2xl font-bold text-primary">
-                  {formatCurrency(customer.totalAmount)}
-                </p>
-                <p className="text-sm text-muted-foreground">Total Outstanding</p>
+        <div className="space-y-3">
+          {/* Customer Summary - Compact */}
+          <div className="flex items-center justify-between py-3 px-4 bg-muted/50 rounded-lg">
+            <div>
+              <span className="font-semibold">{customer.name}</span>
+              <span className="text-sm text-muted-foreground ml-2">
+                ({customer.itemCount} {customer.itemCount === 1 ? 'item' : 'items'})
+              </span>
+            </div>
+            <div className="text-right">
+              <div className="text-xl font-bold text-primary">
+                {formatCurrency(customer.totalAmount)}
               </div>
             </div>
+          </div>
 
-            {/* Collapsible Items List */}
-            <Collapsible
-              open={showItems}
-              onOpenChange={setShowItems}
-              className="mt-4"
-            >
-              <CollapsibleTrigger asChild>
-                <Button variant="outline" className="w-full justify-between">
-                  <span>
-                    {showItems ? 'Hide Items' : 'Show Items'} ({customer.itemCount})
-                  </span>
-                  {showItems ? (
-                    <ChevronUp className="h-4 w-4" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4" />
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 space-y-2">
-                {customer.items.map((item) => {
-                  const itemRemaining = item.remaining_amount ?? item.amount
-                  const isSelected = item.id === selectedItemId
+          {/* Collapsible Items List */}
+          <Collapsible open={showItems} onOpenChange={setShowItems}>
+            <CollapsibleTrigger className="text-sm text-muted-foreground hover:text-foreground">
+              {showItems ? '▼' : '▶'} View Items
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 space-y-2">
+              {customer.items.map((item) => {
+                const itemRemaining = item.remaining_amount ?? item.amount
+                const isSelected = item.id === selectedItemId
 
-                  return (
-                    <label
-                      key={item.id}
-                      className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                        isSelected
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="selectedItem"
-                        checked={isSelected}
-                        onChange={() => setSelectedItemId(item.id)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="flex-1">
-                            <p className="font-medium">
-                              {item.category} - {format(new Date(item.entry_date), 'MMM dd, yyyy')}
+                return (
+                  <label
+                    key={item.id}
+                    className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                      isSelected
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="selectedItem"
+                      checked={isSelected}
+                      onChange={() => setSelectedItemId(item.id)}
+                      className="mt-1"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1">
+                          <p className="font-medium text-sm">
+                            {item.category} - {format(new Date(item.entry_date), 'MMM dd, yyyy')}
+                          </p>
+                          {item.notes && (
+                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                              {item.notes}
                             </p>
-                            {item.notes && (
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                {item.notes}
-                              </p>
-                            )}
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold">{formatCurrency(itemRemaining)}</p>
-                            <p className="text-xs text-muted-foreground">remaining</p>
-                          </div>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-sm">{formatCurrency(itemRemaining)}</p>
+                          <p className="text-xs text-muted-foreground">remaining</p>
                         </div>
                       </div>
-                    </label>
-                  )
-                })}
-              </CollapsibleContent>
-            </Collapsible>
-          </div>
+                    </div>
+                  </label>
+                )
+              })}
+            </CollapsibleContent>
+          </Collapsible>
 
           {/* Settlement Form */}
           {selectedItem && (
-            <div className="space-y-4">
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Selected Item</p>
-                <p className="font-medium">
-                  {selectedItem.category} - {format(new Date(selectedItem.entry_date), 'MMM dd, yyyy')}
-                </p>
-                <p className="text-lg font-bold text-primary mt-2">
-                  Remaining: {formatCurrency(selectedItemRemaining)}
-                </p>
-              </div>
-
+            <div className="space-y-3">
               {/* Amount Input */}
-              <div className="space-y-2">
-                <Label htmlFor="amount">Settlement Amount</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="amount" className="text-sm">Amount</Label>
                 <div className="flex gap-2">
                   <Input
                     id="amount"
@@ -254,10 +225,10 @@ export function CustomerSettlementModal({
                     placeholder="Enter amount"
                     className="flex-1"
                   />
-                  <Button type="button" variant="outline" onClick={handleSetHalf}>
+                  <Button type="button" variant="outline" onClick={handleSetHalf} className="px-3">
                     Half
                   </Button>
-                  <Button type="button" variant="outline" onClick={handleSetFull}>
+                  <Button type="button" variant="outline" onClick={handleSetFull} className="px-3">
                     Full
                   </Button>
                 </div>
@@ -268,55 +239,56 @@ export function CustomerSettlementModal({
                 )}
               </div>
 
-              {/* Settlement Date */}
-              <div className="space-y-2">
-                <Label htmlFor="settlementDate">Settlement Date</Label>
-                <Input
-                  id="settlementDate"
-                  type="date"
-                  value={settlementDate}
-                  onChange={(e) => setSettlementDate(e.target.value)}
-                />
-              </div>
-
-              {/* Payment Method */}
-              <div className="space-y-2">
-                <Label htmlFor="paymentMethod">Payment Method</Label>
-                <Select
-                  value={paymentMethod}
-                  onValueChange={(value) => setPaymentMethod(value as 'Cash' | 'Bank')}
-                >
-                  <SelectTrigger id="paymentMethod">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Cash">Cash</SelectItem>
-                    <SelectItem value="Bank">Bank Transfer</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Date & Method in same row on desktop */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="settlementDate" className="text-sm">Date</Label>
+                  <Input
+                    id="settlementDate"
+                    type="date"
+                    value={settlementDate}
+                    onChange={(e) => setSettlementDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="paymentMethod" className="text-sm">Method</Label>
+                  <Select
+                    value={paymentMethod}
+                    onValueChange={(value) => setPaymentMethod(value as 'Cash' | 'Bank')}
+                  >
+                    <SelectTrigger id="paymentMethod">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Cash">Cash</SelectItem>
+                      <SelectItem value="Bank">Bank Transfer</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
 
           {!selectedItem && customer.items.length > 1 && (
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
               <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                Please select an item from the list above to proceed with settlement
+                Select an item to proceed with settlement
               </p>
             </div>
           )}
         </div>
 
         {/* Footer Actions */}
-        <div className="sticky bottom-0 bg-background border-t px-6 py-4 flex gap-3 justify-end">
-          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+        <div className="mt-4 pt-4 border-t flex gap-2 justify-end">
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting} className="min-w-[100px]">
             Cancel
           </Button>
           <Button
             onClick={handleConfirmSettlement}
             disabled={!selectedItem || isSubmitting || amount <= 0}
+            className="min-w-[140px]"
           >
-            {isSubmitting ? 'Processing...' : `Confirm Settlement - ${formatCurrency(amount)}`}
+            {isSubmitting ? 'Processing...' : `Confirm - ${formatCurrency(amount)}`}
           </Button>
         </div>
       </div>
