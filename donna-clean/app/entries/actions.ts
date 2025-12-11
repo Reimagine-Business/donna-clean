@@ -42,10 +42,11 @@ export type Entry = {
   image_url: string | null
   settled: boolean
   settled_at: string | null
-  party_id?: string | null
+  party_id: string | null
   party?: { name: string } | null
   created_at: string
   updated_at: string
+  is_settlement?: boolean
 }
 
 export type Category = {
