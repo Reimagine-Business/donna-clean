@@ -18,6 +18,10 @@ import { deleteSettlementHistory, type SettlementHistoryRecord } from '@/app/set
 import { SettlementModal } from '@/components/settlements/settlement-modal'
 import { PendingCollectionsDashboard, type CustomerGroup } from '@/components/settlements/pending-collections-dashboard'
 import { CustomerSettlementModal } from '@/components/settlements/customer-settlement-modal'
+import { PendingBillsDashboard, type VendorGroup } from '@/components/settlements/pending-bills-dashboard'
+import { VendorSettlementModal } from '@/components/settlements/vendor-settlement-modal'
+import { PendingAdvancesDashboard, type AdvanceGroup } from '@/components/settlements/pending-advances-dashboard'
+import { AdvanceSettlementModal } from '@/components/settlements/advance-settlement-modal'
 
 interface CashPulseAnalyticsProps {
   entries: Entry[]
@@ -60,6 +64,10 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
   // New two-stage settlement flow state
   const [dashboardOpen, setDashboardOpen] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerGroup | null>(null)
+  const [billsDashboardOpen, setBillsDashboardOpen] = useState(false)
+  const [selectedVendor, setSelectedVendor] = useState<VendorGroup | null>(null)
+  const [advancesDashboardOpen, setAdvancesDashboardOpen] = useState(false)
+  const [selectedAdvance, setSelectedAdvance] = useState<AdvanceGroup | null>(null)
 
   useEffect(() => {
     router.refresh()
@@ -489,7 +497,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
 
           {pendingBills.count > 0 && (
             <button
-              onClick={() => setSettlementModalType('credit-bills')}
+              onClick={() => setBillsDashboardOpen(true)}
               className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
             >
               Settle Bills →
@@ -529,20 +537,12 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             </div>
           </div>
 
-          {advance.received.count > 0 && (
+          {(advance.received.count > 0 || advance.paid.count > 0) && (
             <button
-              onClick={() => setSettlementModalType('advance-sales')}
+              onClick={() => setAdvancesDashboardOpen(true)}
               className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
             >
-              Settle Advance (Sales) →
-            </button>
-          )}
-          {advance.paid.count > 0 && (
-            <button
-              onClick={() => setSettlementModalType('advance-expenses')}
-              className="w-full mt-3 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md text-sm font-medium transition-colors"
-            >
-              Settle Advance (Expenses) →
+              Settle Advances →
             </button>
           )}
         </div>
@@ -632,25 +632,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         </div>
       </div>
 
-      {/* Settlement Modal - Old flow for bills and advances */}
-      {settlementModalType && settlementModalType !== 'credit-sales' && (
-        <SettlementModal
-          type={settlementModalType}
-          pendingItems={
-            settlementModalType === 'credit-bills' ? pendingBills.items :
-            settlementModalType === 'advance-sales' ? advance.received.items :
-            settlementModalType === 'advance-expenses' ? advance.paid.items :
-            []
-          }
-          onClose={() => setSettlementModalType(null)}
-          onSuccess={() => {
-            setSettlementModalType(null);
-            router.refresh();
-          }}
-        />
-      )}
-
-      {/* New Two-Stage Settlement Flow - Stage 1: Dashboard */}
+      {/* New Two-Stage Settlement Flow - Collections - Stage 1: Dashboard */}
       {dashboardOpen && settlementModalType === 'credit-sales' && (
         <PendingCollectionsDashboard
           entries={pendingCollections.items}
@@ -666,7 +648,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         />
       )}
 
-      {/* New Two-Stage Settlement Flow - Stage 2: Customer Modal */}
+      {/* New Two-Stage Settlement Flow - Collections - Stage 2: Customer Modal */}
       {selectedCustomer && !dashboardOpen && (
         <CustomerSettlementModal
           customer={selectedCustomer}
@@ -677,6 +659,64 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           onSuccess={() => {
             setSelectedCustomer(null)
             setSettlementModalType(null)
+            router.refresh()
+          }}
+        />
+      )}
+
+      {/* New Two-Stage Settlement Flow - Bills - Stage 1: Dashboard */}
+      {billsDashboardOpen && (
+        <PendingBillsDashboard
+          entries={pendingBills.items}
+          open={billsDashboardOpen}
+          onClose={() => {
+            setBillsDashboardOpen(false)
+          }}
+          onSettleVendor={(vendor) => {
+            setSelectedVendor(vendor)
+            setBillsDashboardOpen(false)
+          }}
+        />
+      )}
+
+      {/* New Two-Stage Settlement Flow - Bills - Stage 2: Vendor Modal */}
+      {selectedVendor && !billsDashboardOpen && (
+        <VendorSettlementModal
+          vendor={selectedVendor}
+          onClose={() => {
+            setSelectedVendor(null)
+          }}
+          onSuccess={() => {
+            setSelectedVendor(null)
+            router.refresh()
+          }}
+        />
+      )}
+
+      {/* New Two-Stage Settlement Flow - Advances - Stage 1: Dashboard */}
+      {advancesDashboardOpen && (
+        <PendingAdvancesDashboard
+          entries={[...advance.received.items, ...advance.paid.items]}
+          open={advancesDashboardOpen}
+          onClose={() => {
+            setAdvancesDashboardOpen(false)
+          }}
+          onSettleAdvance={(advanceItem) => {
+            setSelectedAdvance(advanceItem)
+            setAdvancesDashboardOpen(false)
+          }}
+        />
+      )}
+
+      {/* New Two-Stage Settlement Flow - Advances - Stage 2: Advance Modal */}
+      {selectedAdvance && !advancesDashboardOpen && (
+        <AdvanceSettlementModal
+          advance={selectedAdvance}
+          onClose={() => {
+            setSelectedAdvance(null)
+          }}
+          onSuccess={() => {
+            setSelectedAdvance(null)
             router.refresh()
           }}
         />
