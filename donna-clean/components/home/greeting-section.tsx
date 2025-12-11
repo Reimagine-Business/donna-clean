@@ -21,12 +21,12 @@ export function GreetingSection({ businessName }: GreetingSectionProps) {
   }, [])
 
   return (
-    <div className="mb-6">
-      <h1 className="text-2xl sm:text-3xl font-bold text-white">
+    <div className="mb-3">
+      <h1 className="text-xl sm:text-2xl font-bold text-white">
         {greeting}
       </h1>
       {businessName && (
-        <p className="text-sm sm:text-base text-muted-foreground mt-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
           {businessName}
         </p>
       )}

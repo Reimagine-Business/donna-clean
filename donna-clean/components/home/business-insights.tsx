@@ -183,10 +183,10 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
       });
     }
 
-    // Sort by priority and return top 6
+    // Sort by priority and return top 3 for mobile compactness
     return items
       .sort((a, b) => a.priority - b.priority)
-      .slice(0, 6);
+      .slice(0, 3);
   }, [entries, alerts]);
 
   // Hide if no news
@@ -195,19 +195,19 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
   }
 
   return (
-    <div className="rounded-lg border bg-card p-5">
-      <h2 className="text-lg font-semibold mb-4">
+    <div className="rounded-lg border bg-card p-3">
+      <h2 className="text-sm font-semibold mb-2">
         📰 Today's News
       </h2>
 
-      <ul className="space-y-3">
+      <ul className="space-y-1.5">
         {newsItems.map((item, idx) => (
           <li
             key={idx}
-            className="text-sm flex items-start gap-3"
+            className="text-xs flex items-start gap-2"
           >
-            <span className="text-lg flex-shrink-0">{item.icon}</span>
-            <span className="flex-1 leading-relaxed">{item.message}</span>
+            <span className="text-sm flex-shrink-0">{item.icon}</span>
+            <span className="flex-1 leading-snug">{item.message}</span>
           </li>
         ))}
       </ul>
