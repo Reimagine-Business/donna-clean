@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { type Entry } from "@/app/daily-entries/actions";
+import { type Entry } from "@/app/entries/actions";
 import { calculateCashBalance } from "@/lib/analytics-new";
 import { getProfitMetrics } from "@/lib/profit-calculations-new";
 import { PeriodFilter, getDateRangeForPeriod, type PeriodType } from "@/components/common/period-filter";
@@ -89,8 +89,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">Business Snapshot</h1>
-        <p className="text-sm text-white mt-1">Quick overview of your finances</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">How is your Business doing?</h1>
       </div>
 
       {/* Period Filter */}
