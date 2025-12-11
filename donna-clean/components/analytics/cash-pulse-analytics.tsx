@@ -341,7 +341,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           <Wallet className="w-5 h-5 text-purple-300" />
           <span className="text-xs text-white uppercase tracking-wider font-medium">Total Cash Balance</span>
         </div>
-        <div className={`text-3xl font-bold mb-1 ${cashBalance >= 0 ? 'text-purple-400' : 'text-red-400'}`}>
+        <div className="text-3xl font-bold mb-1 text-white">
           {formatCurrency(cashBalance)}
         </div>
         <div className="flex items-center justify-between">
@@ -361,7 +361,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             <ArrowUpRight className="w-4 h-4 text-green-400" />
             <span className="text-xs text-white uppercase tracking-wider font-medium">Cash IN</span>
           </div>
-          <div className="text-xl font-bold text-green-400 mb-1">{formatCurrency(totalCashIn)}</div>
+          <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashIn)}</div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-white">{cashInCount} entries</span>
             {monthlyComparison.percentChange.cashIn !== 0 && (
@@ -379,7 +379,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             <ArrowDownRight className="w-4 h-4 text-red-400" />
             <span className="text-xs text-white uppercase tracking-wider font-medium">Cash OUT</span>
           </div>
-          <div className="text-xl font-bold text-red-400 mb-1">{formatCurrency(totalCashOut)}</div>
+          <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashOut)}</div>
           <div className="flex items-center justify-between">
             <span className="text-xs text-white">{cashOutCount} entries</span>
             {monthlyComparison.percentChange.cashOut !== 0 && (

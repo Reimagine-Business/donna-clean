@@ -159,7 +159,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
           <TrendingUpIcon className="w-5 h-5 text-purple-400" />
           <span className="text-xs text-white uppercase tracking-wider font-medium">SALES</span>
         </div>
-        <div className="text-4xl font-bold mb-1 text-purple-400">
+        <div className="text-4xl font-bold mb-1 text-white">
           {formatCurrency(currentMetrics.revenue)}
         </div>
         <div className="flex items-center gap-3 text-xs">
@@ -178,7 +178,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
         {/* Total Expenses */}
         <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-500/50 rounded-lg p-3">
           <div className="text-xs text-white mb-1.5 uppercase tracking-wider font-medium">TOTAL EXPENSES</div>
-          <div className="text-2xl font-bold mb-1 text-red-400">
+          <div className="text-2xl font-bold mb-1 text-white">
             {formatCurrency(currentMetrics.cogs + currentMetrics.operatingExpenses)}
           </div>
           <div className="text-xs text-white">
@@ -191,7 +191,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
         {/* Profit */}
         <div className={`${currentMetrics.netProfit >= 0 ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'} border-2 rounded-lg p-3`}>
           <div className="text-xs text-white mb-1.5 uppercase tracking-wider font-medium">PROFIT</div>
-          <div className={`text-2xl font-bold mb-1 ${currentMetrics.netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+          <div className="text-2xl font-bold mb-1 text-white">
             {formatCurrency(currentMetrics.netProfit)}
           </div>
           <div className="text-xs text-white">
