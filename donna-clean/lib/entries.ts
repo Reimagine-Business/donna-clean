@@ -44,12 +44,10 @@ export type Entry = {
   party_id: string | null;
   party?: { name: string } | null;
   is_settlement?: boolean;
+  settlement_type?: string | null;
+  original_entry_id?: string | null;
   created_at: string;
   updated_at: string;
-  // Settlement tracking fields
-  is_settlement?: boolean;  // ➕ ADDED: Marks settlement entries
-  settlement_type?: string | null;  // ➕ ADDED: 'credit' or 'advance'
-  original_entry_id?: string | null;  // ➕ ADDED: Links to original entry
 };
 
 export type EntryRecord = Omit<Entry, "amount" | "remaining_amount" | "settled_amount" | "settled" | "settled_at" | "party"> & {
@@ -133,11 +131,9 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
     party_id: (entry as any).party_id ?? null,
     party: party,
     is_settlement: (entry as any).is_settlement ?? false,
-    created_at: entry.created_at ?? new Date().toISOString(),
-    updated_at: entry.updated_at ?? new Date().toISOString(),
-    // ➕ ADDED: Settlement tracking fields
-    is_settlement: Boolean(entry.is_settlement),
     settlement_type: entry.settlement_type ?? null,
     original_entry_id: entry.original_entry_id ?? null,
+    created_at: entry.created_at ?? new Date().toISOString(),
+    updated_at: entry.updated_at ?? new Date().toISOString(),
   };
 };
