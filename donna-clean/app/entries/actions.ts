@@ -259,19 +259,48 @@ export async function getCategories() {
     return { categories: [], error: "Not authenticated" }
   }
 
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('type', { ascending: true })
-    .order('name', { ascending: true })
+  // Return hardcoded categories with default styling
+  // This ensures the form always works even without DB seeding
+  const categories: Category[] = [
+    {
+      id: 'cat-sales',
+      user_id: user.id,
+      name: 'Sales',
+      type: 'income',
+      color: '#10b981',
+      icon: 'TrendingUp',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'cat-cogs',
+      user_id: user.id,
+      name: 'COGS',
+      type: 'expense',
+      color: '#ef4444',
+      icon: 'ShoppingCart',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'cat-opex',
+      user_id: user.id,
+      name: 'Opex',
+      type: 'expense',
+      color: '#f59e0b',
+      icon: 'Briefcase',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'cat-assets',
+      user_id: user.id,
+      name: 'Assets',
+      type: 'expense',
+      color: '#8b5cf6',
+      icon: 'Package',
+      created_at: new Date().toISOString()
+    }
+  ]
 
-  if (error) {
-    console.error('Failed to fetch categories:', error)
-    return { categories: [], error: error.message }
-  }
-
-  return { categories: data as Category[], error: null }
+  return { categories, error: null }
 }
 
 export async function createEntry(input: CreateEntryInput) {

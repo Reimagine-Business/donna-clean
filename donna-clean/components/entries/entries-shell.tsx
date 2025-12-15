@@ -59,6 +59,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
 
   // Category filtering logic for inline form
   const availableCategories = useMemo(() => {
+    // Extract category names and filter based on entry type
     const categoryNames = allCategories.map(c => c.name as CategoryType)
 
     if (formData.entryType === 'Cash IN') {
@@ -87,6 +88,11 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
 
   // Show party selector for Credit and Advance
   const showPartySelector = formData.entryType === 'Credit' || formData.entryType === 'Advance'
+
+  // Debug logging
+  console.log('🔍 Entry Type:', formData.entryType)
+  console.log('📁 Available Categories:', availableCategories)
+  console.log('👥 Show Party Selector:', showPartySelector)
 
   // Filter entries based on filters
   const filteredEntries = useMemo(() => {
@@ -163,7 +169,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
         setEntries(entriesResult.entries)
       }
 
-      if (!categoriesResult.error) {
+      if (!categoriesResult.error && categoriesResult.categories) {
         setAllCategories(categoriesResult.categories)
       }
     } catch (err: unknown) {
