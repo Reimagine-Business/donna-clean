@@ -86,13 +86,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     }
   }, [formData.entryType, formData.category, availableCategories])
 
-  // Show party selector for Credit and Advance
-  const showPartySelector = formData.entryType === 'Credit' || formData.entryType === 'Advance'
-
   // Debug logging
   console.log('🔍 Entry Type:', formData.entryType)
   console.log('📁 Available Categories:', availableCategories)
-  console.log('👥 Show Party Selector:', showPartySelector)
 
   // Filter entries based on filters
   const filteredEntries = useMemo(() => {
@@ -546,16 +542,14 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
                   </div>
                 </div>
 
-                {/* Party Selector (for Credit and Advance) */}
-                {showPartySelector && (
-                  <PartySelector
-                    entryType={formData.entryType}
-                    category={formData.category}
-                    value={formData.partyId}
-                    onChange={(partyId) => setFormData({ ...formData, partyId })}
-                    required={false}
-                  />
-                )}
+                {/* Party Selector (conditionally shown based on entry type) */}
+                <PartySelector
+                  entryType={formData.entryType}
+                  category={formData.category}
+                  value={formData.partyId}
+                  onChange={(partyId) => setFormData({ ...formData, partyId })}
+                  required={formData.entryType === 'Credit' || formData.entryType === 'Advance'}
+                />
 
                 {/* Date */}
                 <div>
