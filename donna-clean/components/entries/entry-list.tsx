@@ -12,19 +12,9 @@ interface EntryListProps {
   entries: Entry[];
   categories: Category[];
   onRefresh: () => void;
-  selectedEntries?: string[];
-  onSelectEntry?: (id: string) => void;
-  bulkMode?: boolean;
 }
 
-export function EntryList({
-  entries,
-  categories,
-  onRefresh,
-  selectedEntries = [],
-  onSelectEntry,
-  bulkMode = false,
-}: EntryListProps) {
+export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<Entry | null>(null);
@@ -52,6 +42,7 @@ export function EntryList({
       style: "currency",
       currency: "INR",
       minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
   };
 
@@ -72,8 +63,10 @@ export function EntryList({
 
   if (entries.length === 0) {
     return (
-      <div className="text-center py-12 bg-purple-900/10 border border-purple-500/20 rounded-lg">
-        <p className="text-purple-300">No entries found</p>
+      <div className="rounded-lg border border-purple-500/30 bg-purple-900/5 p-8">
+        <div className="text-center py-8">
+          <p className="text-purple-300">No entries found for selected period</p>
+        </div>
       </div>
     );
   }
@@ -81,18 +74,17 @@ export function EntryList({
   return (
     <>
       <div className="rounded-lg border border-purple-500/30 bg-purple-900/5 overflow-hidden">
-        {/* Table Header */}
-        <div className="grid grid-cols-[auto_auto_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-3 bg-purple-900/20 border-b border-purple-500/30 font-medium text-sm text-purple-200">
-          {bulkMode && <div className="w-8"></div>}
+        {/* Table Header - Fixed Width Columns */}
+        <div className="grid grid-cols-[80px_140px_110px_1fr_110px_50px] gap-4 px-4 py-3 bg-purple-900/20 border-b border-purple-500/30 font-medium text-sm uppercase tracking-wide text-purple-200">
           <div className="text-left">DATE</div>
           <div className="text-left">ENTRY TYPE</div>
           <div className="text-left">CATEGORY</div>
           <div className="text-right">AMOUNT</div>
           <div className="text-left">PAYMENT</div>
-          <div className="w-10"></div>
+          <div></div>
         </div>
 
-        {/* Table Body */}
+        {/* Table Body - Matching Column Widths */}
         <div className="divide-y divide-purple-500/20">
           {entries.map((entry) => {
             const isIncome =
@@ -100,30 +92,15 @@ export function EntryList({
               (entry.entry_type === "Credit" && entry.category === "Sales") ||
               (entry.entry_type === "Advance" && entry.category === "Sales");
             const isMenuOpen = openMenuId === entry.id;
-            const isSelected = selectedEntries.includes(entry.id);
 
             return (
               <div
                 key={entry.id}
-                className={`grid grid-cols-[auto_auto_1fr_1fr_1fr_1fr_auto] gap-4 px-4 py-4 hover:bg-purple-900/20 transition-colors ${
-                  isSelected ? "bg-purple-900/30" : ""
-                }`}
+                className="grid grid-cols-[80px_140px_110px_1fr_110px_50px] gap-4 px-4 py-4 hover:bg-purple-900/20 transition-colors items-center"
               >
-                {/* Checkbox (bulk mode) */}
-                {bulkMode && onSelectEntry && (
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => onSelectEntry(entry.id)}
-                      className="w-4 h-4 rounded border-purple-500/30 bg-purple-900/30 text-purple-600 focus:ring-purple-500 focus:ring-offset-0"
-                    />
-                  </div>
-                )}
-
-                {/* Date */}
-                <div className="flex flex-col text-sm min-w-[50px]">
-                  <span className="font-medium text-white">
+                {/* Date - Fixed 80px */}
+                <div className="flex flex-col text-sm">
+                  <span className="font-medium text-white text-base">
                     {format(new Date(entry.entry_date), "dd")}
                   </span>
                   <span className="text-purple-400 text-xs">
@@ -131,10 +108,10 @@ export function EntryList({
                   </span>
                 </div>
 
-                {/* Entry Type */}
-                <div className="flex items-center">
+                {/* Entry Type - Fixed 140px */}
+                <div>
                   <span
-                    className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium border whitespace-nowrap ${getEntryTypeColor(
+                    className={`inline-flex items-center px-3 py-1 rounded text-xs font-medium border whitespace-nowrap ${getEntryTypeColor(
                       entry.entry_type
                     )}`}
                   >
@@ -142,79 +119,76 @@ export function EntryList({
                   </span>
                 </div>
 
-                {/* Category */}
-                <div className="text-sm text-white flex items-center">
-                  {entry.category}
-                </div>
+                {/* Category - Fixed 110px */}
+                <div className="text-sm text-white">{entry.category}</div>
 
-                {/* Amount */}
+                {/* Amount - Flex (takes remaining space, right-aligned) */}
                 <div
-                  className={`text-right font-medium flex items-center justify-end ${
+                  className={`text-right font-medium text-base ${
                     isIncome ? "text-green-400" : "text-red-400"
                   }`}
                 >
-                  {isIncome ? "+" : "-"} {formatCurrency(entry.amount)}
+                  {isIncome ? "+ " : "- "}
+                  {formatCurrency(entry.amount)}
                 </div>
 
-                {/* Payment Method */}
-                <div className="text-sm flex items-center">
+                {/* Payment Method - Fixed 110px */}
+                <div className="text-sm">
                   {entry.payment_method && (
-                    <span className="px-2 py-1 rounded bg-purple-900/30 text-purple-300 text-xs border border-purple-500/30">
+                    <span className="inline-flex items-center px-3 py-1 rounded bg-purple-900/30 text-purple-300 text-xs border border-purple-500/30 whitespace-nowrap">
                       {entry.payment_method}
                     </span>
                   )}
                 </div>
 
-                {/* Actions */}
+                {/* Actions Menu - Fixed 50px */}
                 <div className="flex items-center justify-end">
-                  {!bulkMode && (
-                    <div className="relative">
-                      <button
-                        onClick={() =>
-                          setOpenMenuId(isMenuOpen ? null : entry.id)
-                        }
-                        className="p-2 hover:bg-purple-900/50 rounded-md transition-colors text-purple-300"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
+                  <div className="relative">
+                    <button
+                      onClick={() =>
+                        setOpenMenuId(isMenuOpen ? null : entry.id)
+                      }
+                      className="p-2 hover:bg-purple-900/50 rounded-md transition-colors text-purple-300"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </button>
 
-                      {/* Dropdown Menu */}
-                      {isMenuOpen && (
-                        <>
-                          {/* Backdrop to close menu */}
-                          <div
-                            className="fixed inset-0 z-10"
-                            onClick={handleCloseMenu}
-                          />
+                    {/* Dropdown Menu */}
+                    {isMenuOpen && (
+                      <>
+                        {/* Backdrop to close menu */}
+                        <div
+                          className="fixed inset-0 z-10"
+                          onClick={handleCloseMenu}
+                        />
 
-                          {/* Menu */}
-                          <div className="absolute right-0 top-10 z-20 w-48 bg-[#1a1a2e] border border-purple-500/30 rounded-lg shadow-lg overflow-hidden">
-                            <button
-                              onClick={() => handleView(entry)}
-                              className="w-full px-4 py-3 text-left text-sm text-white hover:bg-purple-900/30 transition-colors flex items-center gap-3"
-                            >
-                              <Eye className="w-4 h-4" />
-                              View Details
-                            </button>
-                            <button
-                              onClick={() => handleEdit(entry)}
-                              className="w-full px-4 py-3 text-left text-sm text-white hover:bg-purple-900/30 transition-colors flex items-center gap-3 border-t border-purple-500/20"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                              Edit Entry
-                            </button>
-                            <button
-                              onClick={() => handleDelete(entry)}
-                              className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/20 transition-colors flex items-center gap-3 border-t border-purple-500/20"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Delete Entry
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  )}
+                        {/* Menu */}
+                        <div className="absolute right-0 top-10 z-20 w-48 bg-[#1a1a2e] border border-purple-500/30 rounded-lg shadow-lg overflow-hidden">
+                          <button
+                            onClick={() => handleView(entry)}
+                            className="w-full px-4 py-3 text-left text-sm text-white hover:bg-purple-900/30 transition-colors flex items-center gap-3"
+                          >
+                            <Eye className="w-4 h-4" />
+                            View Details
+                          </button>
+                          <button
+                            onClick={() => handleEdit(entry)}
+                            className="w-full px-4 py-3 text-left text-sm text-white hover:bg-purple-900/30 transition-colors flex items-center gap-3 border-t border-purple-500/20"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            Edit Entry
+                          </button>
+                          <button
+                            onClick={() => handleDelete(entry)}
+                            className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/20 transition-colors flex items-center gap-3 border-t border-purple-500/20"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete Entry
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             );
