@@ -1,11 +1,10 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Plus, Filter, CheckSquare, Trash2, Download, X } from 'lucide-react'
+import { Plus, Download } from 'lucide-react'
 import { type Entry, type Category, getEntries, getCategories, deleteEntry, createEntry, type EntryType, type CategoryType, type PaymentMethodType } from '@/app/entries/actions'
 import { CreateEntryModal } from './create-entry-modal'
 import { EntryList } from './entry-list'
-import { EntryFiltersBar, type EntryFilters } from './entry-filters'
 import { EntryListSkeleton } from '@/components/skeletons/entry-skeleton'
 import { NoEntries } from '@/components/empty-states/no-entries'
 import { ErrorState } from '@/components/ui/error-state'
@@ -31,11 +30,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(initialError)
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showFilters, setShowFilters] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
-  const [bulkMode, setBulkMode] = useState(false)
-  const [selectedEntries, setSelectedEntries] = useState<string[]>([])
-  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   // Form state for inline form at top
   const [formData, setFormData] = useState({
@@ -48,14 +43,6 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     notes: '',
   })
   const [submitting, setSubmitting] = useState(false)
-
-  const [filters, setFilters] = useState<EntryFilters>({
-    type: 'all',
-    category: '',
-    dateFrom: '',
-    dateTo: '',
-    search: '',
-  })
 
   // Date filter for quick filtering
   const [dateFilter, setDateFilter] = useState('this-month')
@@ -89,11 +76,11 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     }
   }, [formData.entryType, formData.category, availableCategories])
 
-  // Filter entries based on filters
+  // Filter entries by date
   const filteredEntries = useMemo(() => {
     let result = [...entries]
 
-    // Apply quick date filter first
+    // Apply date filter
     const now = new Date()
     let startDate: Date | null = null
     let endDate: Date | null = null
@@ -124,50 +111,8 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
       })
     }
 
-    // Filter by type
-    if (filters.type !== 'all') {
-      if (filters.type === 'in') {
-        // Cash In: Cash Inflow + Advance(Sales) + Credit(Sales)
-        result = result.filter(entry =>
-          entry.entry_type === 'Cash IN' ||
-          (entry.entry_type === 'Advance' && entry.category === 'Sales') ||
-          (entry.entry_type === 'Credit' && entry.category === 'Sales')
-        )
-      } else if (filters.type === 'out') {
-        // Cash Out: Cash Outflow + Advance(expenses) + Credit(expenses)
-        result = result.filter(entry =>
-          entry.entry_type === 'Cash OUT' ||
-          (entry.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(entry.category)) ||
-          (entry.entry_type === 'Credit' && ['COGS', 'Opex', 'Assets'].includes(entry.category))
-        )
-      }
-    }
-
-    // Filter by category
-    if (filters.category) {
-      result = result.filter(entry => entry.category === filters.category)
-    }
-
-    // Filter by date range
-    if (filters.dateFrom) {
-      result = result.filter(entry => entry.entry_date >= filters.dateFrom)
-    }
-    if (filters.dateTo) {
-      result = result.filter(entry => entry.entry_date <= filters.dateTo)
-    }
-
-    // Filter by search
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase()
-      result = result.filter(entry =>
-        entry.notes?.toLowerCase().includes(searchLower) ||
-        entry.category.toLowerCase().includes(searchLower) ||
-        entry.entry_type.toLowerCase().includes(searchLower)
-      )
-    }
-
     return result
-  }, [entries, filters, dateFilter])
+  }, [entries, dateFilter])
 
   // Paginate entries
   const paginatedEntries = useMemo(() => {
@@ -285,112 +230,10 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     showSuccess('Exported to Excel')
   }
 
-  const handleFiltersChange = (newFilters: EntryFilters) => {
-    setFilters(newFilters)
-    setCurrentPage(1) // Reset to first page when filters change
-  }
-
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  // Bulk operations handlers
-  const handleToggleBulkMode = () => {
-    setBulkMode(!bulkMode)
-    setSelectedEntries([])
-  }
-
-  const handleSelectEntry = (id: string) => {
-    setSelectedEntries(prev =>
-      prev.includes(id)
-        ? prev.filter(entryId => entryId !== id)
-        : [...prev, id]
-    )
-  }
-
-  const handleSelectAll = () => {
-    if (selectedEntries.length === paginatedEntries.length) {
-      setSelectedEntries([])
-    } else {
-      setSelectedEntries(paginatedEntries.map(entry => entry.id))
-    }
-  }
-
-  const handleBulkDelete = async () => {
-    if (selectedEntries.length === 0) {
-      showError('No entries selected')
-      return
-    }
-
-    const confirmed = confirm(
-      `Are you sure you want to delete ${selectedEntries.length} ${
-        selectedEntries.length === 1 ? 'entry' : 'entries'
-      }? This action cannot be undone.`
-    )
-
-    if (!confirmed) return
-
-    setBulkDeleting(true)
-
-    try {
-      const deletePromises = selectedEntries.map(id => deleteEntry(id))
-      const results = await Promise.all(deletePromises)
-
-      const failedCount = results.filter(r => !r.success).length
-      const successCount = results.filter(r => r.success).length
-
-      if (successCount > 0) {
-        showSuccess(`Successfully deleted ${successCount} ${successCount === 1 ? 'entry' : 'entries'}`)
-        await handleRefresh()
-        setSelectedEntries([])
-        setBulkMode(false)
-      }
-
-      if (failedCount > 0) {
-        showError(`Failed to delete ${failedCount} ${failedCount === 1 ? 'entry' : 'entries'}`)
-      }
-    } catch (error: unknown) {
-      console.error('Bulk delete failed:', error)
-      showError('An error occurred during bulk delete')
-    } finally {
-      setBulkDeleting(false)
-    }
-  }
-
-  const handleBulkExport = () => {
-    if (selectedEntries.length === 0) {
-      showError('No entries selected')
-      return
-    }
-
-    const selectedData = entries.filter(entry => selectedEntries.includes(entry.id))
-    const csvContent = [
-      ['Date', 'Entry Type', 'Category', 'Amount', 'Payment Method', 'Notes'].join(','),
-      ...selectedData.map(entry =>
-        [
-          entry.entry_date,
-          entry.entry_type,
-          entry.category,
-          entry.amount,
-          entry.payment_method || '',
-          `"${(entry.notes || '').replace(/"/g, '""')}"`,
-        ].join(',')
-      ),
-    ].join('\n')
-
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `entries-export-${new Date().toISOString().split('T')[0]}.csv`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
-
-    showSuccess(`Exported ${selectedEntries.length} ${selectedEntries.length === 1 ? 'entry' : 'entries'}`)
   }
 
   // Show error state
@@ -472,36 +315,8 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
             <h1 className="text-2xl md:text-3xl font-bold">Record what happen!</h1>
             <p className="text-sm text-purple-300 mt-1">
               {filteredEntries.length} {filteredEntries.length === 1 ? 'entry' : 'entries'}
-              {filters.type !== 'all' && ` • ${filters.type}`}
-              {bulkMode && selectedEntries.length > 0 && ` • ${selectedEntries.length} selected`}
             </p>
           </div>
-          {!showFormAtTop && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleToggleBulkMode}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  bulkMode
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
-                }`}
-              >
-                <CheckSquare className="w-4 h-4" />
-                <span className="hidden sm:inline">Select</span>
-              </button>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  showFilters
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
-                }`}
-              >
-                <Filter className="w-4 h-4" />
-                <span className="hidden sm:inline">Filters</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {showFormAtTop ? (
@@ -651,10 +466,11 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
 
             {/* Entry List Section */}
             <div>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <h2 className="text-xl font-semibold">Transaction History</h2>
+              {/* Simple Header - Date + Export Only */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Transaction History</h2>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-3">
                   {/* Date Filter */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-purple-400">Date:</span>
@@ -676,122 +492,17 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
                     className="px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2"
                   >
                     <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Export</span>
-                  </button>
-
-                  {/* Existing buttons */}
-                  <button
-                    onClick={handleToggleBulkMode}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                      bulkMode
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
-                    }`}
-                  >
-                    <CheckSquare className="w-4 h-4" />
-                    <span className="hidden sm:inline">Select</span>
-                  </button>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                      showFilters
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
-                    }`}
-                  >
-                    <Filter className="w-4 h-4" />
-                    <span className="hidden sm:inline">Filters</span>
+                    <span>Export</span>
                   </button>
                 </div>
               </div>
 
-        {/* Bulk Action Bar */}
-        {bulkMode && (
-          <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleSelectAll}
-                  className="text-sm text-purple-300 hover:text-white transition-colors"
-                >
-                  {selectedEntries.length === paginatedEntries.length ? 'Deselect All' : 'Select All'}
-                </button>
-                <span className="text-sm text-purple-400">
-                  {selectedEntries.length} of {paginatedEntries.length} selected
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleBulkExport}
-                  disabled={selectedEntries.length === 0}
-                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4" />
-                  <span className="hidden sm:inline">Export</span>
-                </button>
-                <button
-                  onClick={handleBulkDelete}
-                  disabled={selectedEntries.length === 0 || bulkDeleting}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="hidden sm:inline">
-                    {bulkDeleting ? 'Deleting...' : 'Delete'}
-                  </span>
-                </button>
-                <button
-                  onClick={handleToggleBulkMode}
-                  className="px-4 py-2 bg-purple-900/30 hover:bg-purple-900/50 text-white rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <X className="w-4 h-4" />
-                  <span className="hidden sm:inline">Cancel</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Filters */}
-        {showFilters && (
-          <EntryFiltersBar
-            filters={filters}
-            categories={allCategories}
-            onFiltersChange={handleFiltersChange}
-          />
-        )}
-
-        {/* Loading State */}
-        {loading && <EntryListSkeleton />}
-
-        {/* Entry List */}
-        {!loading && filteredEntries.length === 0 && (
-          <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-8 text-center">
-            <p className="text-purple-300">No entries match your filters</p>
-            <button
-              onClick={() => handleFiltersChange({
-                type: 'all',
-                category: '',
-                dateFrom: '',
-                dateTo: '',
-                search: '',
-              })}
-              className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-            >
-              Clear Filters
-            </button>
-          </div>
-        )}
-
-        {!loading && paginatedEntries.length > 0 && (
-          <EntryList
-            entries={paginatedEntries}
-            categories={allCategories}
-            onRefresh={handleRefresh}
-            selectedEntries={selectedEntries}
-            onSelectEntry={handleSelectEntry}
-            bulkMode={bulkMode}
-          />
-        )}
+              {/* Entry List with Fixed Alignment */}
+              <EntryList
+                entries={paginatedEntries}
+                categories={allCategories}
+                onRefresh={handleRefresh}
+              />
 
         {/* Pagination */}
         {totalPages > 1 && (
@@ -822,10 +533,11 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
           <div className="space-y-6">
             {/* Entry List Section */}
             <div>
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-                <h2 className="text-xl font-semibold">Transaction History</h2>
+              {/* Simple Header - Date + Export Only */}
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Transaction History</h2>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-3">
                   {/* Date Filter */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-purple-400">Date:</span>
@@ -847,122 +559,17 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
                     className="px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2"
                   >
                     <Download className="w-4 h-4" />
-                    <span className="hidden sm:inline">Export</span>
-                  </button>
-
-                  {/* Existing buttons */}
-                  <button
-                    onClick={handleToggleBulkMode}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                      bulkMode
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
-                    }`}
-                  >
-                    <CheckSquare className="w-4 h-4" />
-                    <span className="hidden sm:inline">Select</span>
-                  </button>
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                      showFilters
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
-                    }`}
-                  >
-                    <Filter className="w-4 h-4" />
-                    <span className="hidden sm:inline">Filters</span>
+                    <span>Export</span>
                   </button>
                 </div>
               </div>
 
-              {/* Bulk Action Bar */}
-              {bulkMode && (
-                <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-4">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={handleSelectAll}
-                        className="text-sm text-purple-300 hover:text-white transition-colors"
-                      >
-                        {selectedEntries.length === paginatedEntries.length ? 'Deselect All' : 'Select All'}
-                      </button>
-                      <span className="text-sm text-purple-400">
-                        {selectedEntries.length} of {paginatedEntries.length} selected
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={handleBulkExport}
-                        disabled={selectedEntries.length === 0}
-                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span className="hidden sm:inline">Export</span>
-                      </button>
-                      <button
-                        onClick={handleBulkDelete}
-                        disabled={selectedEntries.length === 0 || bulkDeleting}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        <span className="hidden sm:inline">
-                          {bulkDeleting ? 'Deleting...' : 'Delete'}
-                        </span>
-                      </button>
-                      <button
-                        onClick={handleToggleBulkMode}
-                        className="px-4 py-2 bg-purple-900/30 hover:bg-purple-900/50 text-white rounded-lg transition-colors flex items-center gap-2"
-                      >
-                        <X className="w-4 h-4" />
-                        <span className="hidden sm:inline">Cancel</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Filters */}
-              {showFilters && (
-                <EntryFiltersBar
-                  filters={filters}
-                  categories={allCategories}
-                  onFiltersChange={handleFiltersChange}
-                />
-              )}
-
-              {/* Loading State */}
-              {loading && <EntryListSkeleton />}
-
-              {/* Entry List */}
-              {!loading && filteredEntries.length === 0 && (
-                <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-8 text-center">
-                  <p className="text-purple-300">No entries match your filters</p>
-                  <button
-                    onClick={() => handleFiltersChange({
-                      type: 'all',
-                      category: '',
-                      dateFrom: '',
-                      dateTo: '',
-                      search: '',
-                    })}
-                    className="mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-                  >
-                    Clear Filters
-                  </button>
-                </div>
-              )}
-
-              {!loading && paginatedEntries.length > 0 && (
-                <EntryList
-                  entries={paginatedEntries}
-                  categories={allCategories}
-                  onRefresh={handleRefresh}
-                  selectedEntries={selectedEntries}
-                  onSelectEntry={handleSelectEntry}
-                  bulkMode={bulkMode}
-                />
-              )}
+              {/* Entry List with Fixed Alignment */}
+              <EntryList
+                entries={paginatedEntries}
+                categories={allCategories}
+                onRefresh={handleRefresh}
+              />
 
               {/* Pagination */}
               {totalPages > 1 && (
