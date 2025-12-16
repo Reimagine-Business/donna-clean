@@ -317,32 +317,6 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
               {filteredEntries.length} {filteredEntries.length === 1 ? 'entry' : 'entries'}
             </p>
           </div>
-          {!showFormAtTop && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleToggleBulkMode}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  bulkMode
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
-                }`}
-              >
-                <CheckSquare className="w-4 h-4" />
-                <span className="hidden sm:inline">Select</span>
-              </button>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  showFilters
-                    ? 'bg-purple-600 text-white'
-                    : 'bg-purple-900/30 text-purple-300 hover:bg-purple-900/50'
-                }`}
-              >
-                <Filter className="w-4 h-4" />
-                <span className="hidden sm:inline">Filters</span>
-              </button>
-            </div>
-          )}
         </div>
 
         {showFormAtTop ? (
