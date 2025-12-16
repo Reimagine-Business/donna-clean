@@ -1,78 +1,57 @@
-'use client'
+import { redirect } from "next/navigation";
+import { createSupabaseServerClient } from "@/utils/supabase/server";
+import { getOrRefreshUser } from "@/lib/supabase/get-user";
+import { DeleteAccountSection } from "@/components/settings/delete-account-section";
+import { SiteHeader } from "@/components/site-header";
+import { TopNavMobile } from "@/components/navigation/top-nav-mobile";
+import { BottomNav } from "@/components/navigation/bottom-nav";
 
-import { SiteHeader } from '@/components/site-header'
-import { BottomNav } from '@/components/navigation/bottom-nav'
-import { TopNavMobile } from '@/components/navigation/top-nav-mobile'
-import { FileText } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { createClient } from '@/lib/supabase/client'
+export default async function SettingsPage() {
+  const supabase = await createSupabaseServerClient();
+  const { user } = await getOrRefreshUser(supabase);
 
-export default function SettingsPage() {
-  const supabase = createClient()
-
-  // Fetch user for top nav
-  useQuery({
-    queryKey: ['user'],
-    queryFn: async () => {
-      const { data: { user }, error } = await supabase.auth.getUser()
-      if (error) return null
-      return user
-    },
-    staleTime: 5 * 60 * 1000,
-  })
+  if (!user) {
+    redirect("/auth/login");
+  }
 
   return (
-    <div className="min-h-screen bg-[#0f0f1e] pb-24 md:pb-8">
-      <SiteHeader />
-      <TopNavMobile />
+    <main className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
+      <div className="flex flex-col min-h-screen">
+        <SiteHeader />
+        <TopNavMobile />
 
-      <div className="container mx-auto px-4 pt-2 pb-24 md:p-6 max-w-3xl">
-        {/* Page Header */}
-        <div className="mt-2 mb-4">
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Settings</h1>
-        </div>
+        <section className="flex-1 px-4 py-8 md:px-8 overflow-auto">
+          <div className="mx-auto w-full max-w-2xl">
+            <h1 className="text-3xl font-bold mb-8">Settings</h1>
 
-        <div className="space-y-6">
-          {/* Coming Soon Notice */}
-          <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-8 text-center">
-            <h2 className="text-xl font-semibold text-white mb-2">
-              More Settings Coming Soon
-            </h2>
-            <p className="text-purple-300">
-              Additional preferences and options will be available in the next update.
-            </p>
-          </div>
-
-          {/* Legal Links */}
-          <section>
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-purple-400" />
-              Legal & Privacy
-            </h2>
-
-            <div className="bg-purple-900/20 border border-purple-500/30 rounded-lg p-6">
+            {/* User Info Section */}
+            <section className="mb-8 p-6 border border-purple-500/30 rounded-lg bg-purple-900/10">
+              <h2 className="text-xl font-semibold mb-4 text-purple-200">Account Information</h2>
               <div className="space-y-3">
-                <a
-                  href="/privacy-policy"
-                  className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors"
-                >
-                  <FileText className="w-4 h-4" />
-                  Privacy Policy
-                </a>
-                <a
-                  href="/terms"
-                  className="flex items-center gap-2 text-purple-300 hover:text-white transition-colors"
-                >
-                  <FileText className="w-4 h-4" />
-                  Terms of Service
-                </a>
+                <div className="flex items-center justify-between">
+                  <span className="text-purple-300">Email:</span>
+                  <span className="font-medium text-white">{user.email}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-purple-300">User ID:</span>
+                  <span className="font-mono text-sm text-purple-200">{user.id.slice(0, 8)}...</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-purple-300">Account Created:</span>
+                  <span className="text-sm text-purple-200">
+                    {new Date(user.created_at || "").toLocaleDateString()}
+                  </span>
+                </div>
               </div>
-            </div>
-          </section>
-        </div>
+            </section>
+
+            {/* Delete Account Section */}
+            <DeleteAccountSection />
+          </div>
+        </section>
       </div>
 
       <BottomNav />
-    </div>
-  )
+    </main>
+  );
 }
