@@ -1,0 +1,38 @@
+
+> build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.3 (Turbopack)
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Turbopack build encountered 1 warnings:
+[next]/internal/font/google/geist_6ee70f7.module.css
+Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap
+Hint: It looks like this error was TLS-related. Try enabling system TLS certificates with NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS=1 as an environment variable, or set experimental.turbopackUseSystemTlsCerts in your next.config.js file.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_6ee70f7.module.css
+    [next]/internal/font/google/geist_6ee70f7.js
+    ./app/layout.tsx
+
+
+
+> Build error occurred
+Error: Turbopack build failed with 1 errors:
+[next]/internal/font/google/geist_6ee70f7.module.css
+next/font: error:
+Failed to fetch `Geist` from Google Fonts.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_6ee70f7.module.css
+    [next]/internal/font/google/geist_6ee70f7.js
+    ./app/layout.tsx
+
+
+    at ignore-listed frames

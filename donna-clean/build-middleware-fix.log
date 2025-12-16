@@ -1,0 +1,79 @@
+
+> build
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 16.0.3 (Turbopack)
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Turbopack build encountered 1 warnings:
+[next]/internal/font/google/geist_6ee70f7.module.css
+Error while requesting resource
+There was an issue establishing a connection while requesting https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap
+Hint: It looks like this error was TLS-related. Try enabling system TLS certificates with NEXT_TURBOPACK_EXPERIMENTAL_USE_SYSTEM_TLS_CERTS=1 as an environment variable, or set experimental.turbopackUseSystemTlsCerts in your next.config.js file.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_6ee70f7.module.css
+    [next]/internal/font/google/geist_6ee70f7.js
+    ./app/layout.tsx
+
+
+
+> Build error occurred
+Error: Turbopack build failed with 2 errors:
+./utils/supabase/server.ts:2:1
+Ecmascript file had an error
+[0m [90m 1 |[39m [36mimport[39m { createServerClient } [36mfrom[39m [32m"@supabase/ssr"[39m[33m;[39m
+[31m[1m>[22m[39m[90m 2 |[39m [36mimport[39m { cookies } [36mfrom[39m [32m"next/headers"[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 3 |[39m
+ [90m 4 |[39m [36mexport[39m [36masync[39m [36mfunction[39m createSupabaseServerClient() {
+ [90m 5 |[39m   [36mconst[39m cookieStore [33m=[39m [36mawait[39m cookies()[33m;[39m[0m
+
+You're importing a component that needs "next/headers". That only works in a Server Component which is not supported in the pages/ directory. Read more: https://nextjs.org/docs/app/building-your-application/rendering/server-components
+
+
+
+Import traces:
+  #1 [App Route]:
+    ./utils/supabase/server.ts
+    ./app/api/revalidate/route.ts
+
+  #2 [Server Component]:
+    ./utils/supabase/server.ts
+    ./app/admin/migrate-entry-types/actions.ts
+
+  #3 [Server Component]:
+    ./utils/supabase/server.ts
+    ./app/alerts/page.tsx
+
+  #4 [Client Component Browser]:
+    ./utils/supabase/server.ts [Client Component Browser]
+    ./components/auth-button.tsx [Client Component Browser]
+    ./components/site-header.tsx [Client Component Browser]
+    ./app/admin/users/page.tsx [Client Component Browser]
+    ./app/admin/users/page.tsx [Server Component]
+
+  #5 [Client Component SSR]:
+    ./utils/supabase/server.ts [Client Component SSR]
+    ./components/auth-button.tsx [Client Component SSR]
+    ./components/site-header.tsx [Client Component SSR]
+    ./app/admin/users/page.tsx [Client Component SSR]
+    ./app/admin/users/page.tsx [Server Component]
+
+
+[next]/internal/font/google/geist_6ee70f7.module.css
+next/font: error:
+Failed to fetch `Geist` from Google Fonts.
+
+Import trace:
+  Server Component:
+    [next]/internal/font/google/geist_6ee70f7.module.css
+    [next]/internal/font/google/geist_6ee70f7.js
+    ./app/layout.tsx
+
+
+    at <unknown> (./utils/supabase/server.ts:2:1)
