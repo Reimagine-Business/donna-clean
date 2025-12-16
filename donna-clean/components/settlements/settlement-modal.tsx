@@ -7,6 +7,7 @@ import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { type Entry } from "@/lib/entries";
 import { createSettlement } from "@/app/settlements/actions";
 import { showSuccess, showError } from "@/lib/toast";
+import { analytics } from "@/lib/analytics";
 
 type SettlementType = 'credit-sales' | 'credit-bills' | 'advance-sales' | 'advance-expenses';
 
@@ -165,6 +166,9 @@ export function SettlementModal({ type, pendingItems, onClose, onSuccess }: Sett
       } else {
         showSuccess(`Successfully settled ₹${settlementAmount.toLocaleString('en-IN')}!`);
       }
+
+      // Track analytics event
+      analytics.settlementCompleted(type, settlementAmount);
 
       // Clear selection
       setSelectedItemId(null);

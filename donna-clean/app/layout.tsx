@@ -2,6 +2,8 @@ import "./globals.css";
 import ClientProviders from "./client-providers";
 import { Toaster } from "@/components/ui/toaster";
 import { CookieConsent } from "@/components/cookie-consent";
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import type { Viewport } from 'next';
 
 export const viewport: Viewport = {
@@ -23,6 +25,8 @@ export default function RootLayout({
         <ClientProviders>
           {children}
         </ClientProviders>
+        <Analytics debug={process.env.NODE_ENV === 'development'} />
+        <SpeedInsights />
         <CookieConsent />
       </body>
     </html>
