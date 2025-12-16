@@ -31,9 +31,13 @@ yarn-error.log*
 .pnpm-debug.log*
 build-*.log
 
-# env files (can opt-in for committing if needed)
+# env files - NEVER commit actual credentials
 .env*.local
+.env.local
 .env
+
+# But keep example file for documentation
+!.env.example
 
 # vercel
 .vercel

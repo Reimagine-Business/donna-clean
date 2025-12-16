@@ -2,6 +2,7 @@
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
+import * as Sentry from "@sentry/nextjs";
 
 export async function deleteAccount(confirmationText: string) {
   const supabase = await createSupabaseServerClient();
@@ -38,6 +39,17 @@ export async function deleteAccount(confirmationText: string) {
     return { success: true };
   } catch (error) {
     console.error("Delete account error:", error);
+
+    // Log to Sentry in production
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.captureException(error, {
+        tags: {
+          action: "deleteAccount",
+          user_id: user?.id,
+        },
+      });
+    }
+
     return {
       success: false,
       error: "Failed to delete account. Please contact support."

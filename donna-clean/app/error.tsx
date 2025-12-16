@@ -1,9 +1,9 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
-import { useEffect } from "react";
+import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
-export default function Error({
+export default function GlobalError({
   error,
   reset,
 }: {
@@ -11,34 +11,33 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to Sentry
-    Sentry.captureException(error);
+    // Only send to Sentry in production
+    if (process.env.NODE_ENV === 'production') {
+      Sentry.captureException(error);
+    } else {
+      console.error('Global error:', error);
+    }
   }, [error]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e]">
-      <div className="text-center max-w-md">
-        <h2 className="text-2xl font-bold text-white mb-4">
-          Something went wrong!
-        </h2>
-        <p className="text-purple-300 mb-6">
-          We've been notified and are working on a fix. Please try again or return to the home page.
-        </p>
-        <div className="flex gap-4 justify-center">
-          <button
-            onClick={reset}
-            className="px-6 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md font-medium transition-colors"
-          >
-            Try again
-          </button>
-          <a
-            href="/"
-            className="px-6 py-2 bg-purple-900/30 hover:bg-purple-900/50 text-white rounded-md font-medium transition-colors border border-purple-500/30"
-          >
-            Go Home
-          </a>
+    <html>
+      <body>
+        <div className="flex min-h-screen items-center justify-center px-4 bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e]">
+          <div className="text-center">
+            <div className="text-6xl mb-4">😔</div>
+            <h2 className="text-2xl font-bold mb-4 text-white">Oops! Something went wrong</h2>
+            <p className="text-purple-300 mb-6">
+              Our team has been notified. Please try refreshing the page.
+            </p>
+            <button
+              onClick={reset}
+              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium text-white transition-colors"
+            >
+              Refresh page
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
+      </body>
+    </html>
   );
 }
