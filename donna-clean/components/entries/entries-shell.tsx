@@ -57,6 +57,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     search: '',
   })
 
+  // Date filter for quick filtering
+  const [dateFilter, setDateFilter] = useState('this-month')
+
   // Category filtering logic for inline form
   const availableCategories = useMemo(() => {
     // Extract category names and filter based on entry type
@@ -86,13 +89,40 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     }
   }, [formData.entryType, formData.category, availableCategories])
 
-  // Debug logging
-  console.log('🔍 Entry Type:', formData.entryType)
-  console.log('📁 Available Categories:', availableCategories)
-
   // Filter entries based on filters
   const filteredEntries = useMemo(() => {
     let result = [...entries]
+
+    // Apply quick date filter first
+    const now = new Date()
+    let startDate: Date | null = null
+    let endDate: Date | null = null
+
+    switch (dateFilter) {
+      case 'this-month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+        break
+      case 'last-month':
+        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        endDate = new Date(now.getFullYear(), now.getMonth(), 0)
+        break
+      case 'this-year':
+        startDate = new Date(now.getFullYear(), 0, 1)
+        break
+      case 'all-time':
+        // No date filtering
+        break
+    }
+
+    if (startDate) {
+      result = result.filter(e => {
+        const entryDate = new Date(e.entry_date)
+        if (endDate) {
+          return entryDate >= startDate && entryDate <= endDate
+        }
+        return entryDate >= startDate
+      })
+    }
 
     // Filter by type
     if (filters.type !== 'all') {
@@ -137,7 +167,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     }
 
     return result
-  }, [entries, filters])
+  }, [entries, filters, dateFilter])
 
   // Paginate entries
   const paginatedEntries = useMemo(() => {
@@ -226,6 +256,33 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleExportToExcel = () => {
+    // Create CSV content
+    const headers = ['Date', 'Entry Type', 'Category', 'Amount', 'Payment Method', 'Notes']
+    const rows = filteredEntries.map(entry => [
+      format(new Date(entry.entry_date), 'dd/MM/yyyy'),
+      entry.entry_type,
+      entry.category,
+      entry.amount.toString(),
+      entry.payment_method || '',
+      entry.notes || ''
+    ])
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n')
+
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `entries_${format(new Date(), 'yyyy-MM-dd')}.csv`
+    link.click()
+
+    showSuccess('Exported to Excel')
   }
 
   const handleFiltersChange = (newFilters: EntryFilters) => {
@@ -594,9 +651,35 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
 
             {/* Entry List Section */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Recent Entries</h2>
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <h2 className="text-xl font-semibold">Transaction History</h2>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Date Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-purple-400">Date:</span>
+                    <select
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                      className="px-3 py-2 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                    >
+                      <option value="this-month">This Month</option>
+                      <option value="last-month">Last Month</option>
+                      <option value="this-year">This Year</option>
+                      <option value="all-time">All Time</option>
+                    </select>
+                  </div>
+
+                  {/* Export Button */}
+                  <button
+                    onClick={handleExportToExcel}
+                    className="px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="hidden sm:inline">Export</span>
+                  </button>
+
+                  {/* Existing buttons */}
                   <button
                     onClick={handleToggleBulkMode}
                     className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
@@ -739,9 +822,35 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
           <div className="space-y-6">
             {/* Entry List Section */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold">Recent Entries</h2>
-                <div className="flex items-center gap-2">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                <h2 className="text-xl font-semibold">Transaction History</h2>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Date Filter */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-purple-400">Date:</span>
+                    <select
+                      value={dateFilter}
+                      onChange={(e) => setDateFilter(e.target.value)}
+                      className="px-3 py-2 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                    >
+                      <option value="this-month">This Month</option>
+                      <option value="last-month">Last Month</option>
+                      <option value="this-year">This Year</option>
+                      <option value="all-time">All Time</option>
+                    </select>
+                  </div>
+
+                  {/* Export Button */}
+                  <button
+                    onClick={handleExportToExcel}
+                    className="px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span className="hidden sm:inline">Export</span>
+                  </button>
+
+                  {/* Existing buttons */}
                   <button
                     onClick={handleToggleBulkMode}
                     className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
