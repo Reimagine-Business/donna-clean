@@ -13,6 +13,7 @@ import {
   validateNotes,
   validatePaymentMethod
 } from '@/lib/validation'
+import { analytics } from '@/lib/analytics'
 
 interface CreateEntryModalProps {
   categories: Category[]
@@ -181,6 +182,10 @@ export function CreateEntryModal({ categories, onSuccess, onClose }: CreateEntry
 
       if (result.success) {
         showSuccess('Entry added successfully!')
+
+        // Track analytics event
+        analytics.entryCreated(entryType, parseFloat(amount))
+
         onSuccess()
         onClose()
       } else {

@@ -14,6 +14,7 @@ import { TopNavMobile } from '@/components/navigation/top-nav-mobile'
 import { BottomNav } from '@/components/navigation/bottom-nav'
 import { PartySelector } from './party-selector'
 import { format } from 'date-fns'
+import { analytics } from '@/lib/analytics'
 
 interface EntriesShellProps {
   initialEntries: Entry[]
@@ -178,6 +179,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
       if (result.success) {
         showSuccess('Entry created successfully!')
 
+        // Track analytics event
+        analytics.entryCreated(formData.entryType, parseFloat(formData.amount))
+
         // Refresh entries
         await handleRefresh()
 
@@ -226,6 +230,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     link.href = URL.createObjectURL(blob)
     link.download = `entries_${format(new Date(), 'yyyy-MM-dd')}.csv`
     link.click()
+
+    // Track analytics event
+    analytics.reportExported('entries-csv')
 
     showSuccess('Exported to Excel')
   }

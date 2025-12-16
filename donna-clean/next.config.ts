@@ -4,12 +4,6 @@ import { withSentryConfig } from "@sentry/nextjs";
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   turbopack: {},   // this disables Turbopack and forces stable Webpack
-
-  // Sentry configuration
-  sentry: {
-    hideSourceMaps: true,
-    widenClientFileUpload: true,
-  },
 }
 
 // Sentry configuration options
@@ -25,6 +19,10 @@ const sentryOptions = {
 
   // Auth token for uploading source maps
   authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Sentry webpack plugin options
+  hideSourceMaps: true,
+  widenClientFileUpload: true,
 };
 
 export default withSentryConfig(nextConfig, sentryOptions);
