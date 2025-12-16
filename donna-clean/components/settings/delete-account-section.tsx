@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { deleteAccount } from "@/app/profile/actions";
+import { deleteAccount } from "@/app/settings/actions";
 import { showSuccess, showError, showLoading, dismissToast } from "@/lib/toast";
 import { Trash2 } from "lucide-react";
 
