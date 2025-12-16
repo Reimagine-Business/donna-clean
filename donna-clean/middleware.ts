@@ -1,13 +1,13 @@
 import { updateSession } from "@/lib/supabase/middleware";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
-  // Redirect /daily-entries to /entries
+export async function middleware(request: NextRequest) {
+  // Redirect old daily-entries route to new entries route
   if (request.nextUrl.pathname === '/daily-entries') {
     return NextResponse.redirect(new URL('/entries', request.url));
   }
 
+  // Continue with Supabase session management
   return await updateSession(request);
 }
 

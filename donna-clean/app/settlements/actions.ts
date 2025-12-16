@@ -75,15 +75,24 @@ export async function createSettlement(
       return { success: false, error: error.message };
     }
 
-    // ✅ FIX: RPC returns an ARRAY, so check data[0]
-    if (!data || data.length === 0) {
-      return { success: false, error: "No response from settlement function" };
+    // ✅ FIX: Handle both array and direct JSON response
+    let result: { success: boolean; message?: string; error?: string };
+    
+    if (Array.isArray(data)) {
+      // Old behavior: RPC returns array
+      if (data.length === 0) {
+        return { success: false, error: "No response from settlement function" };
+      }
+      result = data[0];
+    } else if (typeof data === 'object' && data !== null) {
+      // New behavior: RPC returns JSON object directly
+      result = data as { success: boolean; message?: string; error?: string };
+    } else {
+      return { success: false, error: "Invalid response from settlement function" };
     }
 
-    const result = data[0] as { success: boolean; message?: string };
-
     if (!result.success) {
-      return { success: false, error: result.message || "Settlement failed" };
+      return { success: false, error: result.error || result.message || "Settlement failed" };
     }
 
     // Revalidate all affected pages

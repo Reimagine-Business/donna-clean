@@ -44,8 +44,8 @@ export default async function HomePage() {
         <SiteHeader />
         <TopNavMobile />
 
-        <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
-          <div className="mx-auto w-full max-w-6xl space-y-6">
+        <section className="flex-1 px-4 py-3 md:px-8 overflow-auto">
+          <div className="mx-auto w-full max-w-6xl space-y-3">
             {/* Greeting Section */}
             <GreetingSection businessName={profile?.business_name ?? null} />
 

@@ -35,6 +35,7 @@ export type Entry = {
   payment_method: PaymentMethod;
   amount: number;
   remaining_amount: number;
+  settled_amount: number | null;  // ➕ ADDED: Track settlement amounts
   entry_date: string;
   notes: string | null;
   image_url: string | null;
@@ -43,24 +44,34 @@ export type Entry = {
   party_id: string | null;
   party?: { name: string } | null;
   is_settlement?: boolean;
+  settlement_type?: string | null;
+  original_entry_id?: string | null;
   created_at: string;
   updated_at: string;
 };
 
-export type EntryRecord = Omit<Entry, "amount" | "remaining_amount" | "settled" | "settled_at" | "party"> & {
+export type EntryRecord = Omit<Entry, "amount" | "remaining_amount" | "settled_amount" | "settled" | "settled_at" | "party"> & {
   amount: number | string;
   remaining_amount: number | string | null;
+  settled_amount: number | string | null;  // ➕ ADDED
   settled: boolean;
   settled_at: string | null;
   party?: { name: string } | null;
+  is_settlement?: boolean;  // ➕ ADDED
+  settlement_type?: string | null;  // ➕ ADDED
+  original_entry_id?: string | null;  // ➕ ADDED
 };
 
 export type SupabaseEntry = Partial<EntryRecord> & {
   amount?: number | string | null;
   remaining_amount?: number | string | null;
+  settled_amount?: number | string | null;  // ➕ ADDED
   settled?: boolean | null;
   settled_at?: string | null;
   party?: { name: string } | { name: string }[] | null;
+  is_settlement?: boolean | null;  // ➕ ADDED
+  settlement_type?: string | null;  // ➕ ADDED
+  original_entry_id?: string | null;  // ➕ ADDED
 };
 
 const ensureOption = <const T extends readonly string[]>(
@@ -77,6 +88,14 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
     typeof entry.remaining_amount === "number"
       ? entry.remaining_amount
       : Number(entry.remaining_amount ?? amount);
+  
+  // ➕ ADDED: Handle settled_amount
+  const settledAmount = 
+    typeof entry.settled_amount === "number"
+      ? entry.settled_amount
+      : entry.settled_amount !== null && entry.settled_amount !== undefined
+      ? Number(entry.settled_amount)
+      : null;
 
   const fallbackDate = format(new Date(), "yyyy-MM-dd");
 
@@ -103,6 +122,7 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
     ),
     amount: Number.isFinite(amount) ? amount : 0,
     remaining_amount: Number.isFinite(remaining) ? remaining : Number.isFinite(amount) ? amount : 0,
+    settled_amount: settledAmount !== null && Number.isFinite(settledAmount) ? settledAmount : null,  // ➕ ADDED
     entry_date: entry.entry_date ?? fallbackDate,
     notes: entry.notes ?? null,
     image_url: entry.image_url ?? null,
@@ -111,6 +131,8 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
     party_id: (entry as any).party_id ?? null,
     party: party,
     is_settlement: (entry as any).is_settlement ?? false,
+    settlement_type: entry.settlement_type ?? null,
+    original_entry_id: entry.original_entry_id ?? null,
     created_at: entry.created_at ?? new Date().toISOString(),
     updated_at: entry.updated_at ?? new Date().toISOString(),
   };
