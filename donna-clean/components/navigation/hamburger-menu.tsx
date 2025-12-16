@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/components/logout-button";
-import { User, Settings, Users } from "lucide-react";
+import { User, Settings, Shield } from "lucide-react";
 
 interface HamburgerMenuProps {
   businessName?: string;
@@ -15,7 +15,7 @@ interface HamburgerMenuProps {
 const settingsItems = [
   { href: "/profile", label: "Profile", icon: User },
   { href: "/settings", label: "Settings", icon: Settings },
-  { href: "/admin/users", label: "User Management", icon: Users, adminOnly: true },
+  { href: "/legal", label: "Privacy & Legal", icon: Shield },
 ];
 
 export function HamburgerMenu({ businessName = "Donna Clean", userEmail, onClose }: HamburgerMenuProps) {

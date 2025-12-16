@@ -7,6 +7,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/entries', request.url));
   }
 
+  // Hide user management for now (v2.0 feature)
+  if (request.nextUrl.pathname === '/admin/users') {
+    return NextResponse.redirect(new URL('/profile', request.url));
+  }
+
   // Continue with Supabase session management
   return await updateSession(request);
 }
