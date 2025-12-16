@@ -73,77 +73,82 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
 
   return (
     <>
-      {/* Mobile Card Layout - Hidden on Desktop */}
-      <div className="md:hidden space-y-3">
-        {entries.map((entry) => {
-          const isIncome =
-            entry.entry_type === "Cash IN" ||
-            (entry.entry_type === "Credit" && entry.category === "Sales") ||
-            (entry.entry_type === "Advance" && entry.category === "Sales");
-          const isMenuOpen = openMenuId === entry.id;
+      {/* Compact Table Layout - Mobile Only */}
+      <div className="md:hidden bg-purple-900/10 border border-purple-500/30 rounded-lg overflow-hidden">
+        {/* Table Header */}
+        <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[45px_85px_1fr_75px_55px_35px] gap-1.5 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
+          <div>DATE</div>
+          <div>TYPE</div>
+          <div>CATEGORY</div>
+          <div className="text-right">AMOUNT</div>
+          <div className="text-center">PAY</div>
+          <div></div>
+        </div>
 
-          return (
-            <div
-              key={entry.id}
-              className="rounded-lg border border-purple-500/30 bg-purple-900/10 p-4"
-            >
-              <div className="flex items-start justify-between gap-3">
-                {/* Left: Date */}
-                <div className="flex flex-col text-sm min-w-[50px]">
-                  <span className="font-medium text-white text-lg">
+        {/* Table Body */}
+        <div className="divide-y divide-purple-500/20">
+          {entries.map((entry) => {
+            const isIncome =
+              entry.entry_type === "Cash IN" ||
+              (entry.entry_type === "Credit" && entry.category === "Sales") ||
+              (entry.entry_type === "Advance" && entry.category === "Sales");
+            const isMenuOpen = openMenuId === entry.id;
+
+            return (
+              <div
+                key={entry.id}
+                className="px-2 py-1.5 grid grid-cols-[45px_85px_1fr_75px_55px_35px] gap-1.5 items-center hover:bg-purple-900/20 transition-colors"
+              >
+                {/* Date */}
+                <div className="text-[10px] text-purple-300">
+                  <div className="font-semibold text-white text-xs">
                     {format(new Date(entry.entry_date), "dd")}
-                  </span>
-                  <span className="text-purple-400 text-xs">
+                  </div>
+                  <div className="text-[9px]">
                     {format(new Date(entry.entry_date), "MMM")}
+                  </div>
+                </div>
+
+                {/* Entry Type */}
+                <div>
+                  <span
+                    className={`inline-block px-1 py-0.5 rounded text-[9px] font-medium border ${getEntryTypeColor(
+                      entry.entry_type
+                    )}`}
+                  >
+                    {entry.entry_type}
                   </span>
                 </div>
 
-                {/* Center: Details */}
-                <div className="flex-1 space-y-2">
-                  {/* Entry Type & Category */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border whitespace-nowrap ${getEntryTypeColor(
-                        entry.entry_type
-                      )}`}
-                    >
-                      {entry.entry_type}
-                    </span>
-                    <span className="text-sm text-purple-200">
-                      {entry.category}
-                    </span>
-                  </div>
-
-                  {/* Amount */}
-                  <div
-                    className={`text-xl font-bold ${
-                      isIncome ? "text-green-400" : "text-red-400"
-                    }`}
-                  >
-                    {isIncome ? "+ " : "- "}
-                    {formatCurrency(entry.amount)}
-                  </div>
-
-                  {/* Payment Method */}
-                  {entry.payment_method && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-purple-400">Payment:</span>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded bg-purple-900/30 text-purple-300 text-xs border border-purple-500/30">
-                        {entry.payment_method}
-                      </span>
-                    </div>
-                  )}
+                {/* Category */}
+                <div className="text-[10px] text-purple-200 truncate">
+                  {entry.category}
                 </div>
 
-                {/* Right: Actions Menu */}
-                <div className="relative">
+                {/* Amount */}
+                <div
+                  className={`text-right text-[10px] font-semibold ${
+                    isIncome ? "text-green-400" : "text-red-400"
+                  }`}
+                >
+                  ₹{entry.amount.toLocaleString("en-IN")}
+                </div>
+
+                {/* Payment Method */}
+                <div className="text-[9px] text-purple-300 text-center truncate">
+                  {entry.payment_method || "None"}
+                </div>
+
+                {/* Actions */}
+                <div className="relative flex justify-end">
                   <button
                     onClick={() =>
                       setOpenMenuId(isMenuOpen ? null : entry.id)
                     }
-                    className="p-2 hover:bg-purple-900/50 rounded-md transition-colors text-purple-300"
+                    className="p-0.5 hover:bg-purple-600/30 text-purple-300 rounded transition-colors"
+                    title="Actions"
                   >
-                    <MoreVertical className="h-4 w-4" />
+                    <MoreVertical className="w-3 h-3" />
                   </button>
 
                   {isMenuOpen && (
@@ -152,36 +157,29 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                         className="fixed inset-0 z-10"
                         onClick={handleCloseMenu}
                       />
-                      <div className="absolute right-0 top-10 z-20 w-48 bg-[#1a1a2e] border border-purple-500/30 rounded-lg shadow-lg overflow-hidden">
-                        <button
-                          onClick={() => handleView(entry)}
-                          className="w-full px-4 py-3 text-left text-sm text-white hover:bg-purple-900/30 transition-colors flex items-center gap-3"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View Details
-                        </button>
+                      <div className="absolute right-0 top-5 z-20 w-32 bg-[#1a1a2e] border border-purple-500/30 rounded-lg shadow-lg overflow-hidden">
                         <button
                           onClick={() => handleEdit(entry)}
-                          className="w-full px-4 py-3 text-left text-sm text-white hover:bg-purple-900/30 transition-colors flex items-center gap-3 border-t border-purple-500/20"
+                          className="w-full px-2 py-1.5 text-left text-[10px] text-white hover:bg-purple-900/30 transition-colors flex items-center gap-1.5"
                         >
-                          <Edit2 className="w-4 h-4" />
-                          Edit Entry
+                          <Edit2 className="w-2.5 h-2.5" />
+                          Edit
                         </button>
                         <button
                           onClick={() => handleDelete(entry)}
-                          className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-900/20 transition-colors flex items-center gap-3 border-t border-purple-500/20"
+                          className="w-full px-2 py-1.5 text-left text-[10px] text-red-400 hover:bg-red-900/20 transition-colors flex items-center gap-1.5 border-t border-purple-500/20"
                         >
-                          <Trash2 className="w-4 h-4" />
-                          Delete Entry
+                          <Trash2 className="w-2.5 h-2.5" />
+                          Delete
                         </button>
                       </div>
                     </>
                   )}
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
       {/* Desktop Table Layout - Hidden on Mobile */}
