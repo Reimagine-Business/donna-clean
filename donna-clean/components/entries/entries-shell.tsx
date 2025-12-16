@@ -468,16 +468,16 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
             <div>
               {/* Simple Header - Date + Export Only */}
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-white">Transaction History</h2>
+                <h2 className="text-base md:text-xl font-semibold text-white">Transaction History</h2>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {/* Date Filter */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-purple-400">Date:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-purple-400">Date:</span>
                     <select
                       value={dateFilter}
                       onChange={(e) => setDateFilter(e.target.value)}
-                      className="px-3 py-2 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                      className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                     >
                       <option value="this-month">This Month</option>
                       <option value="last-month">Last Month</option>
@@ -489,9 +489,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
                   {/* Export Button */}
                   <button
                     onClick={handleExportToExcel}
-                    className="px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2"
+                    className="px-2.5 py-1 rounded-md bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 transition-colors flex items-center gap-1.5"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-3.5 h-3.5" />
                     <span>Export</span>
                   </button>
                 </div>
@@ -535,16 +535,16 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
             <div>
               {/* Simple Header - Date + Export Only */}
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-white">Transaction History</h2>
+                <h2 className="text-base md:text-xl font-semibold text-white">Transaction History</h2>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {/* Date Filter */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-purple-400">Date:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-purple-400">Date:</span>
                     <select
                       value={dateFilter}
                       onChange={(e) => setDateFilter(e.target.value)}
-                      className="px-3 py-2 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                      className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                     >
                       <option value="this-month">This Month</option>
                       <option value="last-month">Last Month</option>
@@ -556,9 +556,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
                   {/* Export Button */}
                   <button
                     onClick={handleExportToExcel}
-                    className="px-4 py-2 rounded-md bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-colors flex items-center gap-2"
+                    className="px-2.5 py-1 rounded-md bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 transition-colors flex items-center gap-1.5"
                   >
-                    <Download className="w-4 h-4" />
+                    <Download className="w-3.5 h-3.5" />
                     <span>Export</span>
                   </button>
                 </div>
