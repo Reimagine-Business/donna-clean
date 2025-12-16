@@ -1,5 +1,5 @@
 import { Suspense } from 'react'
-import { getEntries } from '@/app/daily-entries/actions'
+import { getEntries } from '@/app/entries/actions'
 import { getSettlementHistory } from '@/app/settlements/settlement-history-actions'
 import { CashPulseAnalytics } from '@/components/analytics/cash-pulse-analytics'
 import { EntryListSkeleton } from '@/components/skeletons/entry-skeleton'
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function CashPulseAnalyticsPage() {
-  const entries = await getEntries()
+  const { entries } = await getEntries()
   const { settlementHistory } = await getSettlementHistory()
 
   return (

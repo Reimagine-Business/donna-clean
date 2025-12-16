@@ -8,7 +8,7 @@ import { GreetingSection } from "@/components/home/greeting-section";
 import { BusinessInsights } from "@/components/home/business-insights";
 import { getOrRefreshUser } from "@/lib/supabase/get-user";
 import { createSupabaseServerClient } from "@/utils/supabase/server";
-import { getEntries } from "@/app/daily-entries/actions";
+import { getEntries } from "@/app/entries/actions";
 import { EntryListSkeleton } from "@/components/skeletons/entry-skeleton";
 
 export const dynamic = 'force-dynamic';
@@ -29,7 +29,7 @@ export default async function HomePage() {
   }
 
   // Fetch entries for dashboard
-  const entries = await getEntries();
+  const { entries } = await getEntries();
 
   // Fetch user profile for business name
   const { data: profile } = await supabase

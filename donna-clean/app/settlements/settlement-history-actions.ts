@@ -157,7 +157,7 @@ export async function deleteSettlementHistory(settlementId: string): Promise<{
     }
 
     // Revalidate all affected pages
-    revalidatePath("/daily-entries");
+    revalidatePath("/entries");
     revalidatePath("/analytics/cashpulse");
     revalidatePath("/analytics/profitlens");
 
