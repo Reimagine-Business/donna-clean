@@ -76,10 +76,10 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
       {/* Compact Table Layout - Mobile Only */}
       <div className="md:hidden bg-purple-900/10 border border-purple-500/30 rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[45px_85px_1fr_75px_55px_35px] gap-1.5 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
+        <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[45px_85px_1fr_75px_50px_40px] gap-1.5 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
           <div>DATE</div>
           <div>TYPE</div>
-          <div>CATEGORY</div>
+          <div className="text-left">CATEGORY</div>
           <div className="text-right">AMOUNT</div>
           <div className="text-center">PAY</div>
           <div></div>
@@ -97,7 +97,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
             return (
               <div
                 key={entry.id}
-                className="px-2 py-1.5 grid grid-cols-[45px_85px_1fr_75px_55px_35px] gap-1.5 items-center hover:bg-purple-900/20 transition-colors"
+                className="px-2 py-1.5 grid grid-cols-[45px_85px_1fr_75px_50px_40px] gap-1.5 items-center hover:bg-purple-900/20 transition-colors"
               >
                 {/* Date */}
                 <div className="text-[10px] text-purple-300">
@@ -121,7 +121,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 </div>
 
                 {/* Category */}
-                <div className="text-[10px] text-purple-200 truncate">
+                <div className="text-[10px] text-purple-200 text-left truncate">
                   {entry.category}
                 </div>
 
@@ -140,12 +140,12 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 </div>
 
                 {/* Actions */}
-                <div className="relative flex justify-end">
+                <div className="relative flex justify-center items-center">
                   <button
                     onClick={() =>
                       setOpenMenuId(isMenuOpen ? null : entry.id)
                     }
-                    className="p-0.5 hover:bg-purple-600/30 text-purple-300 rounded transition-colors"
+                    className="p-1 hover:bg-purple-600/30 text-purple-300 rounded transition-colors"
                     title="Actions"
                   >
                     <MoreVertical className="w-3 h-3" />
@@ -157,7 +157,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                         className="fixed inset-0 z-10"
                         onClick={handleCloseMenu}
                       />
-                      <div className="absolute right-0 top-5 z-20 w-32 bg-[#1a1a2e] border border-purple-500/30 rounded-lg shadow-lg overflow-hidden">
+                      <div className="absolute right-0 top-6 z-20 w-32 bg-[#1a1a2e] border border-purple-500/30 rounded-lg shadow-lg overflow-hidden">
                         <button
                           onClick={() => handleEdit(entry)}
                           className="w-full px-2 py-1.5 text-left text-[10px] text-white hover:bg-purple-900/30 transition-colors flex items-center gap-1.5"
