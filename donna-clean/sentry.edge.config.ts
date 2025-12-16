@@ -11,4 +11,7 @@ Sentry.init({
 
   // Environment
   environment: process.env.NODE_ENV,
+
+  // Only enable in production
+  enabled: process.env.NODE_ENV === 'production',
 });
