@@ -1,6 +1,7 @@
 import "./globals.css";
 import ClientProviders from "./client-providers";
 import { Toaster } from "@/components/ui/toaster";
+import { CookieConsent } from "@/components/cookie-consent";
 import type { Viewport } from 'next';
 
 export const viewport: Viewport = {
@@ -22,6 +23,7 @@ export default function RootLayout({
         <ClientProviders>
           {children}
         </ClientProviders>
+        <CookieConsent />
       </body>
     </html>
   );
