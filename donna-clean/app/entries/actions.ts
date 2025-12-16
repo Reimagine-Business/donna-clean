@@ -10,6 +10,7 @@ import {
   sanitizeDate
 } from "@/lib/sanitization"
 import { checkRateLimit, RateLimitError } from "@/lib/rate-limit"
+import * as Sentry from "@sentry/nextjs"
 import type { SupabaseClient } from "@supabase/supabase-js"
 // Re-export Entry type from canonical location
 import type { Entry as LibEntry } from "@/lib/entries"
@@ -320,6 +321,10 @@ export async function createEntry(input: CreateEntryInput) {
     }
     // If rate limit check fails (e.g., KV down), allow the request
     console.error('Rate limit check failed:', error)
+    Sentry.captureException(error, {
+      tags: { action: 'create-entry-rate-limit', userId: user.id },
+      level: 'warning',
+    })
   }
 
   // Sanitize inputs
@@ -359,6 +364,11 @@ export async function createEntry(input: CreateEntryInput) {
 
   if (error) {
     console.error('Failed to create entry:', error)
+    Sentry.captureException(error, {
+      tags: { action: 'create-entry', userId: user.id },
+      extra: { entryData: sanitizedData },
+      level: 'error',
+    })
     return { success: false, error: error.message }
   }
 
@@ -391,6 +401,10 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
       return { success: false, error: error.message }
     }
     console.error('Rate limit check failed:', error)
+    Sentry.captureException(error, {
+      tags: { action: 'update-entry-rate-limit', userId: user.id },
+      level: 'warning',
+    })
   }
 
   // Sanitize inputs
@@ -456,6 +470,11 @@ export async function updateEntry(id: string, input: UpdateEntryInput) {
 
   if (error) {
     console.error('Failed to update entry:', error)
+    Sentry.captureException(error, {
+      tags: { action: 'update-entry', userId: user.id, entryId: id },
+      extra: { updateData: payload },
+      level: 'error',
+    })
     return { success: false, error: error.message }
   }
 
@@ -504,6 +523,12 @@ export async function deleteEntry(id: string) {
 
   if (fetchError || !entry) {
     console.error('Failed to fetch entry for deletion:', fetchError)
+    if (fetchError) {
+      Sentry.captureException(fetchError, {
+        tags: { action: 'delete-entry-fetch', userId: user.id, entryId: id },
+        level: 'error',
+      })
+    }
     return { success: false, error: 'Entry not found or no longer accessible' }
   }
 
@@ -523,6 +548,11 @@ export async function deleteEntry(id: string) {
 
       if (deleteSettlementError) {
         console.error('Failed to delete settlement entry:', deleteSettlementError)
+        Sentry.captureException(deleteSettlementError, {
+          tags: { action: 'delete-entry-settlement', userId: user.id, entryId: id },
+          extra: { entryType: entry.entry_type, category: entry.category },
+          level: 'warning',
+        })
         // Continue anyway - we'll still delete the original entry
       } else {
         console.log(`✅ Deleted associated settlement entry for Credit ${entry.category}`)
@@ -541,6 +571,11 @@ export async function deleteEntry(id: string) {
 
   if (error) {
     console.error('Failed to delete entry:', error)
+    Sentry.captureException(error, {
+      tags: { action: 'delete-entry', userId: user.id, entryId: id },
+      extra: { entryType: entry.entry_type, settled: entry.settled },
+      level: 'error',
+    })
     return { success: false, error: error.message }
   }
 
