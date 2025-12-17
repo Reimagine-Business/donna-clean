@@ -41,6 +41,10 @@ export function SiteHeader() {
   // Display username with fallback to email
   const displayName = profile?.username || user?.email || undefined;
 
+  // Check if user is admin (reimaginebusiness2025@gmail.com)
+  const isAdmin = user?.email === 'reimaginebusiness2025@gmail.com' &&
+                  user?.app_metadata?.role === 'admin';
+
   return (
     <nav className="hidden w-full md:flex justify-center border-b border-b-foreground/10 h-16 bg-card">
       <div className="w-full max-w-6xl flex justify-between items-center p-3 px-5 text-sm">
@@ -52,7 +56,7 @@ export function SiteHeader() {
           {!hasEnvVars ? (
             <EnvVarWarning />
           ) : user ? (
-            <DesktopUserMenu userName={displayName} />
+            <DesktopUserMenu userName={displayName} isAdmin={isAdmin} />
           ) : (
             <div className="flex gap-2">
               <a
