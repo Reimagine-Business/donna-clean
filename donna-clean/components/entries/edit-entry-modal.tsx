@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { X, Clock } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { updateEntry, type Entry, type Category, type EntryType, type CategoryType, type PaymentMethodType } from '@/app/entries/actions'
@@ -60,6 +60,38 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
     paymentMethod?: string
     notes?: string
   }>({})
+
+  // Smart payment method logic based on entry type
+  useEffect(() => {
+    // Credit entries: Auto-select "None" (not a cash transaction)
+    if (entryType === 'Credit') {
+      setPaymentMethod('None')
+    }
+
+    // Advance entries: Switch to "Cash" if "None" is selected (advance requires cash payment)
+    if (entryType === 'Advance' && paymentMethod === 'None') {
+      setPaymentMethod('Cash')
+    }
+  }, [entryType, paymentMethod])
+
+  // Get payment method options based on entry type
+  const getPaymentMethodOptions = (): { value: PaymentMethodType; label: string }[] => {
+    if (entryType === 'Credit') {
+      // Credit: Only show "None" (not a cash transaction)
+      return [{ value: 'None', label: 'None (Credit - Not Paid Yet)' }]
+    }
+
+    if (entryType === 'Advance') {
+      // Advance: Only show Cash and Bank (advance IS a cash transaction)
+      return [
+        { value: 'Cash', label: 'Cash' },
+        { value: 'Bank', label: 'Bank Transfer' }
+      ]
+    }
+
+    // Cash IN/OUT: Show all options
+    return PAYMENT_METHODS
+  }
 
   // Validation handlers
   const handleEntryTypeChange = (newType: EntryType) => {
@@ -305,10 +337,10 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
               id="payment-method"
               value={paymentMethod}
               onChange={(e) => handlePaymentMethodChange(e.target.value as PaymentMethodType)}
-              className="w-full px-3 py-2 bg-[#0f1729] border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent"
-              disabled={loading}
+              className="w-full px-3 py-2 bg-[#0f1729] border border-gray-700 rounded-md text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading || entryType === 'Credit'}
             >
-              {PAYMENT_METHODS.map((method) => (
+              {getPaymentMethodOptions().map((method) => (
                 <option key={method.value} value={method.value}>
                   {method.label}
                 </option>
@@ -316,6 +348,20 @@ export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEn
             </select>
             {errors.paymentMethod && (
               <p className="mt-1 text-sm text-red-500">{errors.paymentMethod}</p>
+            )}
+
+            {/* Helper text for Credit entries */}
+            {entryType === 'Credit' && (
+              <p className="mt-1 text-xs text-blue-400">
+                💡 Credit transactions don't require payment method - money not exchanged yet
+              </p>
+            )}
+
+            {/* Helper text for Advance entries */}
+            {entryType === 'Advance' && (
+              <p className="mt-1 text-xs text-blue-400">
+                💡 Advance requires actual payment (Cash or Bank Transfer)
+              </p>
             )}
           </div>
 
