@@ -76,9 +76,10 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
       {/* Compact Table Layout - Mobile Only */}
       <div className="md:hidden bg-purple-900/10 border border-purple-500/30 rounded-lg overflow-hidden">
         {/* Table Header */}
-        <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[45px_85px_1fr_75px_50px_40px] gap-1.5 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
+        <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[40px_75px_80px_1fr_70px_45px_35px] gap-1.5 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
           <div>DATE</div>
           <div>TYPE</div>
+          <div className="text-left">PARTY</div>
           <div className="text-left">CATEGORY</div>
           <div className="text-right">AMOUNT</div>
           <div className="text-center">PAY</div>
@@ -97,7 +98,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
             return (
               <div
                 key={entry.id}
-                className="px-2 py-1.5 grid grid-cols-[45px_85px_1fr_75px_50px_40px] gap-1.5 items-center hover:bg-purple-900/20 transition-colors"
+                className="px-2 py-1.5 grid grid-cols-[40px_75px_80px_1fr_70px_45px_35px] gap-1.5 items-center hover:bg-purple-900/20 transition-colors"
               >
                 {/* Date */}
                 <div className="text-[10px] text-purple-300">
@@ -118,6 +119,11 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                   >
                     {entry.entry_type}
                   </span>
+                </div>
+
+                {/* Party */}
+                <div className="text-[9px] text-purple-300 text-left truncate">
+                  {entry.party?.name || "-"}
                 </div>
 
                 {/* Category */}
@@ -185,9 +191,10 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
       {/* Desktop Table Layout - Hidden on Mobile */}
       <div className="hidden md:block rounded-lg border border-purple-500/30 bg-purple-900/5 overflow-hidden">
         {/* Table Header - Fixed Width Columns */}
-        <div className="grid grid-cols-[80px_140px_110px_1fr_110px_50px] gap-4 px-4 py-3 bg-purple-900/20 border-b border-purple-500/30 font-medium text-sm uppercase tracking-wide text-purple-200">
+        <div className="grid grid-cols-[80px_120px_140px_110px_1fr_100px_50px] gap-4 px-4 py-3 bg-purple-900/20 border-b border-purple-500/30 font-medium text-sm uppercase tracking-wide text-purple-200">
           <div className="text-left">DATE</div>
           <div className="text-left">ENTRY TYPE</div>
+          <div className="text-left">PARTY</div>
           <div className="text-left">CATEGORY</div>
           <div className="text-right">AMOUNT</div>
           <div className="text-left">PAYMENT</div>
@@ -206,7 +213,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
             return (
               <div
                 key={entry.id}
-                className="grid grid-cols-[80px_140px_110px_1fr_110px_50px] gap-4 px-4 py-4 hover:bg-purple-900/20 transition-colors items-center"
+                className="grid grid-cols-[80px_120px_140px_110px_1fr_100px_50px] gap-4 px-4 py-4 hover:bg-purple-900/20 transition-colors items-center"
               >
                 {/* Date - Fixed 80px */}
                 <div className="flex flex-col text-sm">
@@ -218,7 +225,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                   </span>
                 </div>
 
-                {/* Entry Type - Fixed 140px */}
+                {/* Entry Type - Fixed 120px */}
                 <div>
                   <span
                     className={`inline-flex items-center px-3 py-1 rounded text-xs font-medium border whitespace-nowrap ${getEntryTypeColor(
@@ -227,6 +234,11 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                   >
                     {entry.entry_type}
                   </span>
+                </div>
+
+                {/* Party - Fixed 140px */}
+                <div className="text-sm text-purple-300 truncate">
+                  {entry.party?.name || "-"}
                 </div>
 
                 {/* Category - Fixed 110px */}
