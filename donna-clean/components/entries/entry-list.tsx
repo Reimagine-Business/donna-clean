@@ -76,9 +76,9 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
       {/* Compact Table Layout - Mobile Only with Horizontal Scroll */}
       <div className="md:hidden bg-purple-900/10 border border-purple-500/30 rounded-lg overflow-hidden">
         <div className="overflow-x-auto -mx-0">
-          <div className="min-w-[700px]">
+          <div className="min-w-[800px]">
             {/* Table Header */}
-            <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[50px_85px_95px_105px_85px_55px_40px] gap-2 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
+            <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[50px_140px_90px_100px_85px_55px_40px] gap-2 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
               <div className="whitespace-nowrap">DATE</div>
               <div className="whitespace-nowrap">TYPE</div>
               <div className="text-left whitespace-nowrap">PARTY</div>
@@ -100,7 +100,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 return (
                   <div
                     key={entry.id}
-                    className="px-2 py-1.5 grid grid-cols-[50px_85px_95px_105px_85px_55px_40px] gap-2 items-center hover:bg-purple-900/20 transition-colors"
+                    className="px-2 py-1.5 grid grid-cols-[50px_140px_90px_100px_85px_55px_40px] gap-2 items-center hover:bg-purple-900/20 transition-colors"
                   >
                 {/* Date */}
                 <div className="text-[10px] text-purple-300 whitespace-nowrap">
@@ -113,11 +113,12 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 </div>
 
                 {/* Entry Type */}
-                <div className="whitespace-nowrap">
+                <div className="overflow-hidden">
                   <span
-                    className={`inline-block px-1 py-0.5 rounded text-[9px] font-medium border ${getEntryTypeColor(
+                    className={`inline-block px-1 py-0.5 rounded text-[9px] font-medium border truncate max-w-full ${getEntryTypeColor(
                       entry.entry_type
                     )}`}
+                    title={entry.entry_type}
                   >
                     {entry.entry_type}
                   </span>
