@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/components/logout-button";
-import { User, Settings, Shield } from "lucide-react";
+import { User, Settings, Shield, ShieldCheck } from "lucide-react";
 
 interface HamburgerMenuProps {
   businessName?: string;
   userEmail?: string;
+  isAdmin?: boolean;
   onClose: () => void;
 }
 
@@ -18,7 +19,7 @@ const settingsItems = [
   { href: "/legal", label: "Privacy & Legal", icon: Shield },
 ];
 
-export function HamburgerMenu({ businessName = "Donna Clean", userEmail, onClose }: HamburgerMenuProps) {
+export function HamburgerMenu({ businessName = "Donna Clean", userEmail, isAdmin, onClose }: HamburgerMenuProps) {
   const pathname = usePathname();
 
   return (
@@ -84,6 +85,33 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail, onClose
                   );
                 })}
               </ul>
+
+              {/* Admin Dashboard Link - Only for admin */}
+              {isAdmin && (
+                <>
+                  <div className="h-px bg-purple-500/30 my-4" />
+                  <h3 className="mb-3 px-4 text-xs font-semibold uppercase tracking-wider text-purple-400">
+                    Administration
+                  </h3>
+                  <ul className="space-y-2">
+                    <li>
+                      <Link
+                        href="/admin"
+                        onClick={onClose}
+                        className={cn(
+                          "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                          pathname?.startsWith('/admin')
+                            ? "bg-purple-500/20 text-purple-200"
+                            : "text-purple-200/70 hover:bg-purple-900/30 hover:text-purple-200"
+                        )}
+                      >
+                        <ShieldCheck className="w-5 h-5 text-purple-400" />
+                        Admin Dashboard
+                      </Link>
+                    </li>
+                  </ul>
+                </>
+              )}
             </div>
           </nav>
 

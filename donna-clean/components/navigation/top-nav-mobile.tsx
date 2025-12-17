@@ -33,6 +33,10 @@ export function TopNavMobile() {
 
   const displayName = profile?.username || user?.email?.split("@")[0] || "User";
 
+  // Check if user is admin (reimaginebusiness2025@gmail.com)
+  const isAdmin = user?.email === 'reimaginebusiness2025@gmail.com' &&
+                  user?.app_metadata?.role === 'admin';
+
   return (
     <>
       {/* Purple Header Bar */}
@@ -88,6 +92,7 @@ export function TopNavMobile() {
         <HamburgerMenu
           businessName={profile?.business_name || "Donna Clean"}
           userEmail={user?.email}
+          isAdmin={isAdmin}
           onClose={() => setIsMenuOpen(false)}
         />
       )}

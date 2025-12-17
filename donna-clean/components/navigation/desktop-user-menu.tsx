@@ -4,11 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { User, Settings, Shield, LogOut, ChevronDown } from "lucide-react";
+import { User, Settings, Shield, LogOut, ChevronDown, ShieldCheck } from "lucide-react";
 import { logoutAction } from "@/app/auth/actions";
 
 interface DesktopUserMenuProps {
   userName?: string;
+  isAdmin?: boolean;
 }
 
 const menuItems = [
@@ -17,7 +18,7 @@ const menuItems = [
   { href: "/legal", label: "Privacy & Legal", icon: Shield },
 ];
 
-export function DesktopUserMenu({ userName }: DesktopUserMenuProps) {
+export function DesktopUserMenu({ userName, isAdmin }: DesktopUserMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -99,6 +100,26 @@ export function DesktopUserMenu({ userName }: DesktopUserMenuProps) {
                 </Link>
               );
             })}
+
+            {/* Admin Dashboard Link - Only for admin */}
+            {isAdmin && (
+              <>
+                <div className="h-px bg-purple-500/30 my-2" />
+                <Link
+                  href="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-2.5 text-sm transition-colors",
+                    pathname?.startsWith('/admin')
+                      ? "bg-purple-500/20 text-purple-200"
+                      : "text-purple-200/70 hover:bg-purple-900/30 hover:text-purple-200"
+                  )}
+                >
+                  <ShieldCheck className="w-4 h-4 text-purple-400" />
+                  <span>Admin Dashboard</span>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Logout */}
