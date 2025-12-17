@@ -73,35 +73,37 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
 
   return (
     <>
-      {/* Compact Table Layout - Mobile Only */}
+      {/* Compact Table Layout - Mobile Only with Horizontal Scroll */}
       <div className="md:hidden bg-purple-900/10 border border-purple-500/30 rounded-lg overflow-hidden">
-        {/* Table Header */}
-        <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[40px_75px_80px_1fr_70px_45px_35px] gap-1.5 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
-          <div>DATE</div>
-          <div>TYPE</div>
-          <div className="text-left">PARTY</div>
-          <div className="text-left">CATEGORY</div>
-          <div className="text-right">AMOUNT</div>
-          <div className="text-center">PAY</div>
-          <div></div>
-        </div>
+        <div className="overflow-x-auto -mx-0">
+          <div className="min-w-[700px]">
+            {/* Table Header */}
+            <div className="bg-purple-900/20 px-2 py-1.5 grid grid-cols-[50px_85px_95px_105px_85px_55px_40px] gap-2 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
+              <div className="whitespace-nowrap">DATE</div>
+              <div className="whitespace-nowrap">TYPE</div>
+              <div className="text-left whitespace-nowrap">PARTY</div>
+              <div className="text-left whitespace-nowrap">CATEGORY</div>
+              <div className="text-right whitespace-nowrap">AMOUNT</div>
+              <div className="text-center whitespace-nowrap">PAYMENT</div>
+              <div></div>
+            </div>
 
-        {/* Table Body */}
-        <div className="divide-y divide-purple-500/20">
-          {entries.map((entry) => {
-            const isIncome =
-              entry.entry_type === "Cash IN" ||
-              (entry.entry_type === "Credit" && entry.category === "Sales") ||
-              (entry.entry_type === "Advance" && entry.category === "Sales");
-            const isMenuOpen = openMenuId === entry.id;
+            {/* Table Body */}
+            <div className="divide-y divide-purple-500/20">
+              {entries.map((entry) => {
+                const isIncome =
+                  entry.entry_type === "Cash IN" ||
+                  (entry.entry_type === "Credit" && entry.category === "Sales") ||
+                  (entry.entry_type === "Advance" && entry.category === "Sales");
+                const isMenuOpen = openMenuId === entry.id;
 
-            return (
-              <div
-                key={entry.id}
-                className="px-2 py-1.5 grid grid-cols-[40px_75px_80px_1fr_70px_45px_35px] gap-1.5 items-center hover:bg-purple-900/20 transition-colors"
-              >
+                return (
+                  <div
+                    key={entry.id}
+                    className="px-2 py-1.5 grid grid-cols-[50px_85px_95px_105px_85px_55px_40px] gap-2 items-center hover:bg-purple-900/20 transition-colors"
+                  >
                 {/* Date */}
-                <div className="text-[10px] text-purple-300">
+                <div className="text-[10px] text-purple-300 whitespace-nowrap">
                   <div className="font-semibold text-white text-xs">
                     {format(new Date(entry.entry_date), "dd")}
                   </div>
@@ -111,7 +113,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 </div>
 
                 {/* Entry Type */}
-                <div>
+                <div className="whitespace-nowrap">
                   <span
                     className={`inline-block px-1 py-0.5 rounded text-[9px] font-medium border ${getEntryTypeColor(
                       entry.entry_type
@@ -133,7 +135,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
 
                 {/* Amount */}
                 <div
-                  className={`text-right text-[10px] font-semibold ${
+                  className={`text-right text-[10px] font-semibold whitespace-nowrap ${
                     isIncome ? "text-green-400" : "text-red-400"
                   }`}
                 >
@@ -141,7 +143,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 </div>
 
                 {/* Payment Method */}
-                <div className="text-[9px] text-purple-300 text-center truncate">
+                <div className="text-[9px] text-purple-300 text-center whitespace-nowrap">
                   {entry.payment_method || "None"}
                 </div>
 
@@ -185,6 +187,8 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
               </div>
             );
           })}
+        </div>
+          </div>
         </div>
       </div>
 
