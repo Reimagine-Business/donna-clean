@@ -1,70 +1,124 @@
-import Link from "next/link";
-import { Users, Database, Settings, FileText } from "lucide-react";
+import { requireAdmin } from '@/lib/admin/check-admin';
+import { createSupabaseServerClient } from '@/utils/supabase/server';
+import { Users, Activity, FileText } from 'lucide-react';
+import Link from 'next/link';
 
-export default function AdminDashboard() {
-  const adminSections = [
-    {
-      title: "User Management",
-      description: "View and manage all registered users",
-      href: "/admin/users",
-      icon: Users,
-      color: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-    },
-    {
-      title: "System Diagnostics",
-      description: "Check system health and database status",
-      href: "/admin/diagnostics",
-      icon: Database,
-      color: "bg-green-500/20 text-green-400 border-green-500/30",
-    },
-    {
-      title: "Migration Tools",
-      description: "Run database migrations and updates",
-      href: "/admin/migrate-entry-types",
-      icon: Settings,
-      color: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-    },
-  ];
+export default async function AdminDashboardPage() {
+  await requireAdmin();
+
+  const supabase = await createSupabaseServerClient();
+
+  // Get basic statistics
+  const { data: { users: authUsers } } = await supabase.auth.admin.listUsers();
+  const totalUsers = authUsers?.length || 0;
+
+  // Get active users (logged in last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+  const activeUsers = authUsers?.filter(u =>
+    u.last_sign_in_at && new Date(u.last_sign_in_at) > sevenDaysAgo
+  ).length || 0;
+
+  // Get total entries
+  const { count: totalEntries } = await supabase
+    .from('entries')
+    .select('*', { count: 'exact', head: true });
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {adminSections.map((section) => {
-          const Icon = section.icon;
-          return (
-            <Link
-              key={section.href}
-              href={section.href}
-              className="block p-6 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors"
-            >
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-lg border ${section.color}`}>
-                  <Icon className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    {section.title}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {section.description}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Admin Dashboard</h1>
+        <p className="text-muted-foreground">
+          System administration for The Donna
+        </p>
+        <div className="mt-2 p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+          <p className="text-sm">
+            🔒 <strong>Admin Access:</strong> You are logged in as reimaginebusiness2025@gmail.com
+          </p>
+        </div>
       </div>
 
-      <div className="mt-8 p-6 rounded-lg border border-yellow-500/30 bg-yellow-900/10">
-        <div className="flex items-start gap-3">
-          <FileText className="w-5 h-5 text-yellow-400 mt-0.5" />
-          <div>
-            <h4 className="text-sm font-semibold text-yellow-400 mb-1">Admin Access</h4>
-            <p className="text-sm text-yellow-300/80">
-              You are logged in as the system administrator. Only your account
-              (reimaginebusiness2025@gmail.com) can access these admin functions.
-            </p>
+      {/* Stats Overview */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="p-6 border rounded-lg bg-card">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg bg-blue-500/10">
+              <Users className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Total Users</div>
+              <div className="text-3xl font-bold">{totalUsers}</div>
+            </div>
           </div>
+        </div>
+
+        <div className="p-6 border rounded-lg bg-card">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg bg-green-500/10">
+              <Activity className="h-6 w-6 text-green-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Active (7d)</div>
+              <div className="text-3xl font-bold">{activeUsers}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border rounded-lg bg-card">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-lg bg-purple-500/10">
+              <FileText className="h-6 w-6 text-purple-500" />
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Total Entries</div>
+              <div className="text-3xl font-bold">{totalEntries || 0}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Admin Actions - ONLY TWO */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold">Admin Tools</h2>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* User Management */}
+          <Link
+            href="/admin/users/manage"
+            className="p-6 border rounded-lg hover:bg-muted transition-colors group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20">
+                <Users className="h-6 w-6 text-blue-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">User Management</h3>
+                <p className="text-sm text-muted-foreground">
+                  Invite new users and manage user accounts
+                </p>
+              </div>
+            </div>
+          </Link>
+
+          {/* User Monitoring */}
+          <Link
+            href="/admin/users/monitor"
+            className="p-6 border rounded-lg hover:bg-muted transition-colors group"
+          >
+            <div className="flex items-start gap-4">
+              <div className="p-3 rounded-lg bg-green-500/10 group-hover:bg-green-500/20">
+                <Activity className="h-6 w-6 text-green-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold mb-2">User Monitoring</h3>
+                <p className="text-sm text-muted-foreground">
+                  View user activity, logins, and entry statistics
+                </p>
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
     </div>
