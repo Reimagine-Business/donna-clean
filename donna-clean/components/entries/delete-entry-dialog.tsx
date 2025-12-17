@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { format } from 'date-fns'
 import { deleteEntry, type Entry, type Category } from '@/app/entries/actions'
+import { deleteSettlementHistory } from '@/app/settlements/settlement-history-actions'
 import { showSuccess, showError } from '@/lib/toast'
 
 interface DeleteEntryDialogProps {
@@ -43,10 +44,22 @@ export function DeleteEntryDialog({ entry, categories, onSuccess, onClose }: Del
     setDeleting(true)
 
     try {
-      const result = await deleteEntry(entry.id)
+      // Check if this is a settlement entry
+      const isSettlement = entry.is_settlement === true
+
+      let result
+      if (isSettlement) {
+        // Use settlement-specific delete (restores original)
+        result = await deleteSettlementHistory(entry.id)
+      } else {
+        // Use regular delete for normal entries
+        result = await deleteEntry(entry.id)
+      }
 
       if (result.success) {
-        showSuccess('Entry deleted successfully!')
+        showSuccess(isSettlement
+          ? 'Settlement deleted - original entry restored to pending!'
+          : 'Entry deleted successfully!')
         onSuccess()
         onClose()
       } else {
