@@ -13,7 +13,7 @@ import {
   getEntryCount,
 } from '@/lib/analytics-new'
 import { showSuccess, showError } from '@/lib/toast'
-import { deleteSettlementHistory, type SettlementHistoryRecord } from '@/app/settlements/settlement-history-actions'
+import { type SettlementHistoryRecord } from '@/app/settlements/settlement-history-actions'
 import { SettlementModal } from '@/components/settlements/settlement-modal'
 import { PendingCollectionsDashboard, type CustomerGroup } from '@/components/settlements/pending-collections-dashboard'
 import { CustomerSettlementModal } from '@/components/settlements/customer-settlement-modal'
@@ -59,7 +59,6 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [settlementModalType, setSettlementModalType] = useState<SettlementModalType>(null)
-  const [visibleSettlements, setVisibleSettlements] = useState(10)
   // New two-stage settlement flow state
   const [dashboardOpen, setDashboardOpen] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerGroup | null>(null)
@@ -241,71 +240,6 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
     showSuccess('Exported to CSV successfully!')
-  }
-
-  const handleDeleteSettlement = async (settlementId: string) => {
-    if (!confirm('Are you sure you want to delete this settlement? The original entry will be marked as unsettled.')) {
-      return
-    }
-
-    setDeletingId(settlementId)
-
-    try {
-      const result = await deleteSettlementHistory(settlementId)
-
-      if (!result.success) {
-        console.error('❌ [DELETE] Action returned failure:', result.error)
-        showError(result.error || 'Failed to delete settlement')
-        return
-      }
-
-      showSuccess('Settlement deleted successfully!')
-
-      router.refresh()
-
-    } catch (error) {
-      console.error('❌ [DELETE] Exception caught:', error)
-      showError('Failed to delete settlement')
-    } finally {
-      setDeletingId(null)
-    }
-  }
-
-  const handleExportSettlements = () => {
-    // Prepare CSV data from settlement entries
-    const csvData = settlementHistory.map(item => {
-      return {
-        Date: format(new Date(item.settlement_date), 'dd MMM yyyy'),
-        Type: item.settlement_type === 'credit' ? 'Credit' : 'Advance',
-        Category: item.category,
-        Amount: item.amount,
-        'Settled On': format(new Date(item.created_at), 'dd MMM yyyy'),
-        'Original Entry ID': item.original_entry_id,
-        Notes: item.notes || ''
-      }
-    })
-
-    // Convert to CSV
-    const headers = Object.keys(csvData[0]).join(',')
-    const rows = csvData.map(row =>
-      Object.values(row).map(val =>
-        typeof val === 'string' && val.includes(',') ? `"${val}"` : val
-      ).join(',')
-    ).join('\n')
-    const csv = `${headers}\n${rows}`
-
-    // Download
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `settlement-history-${format(new Date(), 'yyyy-MM-dd')}.csv`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-
-    showSuccess('Settlement history exported successfully!')
   }
 
   return (
@@ -542,90 +476,6 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
               className="w-full mt-3 px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors"
             >
               Settle Advances →
-            </button>
-          )}
-        </div>
-
-        {/* SETTLEMENT HISTORY */}
-        <div className="bg-card rounded-lg p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">📋</span>
-              <h3 className="text-sm font-semibold text-white">SETTLEMENT HISTORY</h3>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white">Showing {Math.min(visibleSettlements, settlementHistory.length)} of {settlementHistory.length}</span>
-              <button
-                onClick={handleExportSettlements}
-                className="px-3 py-1.5 bg-purple-500 text-white rounded-md text-xs font-medium flex items-center gap-1 hover:bg-purple-600 transition-colors"
-                type="button"
-              >
-                <Download className="w-3 h-3" />
-                Export
-              </button>
-            </div>
-          </div>
-
-          {settlementHistory.length > 0 ? (
-            <div className="space-y-2">
-              {settlementHistory.slice(0, visibleSettlements).map((settlement, index) => {
-                // ✅ NEW: Using settlement_history table structure
-                // No more parsing from notes - we have typed data!
-
-                return (
-                  <div key={settlement.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-md relative">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1 flex-wrap">
-                        {/* ✅ Badge shows Credit (green) vs Advance (purple) */}
-                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                          settlement.settlement_type === 'credit'
-                            ? 'bg-green-500/20 text-green-500'
-                            : 'bg-purple-500/20 text-purple-500'
-                        }`}>
-                          {settlement.settlement_type === 'credit' ? 'Credit' : 'Advance'} {settlement.category}
-                        </span>
-                        <span className="text-sm font-medium text-white">{formatCurrency(settlement.amount)}</span>
-                      </div>
-                      <div className="flex gap-3 text-xs text-white">
-                        <span>Settled: {format(new Date(settlement.settlement_date), 'dd MMM yyyy')}</span>
-                        {settlement.settlement_type === 'advance' && (
-                          <span className="text-purple-400">⚡ Advance</span>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        handleDeleteSettlement(settlement.id)
-                      }}
-                      disabled={deletingId === settlement.id}
-                      className="p-2 text-red-500 hover:bg-red-500/10 rounded-md transition-colors disabled:opacity-50 relative z-10 cursor-pointer"
-                      style={{ pointerEvents: 'auto' }}
-                      type="button"
-                      aria-label="Delete settlement"
-                      title="Delete settlement"
-                    >
-                      <Trash2 className="w-4 h-4 pointer-events-none" />
-                    </button>
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-white">No settlement history</p>
-          )}
-
-          {settlementHistory.length > visibleSettlements && (
-            <button
-              onClick={() => {
-                setVisibleSettlements(prev => prev + 10)
-              }}
-              className="w-full mt-3 px-4 py-2 border border-border rounded-md text-sm font-medium text-white hover:bg-muted/50 transition-colors"
-              type="button"
-            >
-              Load More ({settlementHistory.length - visibleSettlements} more)
             </button>
           )}
         </div>
