@@ -73,7 +73,6 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
   const [pendingCollections, setPendingCollections] = useState(initialStats.pendingCollections);
   const [pendingBills, setPendingBills] = useState(initialStats.pendingBills);
   const [pendingAdvances, setPendingAdvances] = useState(initialStats.pendingAdvances);
-  const [history, setHistory] = useState(initialStats.history);
 
   const skipNextRecalc = useRef(false);
 
@@ -87,7 +86,6 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
       setPendingCollections(updatedStats.pendingCollections);
       setPendingBills(updatedStats.pendingBills);
       setPendingAdvances(updatedStats.pendingAdvances);
-      setHistory(updatedStats.history);
       return updatedStats;
     },
     [], // CRITICAL: Empty deps - don't recreate on filter changes to prevent re-subscriptions
@@ -290,36 +288,6 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
     "dd MMM yyyy",
   )}`;
 
-  const handleExportHistory = () => {
-    if (!history.length) return;
-    const headers = [
-      "Date",
-      "Entry Type",
-      "Category",
-      "Amount",
-      "Payment Method",
-      "Notes",
-    ];
-    const rows = history.map((entry) => [
-      entry.entry_date,
-      entry.entry_type,
-      entry.category,
-      entry.amount.toString(),
-      entry.payment_method,
-      entry.notes?.replace(/"/g, '""') ?? "",
-    ]);
-    const csvContent = [headers, ...rows]
-      .map((line) => line.map((cell) => `"${cell}"`).join(","))
-      .join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `cashpulse-settlement-history-${historyFilters.end_date}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <div className="flex flex-col gap-8 text-white">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -424,76 +392,6 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
           />
         </section>
 
-        <section className="rounded-3xl border border-white/10 bg-slate-900/40 p-6 shadow-2xl shadow-black/40">
-          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Settlement History</p>
-              <h2 className="text-2xl font-semibold text-white">Cash vs profit reconciled</h2>
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="border-[#a78bfa]/50 text-[#a78bfa]"
-              disabled={!history.length}
-              onClick={handleExportHistory}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Export CSV
-            </Button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="text-left text-xs uppercase tracking-widest text-slate-400">
-                  <th className="px-3 py-2">Date</th>
-                  <th className="px-3 py-2">Entry Type</th>
-                  <th className="px-3 py-2">Party</th>
-                  <th className="px-3 py-2">Category</th>
-                  <th className="px-3 py-2">Amount</th>
-                  <th className="px-3 py-2">Payment Method</th>
-                  <th className="px-3 py-2 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-3 py-8 text-center text-slate-500">
-                      No settlements in this range.
-                    </td>
-                  </tr>
-                ) : (
-                  history.map((entry) => (
-                    <tr
-                      key={entry.id}
-                      className="border-t border-white/5 bg-white/5 text-slate-100 transition hover:bg-white/10"
-                    >
-                      <td className="px-3 py-3 font-medium">
-                        {format(new Date(entry.settled_at ?? entry.entry_date), "dd MMM yyyy")}
-                      </td>
-                      <td className="px-3 py-3">{entry.entry_type}</td>
-                      <td className="px-3 py-3">
-                        {entry.party?.name || (
-                          (entry.entry_type === 'Credit' || entry.entry_type === 'Advance')
-                            ? <span className="text-slate-400 text-xs">No party</span>
-                            : '—'
-                        )}
-                      </td>
-                      <td className="px-3 py-3">{entry.category}</td>
-                      <td className="px-3 py-3 font-semibold text-white">
-                        {currencyFormatter.format(entry.amount)}
-                      </td>
-                      <td className="px-3 py-3">{entry.payment_method}</td>
-                      <td className="px-3 py-3 text-right text-xs uppercase tracking-[0.2em] text-emerald-300">
-                        Settled
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
         <SettleEntryDialog entry={settlementEntry} onClose={() => setSettlementEntry(null)} />
       </div>
     );
@@ -507,7 +405,6 @@ type CashpulseStats = {
   pendingCollections: PendingList;
   pendingBills: PendingList;
   pendingAdvances: PendingList;
-  history: Entry[];
 };
 
 type PendingList = {
@@ -623,7 +520,6 @@ const buildCashpulseStats = (entries: Entry[]): CashpulseStats => {
     pendingCollections: toPendingList(pendingCollections),
     pendingBills: toPendingList(pendingBills),
     pendingAdvances: toPendingList(pendingAdvances),
-    history: settledHistory,
   };
 };
 

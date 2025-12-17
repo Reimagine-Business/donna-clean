@@ -48,6 +48,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
   // Date filter for quick filtering
   const [dateFilter, setDateFilter] = useState('this-month')
 
+  // Entry type filter
+  const [entryTypeFilter, setEntryTypeFilter] = useState('all')
+
   // Category filtering logic for inline form
   const availableCategories = useMemo(() => {
     // Extract category names and filter based on entry type
@@ -77,9 +80,14 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     }
   }, [formData.entryType, formData.category, availableCategories])
 
-  // Filter entries by date
+  // Filter entries by date and entry type
   const filteredEntries = useMemo(() => {
     let result = [...entries]
+
+    // Apply entry type filter
+    if (entryTypeFilter !== 'all') {
+      result = result.filter(e => e.entry_type === entryTypeFilter)
+    }
 
     // Apply date filter
     const now = new Date()
@@ -113,7 +121,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     }
 
     return result
-  }, [entries, dateFilter])
+  }, [entries, dateFilter, entryTypeFilter])
 
   // Paginate entries
   const paginatedEntries = useMemo(() => {
@@ -477,7 +485,27 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base md:text-xl font-semibold text-white">Transaction History</h2>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Entry Type Filter */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-purple-400">Type:</span>
+                    <select
+                      value={entryTypeFilter}
+                      onChange={(e) => setEntryTypeFilter(e.target.value)}
+                      className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                    >
+                      <option value="all">All Types</option>
+                      <option value="Cash IN">Cash IN</option>
+                      <option value="Cash OUT">Cash OUT</option>
+                      <option value="Credit">Credit</option>
+                      <option value="Advance">Advance</option>
+                      <option value="Credit Settlement (Collections)">Credit Settlement (Collections)</option>
+                      <option value="Credit Settlement (Bills)">Credit Settlement (Bills)</option>
+                      <option value="Advance Settlement (Received)">Advance Settlement (Received)</option>
+                      <option value="Advance Settlement (Paid)">Advance Settlement (Paid)</option>
+                    </select>
+                  </div>
+
                   {/* Date Filter */}
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-purple-400">Date:</span>
@@ -544,7 +572,27 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-base md:text-xl font-semibold text-white">Transaction History</h2>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Entry Type Filter */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-purple-400">Type:</span>
+                    <select
+                      value={entryTypeFilter}
+                      onChange={(e) => setEntryTypeFilter(e.target.value)}
+                      className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
+                    >
+                      <option value="all">All Types</option>
+                      <option value="Cash IN">Cash IN</option>
+                      <option value="Cash OUT">Cash OUT</option>
+                      <option value="Credit">Credit</option>
+                      <option value="Advance">Advance</option>
+                      <option value="Credit Settlement (Collections)">Credit Settlement (Collections)</option>
+                      <option value="Credit Settlement (Bills)">Credit Settlement (Bills)</option>
+                      <option value="Advance Settlement (Received)">Advance Settlement (Received)</option>
+                      <option value="Advance Settlement (Paid)">Advance Settlement (Paid)</option>
+                    </select>
+                  </div>
+
                   {/* Date Filter */}
                   <div className="flex items-center gap-1.5">
                     <span className="text-xs text-purple-400">Date:</span>
