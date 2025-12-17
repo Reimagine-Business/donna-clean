@@ -40,7 +40,7 @@ const isWithinRange = (date: string, start: string, end: string) =>
   date >= start && date <= end;
 
 const ENTRY_SELECT =
-  "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, created_at, updated_at";
+  "id, user_id, entry_type, category, payment_method, amount, remaining_amount, entry_date, notes, image_url, settled, settled_at, party_id, party:parties(name), created_at, updated_at";
 
 const CASH_METHOD_LOOKUP = new Set<string>(PAYMENT_METHODS);
 
@@ -105,7 +105,7 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
         throw error;
       }
 
-      const nextEntries = data?.map((entry) => normalizeEntry(entry)) ?? [];
+      const nextEntries = data?.map((entry) => normalizeEntry(entry as any)) ?? [];
       skipNextRecalc.current = true;
       setEntries(nextEntries);
       return nextEntries;
@@ -447,10 +447,10 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
                 <tr className="text-left text-xs uppercase tracking-widest text-slate-400">
                   <th className="px-3 py-2">Date</th>
                   <th className="px-3 py-2">Entry Type</th>
+                  <th className="px-3 py-2">Party</th>
                   <th className="px-3 py-2">Category</th>
                   <th className="px-3 py-2">Amount</th>
                   <th className="px-3 py-2">Payment Method</th>
-                  <th className="px-3 py-2">Notes</th>
                   <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
               </thead>
@@ -471,12 +471,18 @@ export function CashpulseShell({ initialEntries, userId }: CashpulseShellProps) 
                         {format(new Date(entry.settled_at ?? entry.entry_date), "dd MMM yyyy")}
                       </td>
                       <td className="px-3 py-3">{entry.entry_type}</td>
+                      <td className="px-3 py-3">
+                        {entry.party?.name || (
+                          (entry.entry_type === 'Credit' || entry.entry_type === 'Advance')
+                            ? <span className="text-slate-400 text-xs">No party</span>
+                            : '—'
+                        )}
+                      </td>
                       <td className="px-3 py-3">{entry.category}</td>
                       <td className="px-3 py-3 font-semibold text-white">
                         {currencyFormatter.format(entry.amount)}
                       </td>
                       <td className="px-3 py-3">{entry.payment_method}</td>
-                      <td className="px-3 py-3 max-w-[220px] truncate">{entry.notes ?? "—"}</td>
                       <td className="px-3 py-3 text-right text-xs uppercase tracking-[0.2em] text-emerald-300">
                         Settled
                       </td>
