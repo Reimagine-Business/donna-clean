@@ -25,6 +25,7 @@ export type CreateEntryInput = {
   amount: number
   entry_date: string
   payment_method?: PaymentMethodType
+  party_id?: string
   notes?: string
   settled?: boolean
   image_url?: string
@@ -334,6 +335,7 @@ export async function createEntry(input: CreateEntryInput) {
     amount: sanitizeAmount(input.amount),
     entry_date: sanitizeDate(input.entry_date),
     payment_method: input.payment_method || 'Cash',
+    party_id: input.party_id || null,
     notes: input.notes ? sanitizeString(input.notes, 1000) : undefined,
     settled: input.settled || false,
     image_url: input.image_url,
@@ -353,6 +355,7 @@ export async function createEntry(input: CreateEntryInput) {
     amount: sanitizedData.amount,
     entry_date: sanitizedData.entry_date,
     payment_method: sanitizedData.payment_method,
+    party_id: sanitizedData.party_id,
     notes: sanitizedData.notes || null,
     settled: sanitizedData.settled,
     image_url: sanitizedData.image_url || null,
