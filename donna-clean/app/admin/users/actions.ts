@@ -113,9 +113,9 @@ export async function generateSignupLink(email: string) {
     // Get site URL
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://donna-clean.vercel.app';
 
-    // Generate a signup link
+    // Generate an invite link (doesn't require password)
     const { data, error } = await supabaseAdmin.auth.admin.generateLink({
-      type: 'signup',
+      type: 'invite',
       email,
       options: {
         redirectTo: `${siteUrl}/auth/sign-up`,
