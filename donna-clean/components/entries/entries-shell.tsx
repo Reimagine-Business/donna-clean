@@ -285,9 +285,6 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold">Record what happen!</h1>
-            <p className="text-sm text-purple-300 mt-1">
-              {filteredEntries.length} {filteredEntries.length === 1 ? 'entry' : 'entries'}
-            </p>
           </div>
         </div>
 
@@ -295,8 +292,6 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
         <div className="space-y-6">
             {/* Create Form Card */}
             <div className="rounded-lg border border-purple-500/30 bg-purple-900/10 p-6">
-              <h2 className="text-xl font-semibold mb-4">Add New Entry</h2>
-
               <form onSubmit={handleFormSubmit} className="space-y-4">
                 {/* Entry Type and Category Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
