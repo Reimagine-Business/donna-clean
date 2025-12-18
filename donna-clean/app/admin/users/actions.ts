@@ -1,33 +1,46 @@
 'use server';
 
 import { requireAdmin } from '@/lib/admin/check-admin';
-import { createSupabaseServerClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
+import { revalidatePath } from 'next/cache';
 
 /**
  * Sends an email invitation to a new user
- * Uses Supabase Auth Admin API to invite user by email
+ * Uses Supabase Auth Admin API with SERVICE ROLE key
  */
 export async function inviteUser(email: string) {
-  // Verify admin access
-  await requireAdmin();
-
-  // Validate email
-  if (!email || !email.includes('@')) {
-    return {
-      success: false,
-      error: 'Valid email address is required',
-    };
-  }
-
-  const supabase = await createSupabaseServerClient();
-
-  // Get site URL for redirect
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
   try {
-    // Invite user via Supabase Auth Admin API
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(email, {
-      redirectTo: `${siteUrl}/auth/signup?invited=true`,
+    // Verify admin access
+    await requireAdmin();
+
+    // Validate email
+    if (!email || !email.includes('@')) {
+      return {
+        success: false,
+        error: 'Valid email address is required',
+      };
+    }
+
+    // CRITICAL: Use service role for admin operations
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    );
+
+    // Get site URL for redirect
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://donna-clean.vercel.app';
+
+    console.log('Inviting user with admin client:', email);
+
+    // Send invitation using admin client
+    const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: `${siteUrl}/auth/sign-up`,
       data: {
         invited_by: 'admin',
         invited_at: new Date().toISOString(),
@@ -36,22 +49,34 @@ export async function inviteUser(email: string) {
 
     if (error) {
       console.error('Invitation error:', error);
+
+      if (error.message.includes('already registered')) {
+        return {
+          success: false,
+          error: 'This email is already registered.',
+        };
+      }
+
       return {
         success: false,
         error: error.message || 'Failed to send invitation',
       };
     }
 
+    // Revalidate admin pages
+    revalidatePath('/admin/users/manage');
+    revalidatePath('/admin/users/monitor');
+
     return {
       success: true,
-      message: `Invitation sent to ${email}`,
-      user: data.user,
+      message: `Invitation sent to ${email}!`,
+      data,
     };
   } catch (error) {
-    console.error('Unexpected error during invitation:', error);
+    console.error('Invitation error:', error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
+      error: error instanceof Error ? error.message : 'Failed to send invitation',
     };
   }
 }
@@ -61,33 +86,39 @@ export async function inviteUser(email: string) {
  * Fallback when email invitations are not working
  */
 export async function generateSignupLink(email: string) {
-  // Verify admin access
-  await requireAdmin();
-
-  // Validate email
-  if (!email || !email.includes('@')) {
-    return {
-      success: false,
-      error: 'Valid email address is required',
-    };
-  }
-
-  const supabase = await createSupabaseServerClient();
-
-  // Get site URL
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
-
   try {
-    // Generate a magic link (this creates the user but doesn't send email)
-    const { data, error } = await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: email,
-      options: {
-        redirectTo: `${siteUrl}/auth/signup?invited=true`,
-        data: {
-          invited_by: 'admin',
-          invited_at: new Date().toISOString(),
+    // Verify admin access
+    await requireAdmin();
+
+    // Validate email
+    if (!email || !email.includes('@')) {
+      return {
+        success: false,
+        error: 'Valid email address is required',
+      };
+    }
+
+    // CRITICAL: Use service role for admin operations
+    const supabaseAdmin = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
         },
+      }
+    );
+
+    // Get site URL
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://donna-clean.vercel.app';
+
+    // Generate a signup link
+    const { data, error } = await supabaseAdmin.auth.admin.generateLink({
+      type: 'signup',
+      email,
+      options: {
+        redirectTo: `${siteUrl}/auth/sign-up`,
       },
     });
 
@@ -102,15 +133,15 @@ export async function generateSignupLink(email: string) {
     // Return the generated link for manual distribution
     return {
       success: true,
-      message: 'Signup link generated successfully',
-      link: data.properties?.action_link || null,
+      message: 'Signup link generated! Copy and send to user.',
+      link: data.properties.action_link,
       email: email,
     };
   } catch (error) {
     console.error('Unexpected error during link generation:', error);
     return {
       success: false,
-      error: 'An unexpected error occurred',
+      error: error instanceof Error ? error.message : 'Failed to generate link',
     };
   }
 }
