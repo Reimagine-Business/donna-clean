@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/admin/check-admin';
 import { Mail, AlertCircle } from 'lucide-react';
+import { InviteUserButton } from '@/components/admin/invite-user-button';
 
 export default async function UserManagementPage() {
   await requireAdmin();
@@ -35,27 +36,7 @@ export default async function UserManagementPage() {
           </p>
         </div>
 
-        <form className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              placeholder="user@example.com"
-              className="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-colors"
-          >
-            Send Invitation
-          </button>
-        </form>
+        <InviteUserButton />
       </div>
 
       {/* Future Features */}
