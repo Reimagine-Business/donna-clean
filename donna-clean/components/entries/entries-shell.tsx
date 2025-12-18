@@ -76,6 +76,17 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     }
   }, [formData.entryType, formData.category, availableCategories])
 
+  // Auto-select payment method based on entry type
+  useEffect(() => {
+    if (formData.entryType === 'Credit') {
+      // Credit entries should always use "None" payment method
+      setFormData(prev => ({ ...prev, paymentMethod: 'None' }))
+    } else if (formData.paymentMethod === 'None') {
+      // If switching from Credit to Cash IN/OUT/Advance, change from "None" to "Cash"
+      setFormData(prev => ({ ...prev, paymentMethod: 'Cash' }))
+    }
+  }, [formData.entryType, formData.paymentMethod])
+
   // Filter entries by date and entry type
   const filteredEntries = useMemo(() => {
     let result = [...entries]
@@ -371,12 +382,22 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
                       value={formData.paymentMethod}
                       onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value as PaymentMethodType })}
                       className="w-full rounded-md border border-purple-500/30 bg-purple-900/20 px-3 py-2 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-                      disabled={submitting}
+                      disabled={submitting || formData.entryType === 'Credit'}
                     >
                       <option value="Cash">Cash</option>
                       <option value="Bank">Bank</option>
-                      <option value="None">None</option>
+                      <option
+                        value="None"
+                        disabled={formData.entryType === 'Cash IN' || formData.entryType === 'Cash OUT' || formData.entryType === 'Advance'}
+                      >
+                        None
+                      </option>
                     </select>
+                    {formData.entryType === 'Credit' && (
+                      <p className="text-xs text-purple-400/70 mt-1">
+                        Credit entries use "None" payment method
+                      </p>
+                    )}
                   </div>
                 </div>
 
