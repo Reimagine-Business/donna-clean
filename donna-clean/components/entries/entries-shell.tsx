@@ -1,12 +1,9 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
-import { Plus, Download } from 'lucide-react'
-import { type Entry, type Category, getEntries, getCategories, deleteEntry, createEntry, type EntryType, type CategoryType, type PaymentMethodType } from '@/app/entries/actions'
-import { CreateEntryModal } from './create-entry-modal'
+import { Download } from 'lucide-react'
+import { type Entry, type Category, getEntries, getCategories, createEntry, type EntryType, type CategoryType, type PaymentMethodType } from '@/app/entries/actions'
 import { EntryList } from './entry-list'
-import { EntryListSkeleton } from '@/components/skeletons/entry-skeleton'
-import { NoEntries } from '@/components/empty-states/no-entries'
 import { ErrorState } from '@/components/ui/error-state'
 import { showSuccess, showError, showLoading, dismissToast } from '@/lib/toast'
 import { SiteHeader } from '@/components/site-header'
@@ -30,7 +27,6 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
   const [allCategories, setAllCategories] = useState<Category[]>(categories)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(initialError)
-  const [showCreateModal, setShowCreateModal] = useState(false)
   const [currentPage, setCurrentPage] = useState(1)
 
   // Form state for inline form at top
@@ -275,47 +271,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     )
   }
 
-  // Show empty state
-  if (!loading && entries.length === 0) {
-    return (
-      <main className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
-        <div className="flex flex-col min-h-screen">
-          <SiteHeader />
-          <TopNavMobile />
-
-          <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
-            <div className="mx-auto w-full max-w-6xl">
-              <div className="flex items-center justify-between mb-6">
-                <h1 className="text-2xl md:text-3xl font-bold">Record what happen!</h1>
-              </div>
-              <NoEntries onAddEntry={() => setShowCreateModal(true)} />
-            </div>
-          </section>
-        </div>
-
-        {/* Floating Action Button */}
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="fixed bottom-20 md:bottom-8 right-4 md:right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-colors z-40"
-          title="Add Entry"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-
-        {/* Create Modal */}
-        {showCreateModal && (
-          <CreateEntryModal
-            categories={allCategories}
-            onSuccess={handleRefresh}
-            onClose={() => setShowCreateModal(false)}
-          />
-        )}
-
-        <BottomNav />
-      </main>
-    )
-  }
-
+  // Always show the new full-page form (even for new users with 0 entries)
   return (
     <main className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
       <div className="flex flex-col min-h-screen">
@@ -334,9 +290,8 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
           </div>
         </div>
 
-        {showFormAtTop ? (
-          /* ========== FORM AT TOP LAYOUT ========== */
-          <div className="space-y-6">
+        {/* ========== ALWAYS SHOW FORM AT TOP ========== */}
+        <div className="space-y-6">
             {/* Create Form Card */}
             <div className="rounded-lg border border-purple-500/30 bg-purple-900/10 p-6">
               <h2 className="text-xl font-semibold mb-4">Add New Entry</h2>
@@ -563,117 +518,9 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
         )}
             </div>
           </div>
-        ) : (
-          /* ========== MODAL LAYOUT ========== */
-          <div className="space-y-6">
-            {/* Entry List Section */}
-            <div>
-              {/* Simple Header - Date + Export Only */}
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-base md:text-xl font-semibold text-white">Transaction History</h2>
-
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* Entry Type Filter */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-purple-400">Type:</span>
-                    <select
-                      value={entryTypeFilter}
-                      onChange={(e) => setEntryTypeFilter(e.target.value)}
-                      className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-                    >
-                      <option value="all">All Types</option>
-                      <option value="Cash IN">Cash IN</option>
-                      <option value="Cash OUT">Cash OUT</option>
-                      <option value="Credit">Credit</option>
-                      <option value="Advance">Advance</option>
-                      <option value="Credit Settlement (Collections)">Credit Settlement (Collections)</option>
-                      <option value="Credit Settlement (Bills)">Credit Settlement (Bills)</option>
-                      <option value="Advance Settlement (Received)">Advance Settlement (Received)</option>
-                      <option value="Advance Settlement (Paid)">Advance Settlement (Paid)</option>
-                    </select>
-                  </div>
-
-                  {/* Date Filter */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-purple-400">Date:</span>
-                    <select
-                      value={dateFilter}
-                      onChange={(e) => setDateFilter(e.target.value)}
-                      className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
-                    >
-                      <option value="this-month">This Month</option>
-                      <option value="last-month">Last Month</option>
-                      <option value="this-year">This Year</option>
-                      <option value="all-time">All Time</option>
-                    </select>
-                  </div>
-
-                  {/* Export Button */}
-                  <button
-                    onClick={handleExportToExcel}
-                    className="px-2.5 py-1 rounded-md bg-purple-600 text-white text-xs font-medium hover:bg-purple-700 transition-colors flex items-center gap-1.5"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>Export</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Entry List with Fixed Alignment */}
-              <EntryList
-                entries={paginatedEntries}
-                categories={allCategories}
-                onRefresh={handleRefresh}
-              />
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2">
-                  <button
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                    className="px-4 py-2 bg-purple-900/30 hover:bg-purple-900/50 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Previous
-                  </button>
-                  <span className="px-4 py-2 text-purple-300">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                    className="px-4 py-2 bg-purple-900/30 hover:bg-purple-900/50 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-          </div>
+        </div>
         </section>
       </div>
-
-      {/* Floating Action Button - only in modal mode */}
-      {!showFormAtTop && (
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="fixed bottom-20 md:bottom-8 right-4 md:right-6 w-14 h-14 bg-purple-600 hover:bg-purple-700 rounded-full shadow-lg flex items-center justify-center text-white transition-colors z-40"
-          title="Add Entry"
-        >
-          <Plus className="w-6 h-6" />
-        </button>
-      )}
-
-      {/* Create Modal - only in modal mode */}
-      {!showFormAtTop && showCreateModal && (
-        <CreateEntryModal
-          categories={allCategories}
-          onSuccess={handleRefresh}
-          onClose={() => setShowCreateModal(false)}
-        />
-      )}
 
       <BottomNav />
     </main>
