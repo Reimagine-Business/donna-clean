@@ -1,6 +1,6 @@
 import { requireAdmin } from '@/lib/admin/check-admin';
-import { Mail, AlertCircle } from 'lucide-react';
-import { InviteUserButton } from '@/components/admin/invite-user-button';
+import { UserPlus, AlertCircle } from 'lucide-react';
+import { CreateUserDirect } from '@/components/admin/create-user-direct';
 
 export default async function UserManagementPage() {
   await requireAdmin();
@@ -11,32 +11,32 @@ export default async function UserManagementPage() {
         <div>
           <h1 className="text-3xl font-bold">User Management</h1>
           <p className="text-muted-foreground">
-            Invite and manage user accounts
+            Create and manage user accounts
           </p>
         </div>
       </div>
 
-      {/* Invite User Section */}
+      {/* Create User Section */}
       <div className="p-6 border rounded-lg">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-blue-500/10">
-            <Mail className="h-5 w-5 text-blue-500" />
+          <div className="p-2 rounded-lg bg-purple-500/10">
+            <UserPlus className="h-5 w-5 text-purple-500" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">Invite New User</h2>
+            <h2 className="text-xl font-semibold">Create New User</h2>
             <p className="text-sm text-muted-foreground">
-              Send an email invitation to a new user
+              Create a user account directly (works from mobile!)
             </p>
           </div>
         </div>
 
-        <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg mb-4">
+        <div className="p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg mb-4">
           <p className="text-sm">
-            New users will receive an email with a link to set up their account. They will have standard user access (no admin privileges).
+            Create user accounts instantly with a temporary password. Users can login immediately and change their password. Standard user access (no admin privileges).
           </p>
         </div>
 
-        <InviteUserButton />
+        <CreateUserDirect />
       </div>
 
       {/* Future Features */}
