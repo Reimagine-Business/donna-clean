@@ -471,10 +471,6 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
                       <option value="Cash OUT">Cash OUT</option>
                       <option value="Credit">Credit</option>
                       <option value="Advance">Advance</option>
-                      <option value="Credit Settlement (Collections)">Credit Settlement (Collections)</option>
-                      <option value="Credit Settlement (Bills)">Credit Settlement (Bills)</option>
-                      <option value="Advance Settlement (Received)">Advance Settlement (Received)</option>
-                      <option value="Advance Settlement (Paid)">Advance Settlement (Paid)</option>
                     </select>
                   </div>
 

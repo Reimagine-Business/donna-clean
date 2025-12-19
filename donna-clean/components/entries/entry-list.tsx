@@ -113,7 +113,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 </div>
 
                 {/* Entry Type */}
-                <div className="overflow-hidden">
+                <div className="overflow-hidden flex items-center gap-1">
                   <span
                     className={`inline-block px-1 py-0.5 rounded text-[9px] font-medium border truncate max-w-full ${getEntryTypeColor(
                       entry.entry_type
@@ -122,6 +122,11 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                   >
                     {entry.entry_type}
                   </span>
+                  {entry.is_settlement && (
+                    <span className="text-[8px] text-purple-400" title="Settlement Entry">
+                      ⚡
+                    </span>
+                  )}
                 </div>
 
                 {/* Party */}
@@ -231,7 +236,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 </div>
 
                 {/* Entry Type - Fixed 120px */}
-                <div>
+                <div className="flex items-center gap-2">
                   <span
                     className={`inline-flex items-center px-3 py-1 rounded text-xs font-medium border whitespace-nowrap ${getEntryTypeColor(
                       entry.entry_type
@@ -239,6 +244,11 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                   >
                     {entry.entry_type}
                   </span>
+                  {entry.is_settlement && (
+                    <span className="text-xs text-purple-400" title="Settlement Entry">
+                      ⚡
+                    </span>
+                  )}
                 </div>
 
                 {/* Party - Fixed 140px */}
