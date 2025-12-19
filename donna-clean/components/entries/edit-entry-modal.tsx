@@ -43,7 +43,10 @@ const PAYMENT_METHODS: { value: PaymentMethodType; label: string }[] = [
 
 export function EditEntryModal({ entry, categories, onSuccess, onClose }: EditEntryModalProps) {
   const [loading, setLoading] = useState(false)
-  const [entryType, setEntryType] = useState<EntryType>(entry.entry_type)
+  // Settlement entries shouldn't be edited - use base type only for regular entries
+  const [entryType, setEntryType] = useState<EntryType>(
+    entry.is_settlement ? 'Cash IN' : entry.entry_type as EntryType
+  )
   const [category, setCategory] = useState<CategoryType>(entry.category)
   const [amount, setAmount] = useState(entry.amount.toString())
   const [entryDate, setEntryDate] = useState(entry.entry_date)

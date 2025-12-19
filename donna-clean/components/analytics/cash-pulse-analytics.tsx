@@ -122,9 +122,19 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
     const cash = entries
       .filter(e => e.payment_method === 'Cash')
       .reduce((sum, e) => {
-        if (e.entry_type === 'Cash IN' || (e.entry_type === 'Advance' && e.category === 'Sales')) {
+        if (
+          e.entry_type === 'Cash IN' ||
+          e.entry_type === 'Credit Settlement (Collections)' ||
+          e.entry_type === 'Advance Settlement (Received)' ||
+          (e.entry_type === 'Advance' && e.category === 'Sales')
+        ) {
           return sum + e.amount
-        } else if (e.entry_type === 'Cash OUT' || (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))) {
+        } else if (
+          e.entry_type === 'Cash OUT' ||
+          e.entry_type === 'Credit Settlement (Bills)' ||
+          e.entry_type === 'Advance Settlement (Paid)' ||
+          (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
+        ) {
           return sum - e.amount
         }
         return sum
@@ -133,9 +143,19 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
     const bank = entries
       .filter(e => e.payment_method === 'Bank')
       .reduce((sum, e) => {
-        if (e.entry_type === 'Cash IN' || (e.entry_type === 'Advance' && e.category === 'Sales')) {
+        if (
+          e.entry_type === 'Cash IN' ||
+          e.entry_type === 'Credit Settlement (Collections)' ||
+          e.entry_type === 'Advance Settlement (Received)' ||
+          (e.entry_type === 'Advance' && e.category === 'Sales')
+        ) {
           return sum + e.amount
-        } else if (e.entry_type === 'Cash OUT' || (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))) {
+        } else if (
+          e.entry_type === 'Cash OUT' ||
+          e.entry_type === 'Credit Settlement (Bills)' ||
+          e.entry_type === 'Advance Settlement (Paid)' ||
+          (e.entry_type === 'Advance' && ['COGS', 'Opex', 'Assets'].includes(e.category))
+        ) {
           return sum - e.amount
         }
         return sum

@@ -1,6 +1,12 @@
 import { format } from "date-fns";
 
 export const ENTRY_TYPES = ["Cash IN", "Cash OUT", "Credit", "Advance"] as const;
+export const SETTLEMENT_TYPES = [
+  "Credit Settlement (Collections)",
+  "Credit Settlement (Bills)",
+  "Advance Settlement (Received)",
+  "Advance Settlement (Paid)"
+] as const;
 export const CATEGORIES = ["Sales", "COGS", "Opex", "Assets"] as const;
 export const PAYMENT_METHODS = ["Cash", "Bank"] as const;
 
@@ -9,6 +15,8 @@ const PAYMENT_METHOD_OPTIONS = [...PAYMENT_METHODS, "None"] as const;
 export const CASH_FLOW_ENTRY_TYPES = ["Cash IN", "Cash OUT"] as const;
 
 export type EntryType = (typeof ENTRY_TYPES)[number];
+export type SettlementType = (typeof SETTLEMENT_TYPES)[number];
+export type AllEntryTypes = EntryType | SettlementType;
 export type CategoryType = (typeof CATEGORIES)[number];
 export type CashPaymentMethod = (typeof PAYMENT_METHODS)[number];
 export type PaymentMethod = (typeof PAYMENT_METHOD_OPTIONS)[number];
@@ -30,7 +38,7 @@ export const resolveEntryType = (entryType: EntryType, category: CategoryType): 
 export type Entry = {
   id: string;
   user_id: string;
-  entry_type: EntryType;
+  entry_type: AllEntryTypes;  // ✅ Now includes settlement types
   category: CategoryType;
   payment_method: PaymentMethod;
   amount: number;
@@ -110,10 +118,16 @@ export const normalizeEntry = (entry: SupabaseEntry): Entry => {
     ? (partyData.length > 0 ? partyData[0] : null)
     : partyData;
 
+  // ✅ For settlements, allow the descriptive entry_type to pass through
+  const allEntryTypes = [...ENTRY_TYPES, ...SETTLEMENT_TYPES];
+  const entryType = allEntryTypes.includes(entry.entry_type as any)
+    ? (entry.entry_type as AllEntryTypes)
+    : ensureOption(entry.entry_type, ENTRY_TYPES, ENTRY_TYPES[0]);
+
   return {
     id: safeId,
     user_id: entry.user_id ?? "",
-    entry_type: ensureOption(entry.entry_type, ENTRY_TYPES, ENTRY_TYPES[0]),
+    entry_type: entryType,
     category: ensureOption(entry.category, CATEGORIES, CATEGORIES[0]),
     payment_method: ensureOption(
       entry.payment_method,
