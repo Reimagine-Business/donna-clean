@@ -5,7 +5,6 @@ import { type Entry } from '@/lib/entries'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -87,9 +86,6 @@ export function PendingBillsDashboard({
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Pending Bills</DialogTitle>
-          <DialogDescription>
-            Outstanding credit bills by vendor
-          </DialogDescription>
         </DialogHeader>
 
         {vendorsWithPending.length === 0 ? (
@@ -106,29 +102,29 @@ export function PendingBillsDashboard({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Vendor Name</TableHead>
-                  <TableHead>Pending Items</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-center">Action</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Vendor</TableHead>
+                  <TableHead className="text-xs sm:text-sm">No of Items</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm">Amount</TableHead>
+                  <TableHead className="text-center text-xs sm:text-sm">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {vendorsWithPending.map((vendor) => (
                   <TableRow key={vendor.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-sm">
                       {vendor.name}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {vendor.itemCount} pending item
-                      {vendor.itemCount !== 1 ? 's' : ''}
+                    <TableCell className="text-muted-foreground text-sm text-center">
+                      {vendor.itemCount}
                     </TableCell>
-                    <TableCell className="text-right font-bold text-primary">
+                    <TableCell className="text-right font-bold text-primary text-sm">
                       {formatCurrency(vendor.totalAmount)}
                     </TableCell>
                     <TableCell className="text-center">
                       <Button
                         size="sm"
                         onClick={() => onSettleVendor(vendor)}
+                        className="text-xs px-3 py-1"
                       >
                         Settle
                       </Button>

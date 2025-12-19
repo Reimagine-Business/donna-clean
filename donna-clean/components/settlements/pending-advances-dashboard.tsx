@@ -5,7 +5,6 @@ import { type Entry } from '@/lib/entries'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -93,9 +92,6 @@ export function PendingAdvancesDashboard({
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Pending Advances</DialogTitle>
-          <DialogDescription>
-            Outstanding advance payments to settle
-          </DialogDescription>
         </DialogHeader>
 
         {advancesWithPending.length === 0 ? (
@@ -112,35 +108,35 @@ export function PendingAdvancesDashboard({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Party Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Pending Items</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-center">Action</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Party</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Type</TableHead>
+                  <TableHead className="text-xs sm:text-sm">No of Items</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm">Amount</TableHead>
+                  <TableHead className="text-center text-xs sm:text-sm">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {advancesWithPending.map((advance, index) => (
                   <TableRow key={`${advance.id}-${advance.type}-${index}`}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-sm">
                       {advance.name}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={advance.type === 'Received' ? 'default' : 'secondary'}>
+                      <Badge variant={advance.type === 'Received' ? 'default' : 'secondary'} className="text-xs">
                         {advance.type}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {advance.itemCount} pending item
-                      {advance.itemCount !== 1 ? 's' : ''}
+                    <TableCell className="text-muted-foreground text-sm text-center">
+                      {advance.itemCount}
                     </TableCell>
-                    <TableCell className="text-right font-bold text-primary">
+                    <TableCell className="text-right font-bold text-primary text-sm">
                       {formatCurrency(advance.totalAmount)}
                     </TableCell>
                     <TableCell className="text-center">
                       <Button
                         size="sm"
                         onClick={() => onSettleAdvance(advance)}
+                        className="text-xs px-3 py-1"
                       >
                         Settle
                       </Button>
