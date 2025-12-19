@@ -5,7 +5,6 @@ import { type Entry } from '@/lib/entries'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -87,9 +86,6 @@ export function PendingCollectionsDashboard({
       <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Pending Collections</DialogTitle>
-          <DialogDescription>
-            Outstanding credit sales by customer
-          </DialogDescription>
         </DialogHeader>
 
         {customersWithPending.length === 0 ? (
@@ -106,29 +102,29 @@ export function PendingCollectionsDashboard({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer Name</TableHead>
-                  <TableHead>Pending Items</TableHead>
-                  <TableHead className="text-right">Total Amount</TableHead>
-                  <TableHead className="text-center">Action</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Customer</TableHead>
+                  <TableHead className="text-xs sm:text-sm">No of Items</TableHead>
+                  <TableHead className="text-right text-xs sm:text-sm">Amount</TableHead>
+                  <TableHead className="text-center text-xs sm:text-sm">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {customersWithPending.map((customer) => (
                   <TableRow key={customer.id}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium text-sm">
                       {customer.name}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {customer.itemCount} pending item
-                      {customer.itemCount !== 1 ? 's' : ''}
+                    <TableCell className="text-muted-foreground text-sm text-center">
+                      {customer.itemCount}
                     </TableCell>
-                    <TableCell className="text-right font-bold text-primary">
+                    <TableCell className="text-right font-bold text-primary text-sm">
                       {formatCurrency(customer.totalAmount)}
                     </TableCell>
                     <TableCell className="text-center">
                       <Button
                         size="sm"
                         onClick={() => onSettleCustomer(customer)}
+                        className="text-xs px-3 py-1"
                       >
                         Settle
                       </Button>

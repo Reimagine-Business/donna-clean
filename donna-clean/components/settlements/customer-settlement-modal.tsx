@@ -17,12 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
-import { ChevronDown, ChevronUp } from 'lucide-react'
 
 interface CustomerSettlementModalProps {
   customer: CustomerGroup | null
@@ -46,7 +40,6 @@ export function CustomerSettlementModal({
 }: CustomerSettlementModalProps) {
   const router = useRouter()
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
-  const [showItems, setShowItems] = useState(false)
   const [amount, setAmount] = useState<number>(0)
   const [settlementDate, setSettlementDate] = useState(
     format(new Date(), 'yyyy-MM-dd')
@@ -160,55 +153,50 @@ export function CustomerSettlementModal({
             </div>
           </div>
 
-          {/* Collapsible Items List */}
-          <Collapsible open={showItems} onOpenChange={setShowItems}>
-            <CollapsibleTrigger className="text-sm text-muted-foreground hover:text-foreground">
-              {showItems ? '▼' : '▶'} View Items
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 space-y-2">
-              {customer.items.map((item) => {
-                const itemRemaining = item.remaining_amount ?? item.amount
-                const isSelected = item.id === selectedItemId
+          {/* Items List - Always Expanded */}
+          <div className="space-y-2">
+            {customer.items.map((item) => {
+              const itemRemaining = item.remaining_amount ?? item.amount
+              const isSelected = item.id === selectedItemId
 
-                return (
-                  <label
-                    key={item.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
-                      isSelected
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="selectedItem"
-                      checked={isSelected}
-                      onChange={() => setSelectedItemId(item.id)}
-                      className="mt-1"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start gap-2">
-                        <div className="flex-1">
-                          <p className="font-medium text-sm">
-                            {item.category} - {format(new Date(item.entry_date), 'MMM dd, yyyy')}
+              return (
+                <label
+                  key={item.id}
+                  className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                    isSelected
+                      ? 'border-primary bg-primary/5'
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="selectedItem"
+                    checked={isSelected}
+                    onChange={() => setSelectedItemId(item.id)}
+                    className="mt-1"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">
+                          {item.category} - {format(new Date(item.entry_date), 'MMM dd, yyyy')}
+                        </p>
+                        {item.notes && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {item.notes}
                           </p>
-                          {item.notes && (
-                            <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                              {item.notes}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-sm">{formatCurrency(itemRemaining)}</p>
-                          <p className="text-xs text-muted-foreground">remaining</p>
-                        </div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-sm">{formatCurrency(itemRemaining)}</p>
+                        <p className="text-xs text-muted-foreground">remaining</p>
                       </div>
                     </div>
-                  </label>
-                )
-              })}
-            </CollapsibleContent>
-          </Collapsible>
+                  </div>
+                </label>
+              )
+            })}
+          </div>
 
           {/* Settlement Form */}
           {selectedItem && (
