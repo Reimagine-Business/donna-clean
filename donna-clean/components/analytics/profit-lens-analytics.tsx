@@ -87,6 +87,33 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
 
   const expenseBreakdown = useMemo(() => getExpenseBreakdown(entries, startDate, endDate), [entries, startDate, endDate])
 
+  // Get top 5 expenses
+  const topExpenses = useMemo(() => {
+    // Filter for expense entries only (COGS, Opex, Assets)
+    let expenseEntries = entries.filter(e =>
+      ['COGS', 'Opex', 'Assets'].includes(e.category)
+    )
+
+    // Filter by date range if specified
+    if (startDate && endDate) {
+      expenseEntries = expenseEntries.filter(e => {
+        const entryDate = new Date(e.entry_date)
+        return entryDate >= startDate && entryDate <= endDate
+      })
+    }
+
+    // Filter out Credit Settlement (Collections) - we only want actual expenses
+    expenseEntries = expenseEntries.filter(e =>
+      e.entry_type !== 'Credit Settlement (Collections)' &&
+      e.entry_type !== 'Advance Settlement (Received)'
+    )
+
+    // Sort by amount descending and take top 5
+    return expenseEntries
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 5)
+  }, [entries, startDate, endDate])
+
   // Calculate trends
   const marginChange = currentMetrics.profitMargin - lastMonthMetrics.profitMargin
 
@@ -224,6 +251,53 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
                 </div>
               </div>
             ))}
+          </div>
+        ) : (
+          <p className="text-center text-purple-400 text-sm py-4">No expense data available</p>
+        )}
+      </div>
+
+      {/* Top 5 Expenses */}
+      <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-3">
+        <h3 className="text-sm font-semibold text-white mb-3">Top 5 Expenses</h3>
+        {topExpenses.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-purple-500/20">
+                  <th className="text-left text-xs text-purple-300 font-medium pb-2 pr-2">Date</th>
+                  <th className="text-left text-xs text-purple-300 font-medium pb-2 pr-2">Type</th>
+                  <th className="text-right text-xs text-purple-300 font-medium pb-2 pr-2">Amount</th>
+                  <th className="text-left text-xs text-purple-300 font-medium pb-2">Vendor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topExpenses.map((expense, index) => (
+                  <tr key={expense.id} className={index < topExpenses.length - 1 ? 'border-b border-purple-500/10' : ''}>
+                    <td className="py-2 pr-2 text-white">
+                      {format(new Date(expense.entry_date), 'MMM dd, yyyy')}
+                    </td>
+                    <td className="py-2 pr-2">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                        expense.category === 'COGS'
+                          ? 'bg-orange-900/30 text-orange-300 border border-orange-500/30'
+                          : expense.category === 'Opex'
+                          ? 'bg-blue-900/30 text-blue-300 border border-blue-500/30'
+                          : 'bg-gray-900/30 text-gray-300 border border-gray-500/30'
+                      }`}>
+                        {expense.category}
+                      </span>
+                    </td>
+                    <td className="py-2 pr-2 text-right font-medium text-white">
+                      {formatCurrency(expense.amount)}
+                    </td>
+                    <td className="py-2 text-white truncate max-w-[120px]">
+                      {expense.party?.name || '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
           <p className="text-center text-purple-400 text-sm py-4">No expense data available</p>
