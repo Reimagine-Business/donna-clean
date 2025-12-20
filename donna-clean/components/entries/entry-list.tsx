@@ -16,7 +16,7 @@ interface EntryListProps {
 
 interface MenuPosition {
   top: number;
-  right: number;
+  left: number;
 }
 
 export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
@@ -24,7 +24,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
   const [editingEntry, setEditingEntry] = useState<Entry | null>(null);
   const [deletingEntry, setDeletingEntry] = useState<Entry | null>(null);
   const [viewingEntry, setViewingEntry] = useState<Entry | null>(null);
-  const [menuPosition, setMenuPosition] = useState<MenuPosition>({ top: 0, right: 0 });
+  const [menuPosition, setMenuPosition] = useState<MenuPosition>({ top: 0, left: 0 });
   const buttonRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   const handleCloseMenu = () => setOpenMenuId(null);
@@ -37,22 +37,29 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
-      // Calculate position
+      // Calculate vertical position
       let top = rect.bottom + 4; // 4px gap below button
-      let right = viewportWidth - rect.right;
+      const menuHeight = 150; // Approximate height
 
       // If menu would go off bottom of screen, show it above the button
-      const menuHeight = 150; // Approximate height
       if (top + menuHeight > viewportHeight) {
         top = rect.top - menuHeight - 4;
       }
 
-      // Ensure menu doesn't go off screen on the right
-      if (right < 0) {
-        right = 8; // 8px from edge
+      // Calculate horizontal position - align to right edge of button
+      let left = rect.right - menuWidth;
+
+      // Ensure menu doesn't go off screen on the left
+      if (left < 8) {
+        left = 8; // 8px from left edge
       }
 
-      setMenuPosition({ top, right });
+      // Ensure menu doesn't go off screen on the right
+      if (left + menuWidth > viewportWidth - 8) {
+        left = viewportWidth - menuWidth - 8; // 8px from right edge
+      }
+
+      setMenuPosition({ top, left });
       setOpenMenuId(entryId);
     }
   };
@@ -329,7 +336,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
             className="fixed z-50 w-48 bg-[#1a1a2e] border border-purple-500/30 rounded-lg shadow-xl overflow-hidden"
             style={{
               top: `${menuPosition.top}px`,
-              right: `${menuPosition.right}px`,
+              left: `${menuPosition.left}px`,
             }}
           >
             <button
