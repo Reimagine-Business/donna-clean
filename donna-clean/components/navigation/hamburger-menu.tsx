@@ -70,6 +70,7 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail, isAdmin
                     <li key={item.href}>
                       <Link
                         href={item.href}
+                        prefetch={true}
                         onClick={onClose}
                         className={cn(
                           "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
@@ -97,6 +98,7 @@ export function HamburgerMenu({ businessName = "Donna Clean", userEmail, isAdmin
                     <li>
                       <Link
                         href="/admin"
+                        prefetch={true}
                         onClick={onClose}
                         className={cn(
                           "flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium transition-colors",
