@@ -34,19 +34,11 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
     if (button) {
       const rect = button.getBoundingClientRect();
       const menuWidth = 192; // w-48 = 12rem = 192px
+      const menuHeight = 156; // Actual height: 3 items × 52px = 156px
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
 
-      // Calculate vertical position
-      let top = rect.bottom + 4; // 4px gap below button
-      const menuHeight = 150; // Approximate height
-
-      // If menu would go off bottom of screen, show it above the button
-      if (top + menuHeight > viewportHeight) {
-        top = rect.top - menuHeight - 4;
-      }
-
-      // Calculate horizontal position - align to right edge of button
+      // Calculate horizontal position - align menu to right edge of button
       let left = rect.right - menuWidth;
 
       // Ensure menu doesn't go off screen on the left
@@ -57,6 +49,21 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
       // Ensure menu doesn't go off screen on the right
       if (left + menuWidth > viewportWidth - 8) {
         left = viewportWidth - menuWidth - 8; // 8px from right edge
+      }
+
+      // Calculate vertical position
+      // Start by centering menu vertically on the button
+      let top = rect.top + (rect.height / 2) - (menuHeight / 2);
+
+      // Check if menu would go off bottom of viewport
+      if (top + menuHeight > viewportHeight - 20) {
+        // Position it to end at bottom with 20px margin
+        top = viewportHeight - menuHeight - 20;
+      }
+
+      // Check if menu would go off top of viewport
+      if (top < 20) {
+        top = 20; // 20px from top
       }
 
       setMenuPosition({ top, left });
