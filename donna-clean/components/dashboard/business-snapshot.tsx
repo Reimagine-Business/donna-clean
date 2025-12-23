@@ -109,7 +109,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
 
         <div className="relative z-10">
           <div className="text-xs uppercase tracking-widest opacity-60 font-bold mb-4">
-            💰 WHAT YOU OWN
+            💰 WHAT'S YOURS?
           </div>
           <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-2 text-white">
             ₹{snapshotData.cash.toLocaleString('en-IN')}
@@ -125,7 +125,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
         {/* What You Owe */}
         <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-red-500 p-4 rounded-xl">
           <div className={`text-xs uppercase tracking-wide font-semibold mb-3 ${snapshotData.totalOwe === 0 ? 'opacity-50' : 'opacity-70'}`}>
-            What You Owe
+            What is NOT yours?
           </div>
           <div className={`text-2xl md:text-3xl font-bold text-white ${snapshotData.totalOwe === 0 ? 'opacity-30' : ''}`}>
             ₹{snapshotData.totalOwe.toLocaleString('en-IN')}
@@ -135,7 +135,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
         {/* Total Profit */}
         <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-purple-500 p-4 rounded-xl">
           <div className="text-xs uppercase tracking-wide opacity-50 font-semibold mb-3">
-            Total Profit
+            Your Profit from Sales
           </div>
           <div className="text-2xl md:text-3xl font-bold text-white">
             ₹{snapshotData.profit.toLocaleString('en-IN')}
@@ -151,7 +151,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
             onClick={() => setExpandedOwn(!expandedOwn)}
             className="w-full p-3 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
           >
-            <div className="text-sm text-white font-medium">💰 Asset Breakdown</div>
+            <div className="text-sm text-white font-medium">💰 What's Yours?</div>
             {expandedOwn ? (
               <ChevronUp className="w-4 h-4 text-gray-400" />
             ) : (
@@ -195,7 +195,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
             onClick={() => setExpandedOwe(!expandedOwe)}
             className="w-full p-3 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
           >
-            <div className="text-sm text-white font-medium">📋 Liability Breakdown</div>
+            <div className="text-sm text-white font-medium">📋 What's left to pay?</div>
             {expandedOwe ? (
               <ChevronUp className="w-4 h-4 text-gray-400" />
             ) : (
@@ -226,7 +226,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={() => router.push('/analytics/cashpulse')}
-          className="py-3 px-4 bg-green-600 hover:bg-green-700 rounded-lg font-medium text-sm transition-colors text-white"
+          className="py-3 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg font-medium text-sm transition-colors text-white"
         >
           💰 View Cash Pulse
         </button>
