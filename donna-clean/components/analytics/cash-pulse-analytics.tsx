@@ -313,64 +313,71 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       </div>
 
       {/* Cash IN and Cash OUT - Side by side (MOVED UP) */}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
         {/* Cash IN */}
-        <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-500/50 rounded-lg p-3">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <ArrowUpRight className="w-4 h-4 text-green-400" />
-            <span className="text-xs text-white uppercase tracking-wider font-medium">Cash IN</span>
+        <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-green-500 p-4 rounded-xl transition-transform hover:scale-[1.02]">
+          <div className="text-xs uppercase tracking-wide opacity-70 font-semibold mb-2">
+            Cash In
           </div>
-          <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashIn)}</div>
-          <div className="text-xs text-white">{cashInCount} entries</div>
+          <div className="text-xl md:text-2xl font-bold text-white mb-1">
+            {formatCurrency(totalCashIn)}
+          </div>
+          <div className="text-xs opacity-50">
+            {cashInCount} entries
+          </div>
         </div>
 
         {/* Cash OUT */}
-        <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-500/50 rounded-lg p-3">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <ArrowDownRight className="w-4 h-4 text-red-400" />
-            <span className="text-xs text-white uppercase tracking-wider font-medium">Cash OUT</span>
+        <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-red-500 p-4 rounded-xl transition-transform hover:scale-[1.02]">
+          <div className="text-xs uppercase tracking-wide opacity-70 font-semibold mb-2">
+            Cash Out
           </div>
-          <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashOut)}</div>
-          <div className="text-xs text-white">{cashOutCount} entries</div>
+          <div className="text-xl md:text-2xl font-bold text-white mb-1">
+            {formatCurrency(totalCashOut)}
+          </div>
+          <div className="text-xs opacity-50">
+            {cashOutCount} entries
+          </div>
         </div>
       </div>
 
       {/* 💰 What's left! - NEW PRIMARY HERO CARD */}
-      <div className={`border-2 rounded-lg p-4 ${
+      <div className={`bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border-2 border-purple-500/50 p-6 md:p-8 rounded-2xl shadow-lg relative overflow-hidden ${
         periodChange >= 0
-          ? 'bg-gradient-to-br from-green-900/40 to-green-800/30 border-green-500/50'
-          : 'bg-gradient-to-br from-red-900/40 to-red-800/30 border-red-500/50'
+          ? 'border-l-4 border-l-green-500 shadow-green-500/20'
+          : 'border-l-4 border-l-red-500 shadow-red-500/20'
       }`}>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xl">💰</span>
-          <span className="text-sm font-semibold text-white">What's left!</span>
-        </div>
-        <div className="text-xs text-white mb-1 opacity-80">
-          {getPeriodLabel(dateRange)}
-        </div>
-        <div className={`text-4xl font-bold mb-2 ${
-          periodChange >= 0 ? 'text-green-400' : 'text-red-400'
-        }`}>
-          {formatCurrency(periodChange)}
-        </div>
-        <div className="text-xs text-white opacity-70">
-          Cash In - Cash Out
+        {/* Decorative background circle */}
+        <div className="absolute top-[-50%] right-[-20%] w-48 h-48 bg-purple-500/10 rounded-full" />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-2 text-sm font-semibold mb-2">
+            💰 What's left!
+          </div>
+          <div className="text-xs opacity-70 mb-3">
+            {getPeriodLabel(dateRange)}
+          </div>
+          <div className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-2">
+            {formatCurrency(periodChange)}
+          </div>
+          <div className="text-xs opacity-70">
+            Cash In - Cash Out
+          </div>
         </div>
       </div>
 
       {/* 💳 Total cash balance - DEMOTED SECONDARY CARD */}
-      <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border-2 border-purple-500/50 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xl">💳</span>
-          <span className="text-sm font-semibold text-white">Total cash balance</span>
+      <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500 p-5 rounded-xl">
+        <div className="flex items-center gap-2 text-xs uppercase tracking-wide opacity-70 font-semibold mb-3">
+          💳 Total cash balance
         </div>
-        <div className="text-3xl font-bold mb-2 text-white">
+        <div className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-purple-200 bg-clip-text text-transparent">
           {formatCurrency(cashBalance)}
         </div>
-        <div className="text-xs text-white opacity-70 mb-1">
+        <div className="text-xs opacity-50 mb-1">
           {formatCurrency(previousBalance)} previous + {formatCurrency(periodChange)} {getPeriodLabel(dateRange).toLowerCase()}
         </div>
-        <div className="text-xs text-white opacity-60">
+        <div className="text-xs opacity-40">
           As of {format(new Date(), 'dd MMM yyyy')}
         </div>
       </div>

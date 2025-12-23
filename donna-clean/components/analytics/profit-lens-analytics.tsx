@@ -180,35 +180,38 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
         </div>
       </div>
 
-      {/* Sales Overview */}
-      <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border-2 border-purple-500/50 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <TrendingUpIcon className="w-5 h-5 text-purple-400" />
-          <span className="text-xs text-white uppercase tracking-wider font-medium">SALES</span>
-        </div>
-        <div className="text-4xl font-bold mb-1 text-white">
-          {formatCurrency(currentMetrics.revenue)}
-        </div>
-        <div className="flex items-center gap-3 text-xs">
-          {marginChange !== 0 && (
-            <span className={`flex items-center gap-1 ${marginChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-              Margin: {currentMetrics.profitMargin.toFixed(1)}%
-              {marginChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-              {Math.abs(marginChange).toFixed(1)}% vs last month
+      {/* Sales - HERO CARD (LARGEST) */}
+      <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border-2 border-purple-500 p-8 md:p-10 rounded-2xl shadow-lg shadow-purple-500/30 relative overflow-hidden">
+        {/* Decorative background */}
+        <div className="absolute top-[-50%] right-[-20%] w-64 h-64 bg-purple-500/15 rounded-full" />
+
+        <div className="relative z-10">
+          <div className="text-xs uppercase tracking-widest opacity-60 font-bold mb-4 flex items-center gap-2">
+            📈 Sales
+          </div>
+          <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-3 bg-gradient-to-r from-purple-400 to-purple-200 bg-clip-text text-transparent">
+            {formatCurrency(currentMetrics.revenue)}
+          </div>
+          <div className="text-sm opacity-50 font-medium flex items-center gap-2">
+            Margin:
+            <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold">
+              {currentMetrics.profitMargin.toFixed(1)}%
             </span>
-          )}
+          </div>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Total Expenses + Profit - Side by side (SMALLER) */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
         {/* Total Expenses */}
-        <div className="bg-gradient-to-br from-red-900/30 to-red-800/20 border-2 border-red-500/50 rounded-lg p-3">
-          <div className="text-xs text-white mb-1.5 uppercase tracking-wider font-medium">TOTAL EXPENSES</div>
-          <div className="text-2xl font-bold mb-1 text-white">
+        <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-red-500 p-4 rounded-xl">
+          <div className="text-xs uppercase tracking-wide opacity-50 font-semibold mb-3">
+            Total Expenses
+          </div>
+          <div className="text-2xl md:text-3xl font-bold text-white mb-1">
             {formatCurrency(currentMetrics.cogs + currentMetrics.operatingExpenses)}
           </div>
-          <div className="text-xs text-white">
+          <div className="text-xs opacity-40">
             {currentMetrics.revenue > 0
               ? (((currentMetrics.cogs + currentMetrics.operatingExpenses) / currentMetrics.revenue) * 100).toFixed(1)
               : '0.0'}% of sales
@@ -216,12 +219,14 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
         </div>
 
         {/* Profit */}
-        <div className={`${currentMetrics.netProfit >= 0 ? 'bg-green-900/20 border-green-500/50' : 'bg-red-900/20 border-red-500/50'} border-2 rounded-lg p-3`}>
-          <div className="text-xs text-white mb-1.5 uppercase tracking-wider font-medium">PROFIT</div>
-          <div className="text-2xl font-bold mb-1 text-white">
+        <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-green-500 p-4 rounded-xl">
+          <div className="text-xs uppercase tracking-wide opacity-50 font-semibold mb-3">
+            Profit
+          </div>
+          <div className="text-2xl md:text-3xl font-bold text-white mb-1">
             {formatCurrency(currentMetrics.netProfit)}
           </div>
-          <div className="text-xs text-white">
+          <div className="text-xs opacity-40">
             {currentMetrics.revenue > 0
               ? ((currentMetrics.netProfit / currentMetrics.revenue) * 100).toFixed(1)
               : '0.0'}% of sales

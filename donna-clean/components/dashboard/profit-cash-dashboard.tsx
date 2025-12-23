@@ -168,24 +168,44 @@ export function ProfitCashDashboard({ entries }: ProfitCashDashboardProps) {
         </div>
       </div>
 
-      {/* Profit vs Cash Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Cash Card */}
-        <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border border-green-500/30 rounded-xl p-4">
-          <div className="text-xs sm:text-sm text-gray-400 mb-1">💰 CASH</div>
-          <div className="text-2xl sm:text-3xl font-bold text-green-400">
+      {/* What You Own - HERO CARD (LARGEST) */}
+      <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border-2 border-purple-500 p-8 md:p-10 rounded-2xl shadow-lg shadow-purple-500/30 relative overflow-hidden">
+        {/* Decorative background */}
+        <div className="absolute top-[-50%] right-[-20%] w-64 h-64 bg-purple-500/15 rounded-full" />
+
+        <div className="relative z-10">
+          <div className="text-xs uppercase tracking-widest opacity-60 font-bold mb-4">
+            💰 What You Own
+          </div>
+          <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-2 bg-gradient-to-r from-purple-400 to-purple-200 bg-clip-text text-transparent">
             {formatCurrency(dashboardData.cash)}
           </div>
-          <div className="text-xs text-gray-500 mt-1">What you have</div>
+          <div className="text-sm opacity-50 font-medium">
+            Your total cash balance
+          </div>
+        </div>
+      </div>
+
+      {/* What You Owe + Total Profit - Side by side (SMALLER) */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4">
+        {/* What You Owe */}
+        <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-red-500 p-4 rounded-xl">
+          <div className={`text-xs uppercase tracking-wide font-semibold mb-3 ${totalOwe === 0 ? 'opacity-50' : 'opacity-70'}`}>
+            What You Owe
+          </div>
+          <div className={`text-2xl md:text-3xl font-bold text-white ${totalOwe === 0 ? 'opacity-30' : ''}`}>
+            {formatCurrency(totalOwe)}
+          </div>
         </div>
 
-        {/* Profit Card */}
-        <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border border-purple-500/30 rounded-xl p-4">
-          <div className="text-xs sm:text-sm text-gray-400 mb-1">📊 PROFIT</div>
-          <div className="text-2xl sm:text-3xl font-bold text-purple-400">
+        {/* Total Profit */}
+        <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-purple-500 p-4 rounded-xl">
+          <div className="text-xs uppercase tracking-wide opacity-50 font-semibold mb-3">
+            Total Profit
+          </div>
+          <div className="text-2xl md:text-3xl font-bold text-white">
             {formatCurrency(dashboardData.profit)}
           </div>
-          <div className="text-xs text-gray-500 mt-1">What you earned</div>
         </div>
       </div>
 
