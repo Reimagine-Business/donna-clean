@@ -189,7 +189,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
           <div className="text-xs uppercase tracking-widest opacity-60 font-bold mb-4 flex items-center gap-2">
             📈 Sales
           </div>
-          <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-3 bg-gradient-to-r from-purple-400 to-purple-200 bg-clip-text text-transparent">
+          <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-3 text-white">
             {formatCurrency(currentMetrics.revenue)}
           </div>
           <div className="text-sm opacity-50 font-medium flex items-center gap-2">
