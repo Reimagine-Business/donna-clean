@@ -177,7 +177,7 @@ export function ProfitCashDashboard({ entries }: ProfitCashDashboardProps) {
           <div className="text-xs uppercase tracking-widest opacity-60 font-bold mb-4">
             💰 What You Own
           </div>
-          <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-2 bg-gradient-to-r from-purple-400 to-purple-200 bg-clip-text text-transparent">
+          <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-2 text-white">
             {formatCurrency(dashboardData.cash)}
           </div>
           <div className="text-sm opacity-50 font-medium">
