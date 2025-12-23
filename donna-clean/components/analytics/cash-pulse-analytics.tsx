@@ -51,6 +51,24 @@ function formatCurrencyLakhs(amount: number): string {
   }
 }
 
+// Helper function to get period label
+function getPeriodLabel(dateRange: string): string {
+  switch (dateRange) {
+    case 'this-month':
+      return 'This Month'
+    case 'last-month':
+      return 'Last Month'
+    case 'this-year':
+      return 'This Year'
+    case 'last-year':
+      return 'Last Year'
+    case 'all-time':
+      return 'All Time'
+    default:
+      return 'This Month'
+  }
+}
+
 type SettlementModalType = 'credit-sales' | 'credit-bills' | 'advance-sales' | 'advance-expenses' | null;
 
 export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnalyticsProps) {
@@ -116,6 +134,12 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
   const monthlyComparison = useMemo(() => getMonthlyComparison(entries), [entries])
   const cashInCount = useMemo(() => getEntryCount(entries, 'in', startDate, endDate), [entries, startDate, endDate])
   const cashOutCount = useMemo(() => getEntryCount(entries, 'out', startDate, endDate), [entries, startDate, endDate])
+
+  // Calculate "What's left!" (period change)
+  const periodChange = useMemo(() => totalCashIn - totalCashOut, [totalCashIn, totalCashOut])
+
+  // Calculate previous balance for breakdown
+  const previousBalance = useMemo(() => cashBalance - periodChange, [cashBalance, periodChange])
 
   // Calculate Cash vs Bank breakdown
   const { cashAmount, bankAmount } = useMemo(() => {
@@ -288,25 +312,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         </div>
       </div>
 
-      {/* Total Cash Balance */}
-      <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border-2 border-purple-500/50 rounded-lg p-4">
-        <div className="flex items-center gap-2 mb-2">
-          <Wallet className="w-5 h-5 text-purple-300" />
-          <span className="text-xs text-white uppercase tracking-wider font-medium">Total Cash Balance</span>
-        </div>
-        <div className="text-3xl font-bold mb-1 text-white">
-          {formatCurrency(cashBalance)}
-        </div>
-        <div className="flex items-center justify-between">
-          <div className={`flex items-center gap-1 text-sm ${cashBalance >= 0 ? 'text-purple-400' : 'text-red-400'}`}>
-            {cashBalance >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-            <span className="font-semibold">{cashBalance >= 0 ? 'Positive' : 'Negative'}</span>
-          </div>
-          <span className="text-xs text-white">As of {format(new Date(), 'dd MMM yyyy')}</span>
-        </div>
-      </div>
-
-      {/* Cash IN and Cash OUT - Side by side */}
+      {/* Cash IN and Cash OUT - Side by side (MOVED UP) */}
       <div className="grid grid-cols-2 gap-2">
         {/* Cash IN */}
         <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-2 border-green-500/50 rounded-lg p-3">
@@ -315,15 +321,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             <span className="text-xs text-white uppercase tracking-wider font-medium">Cash IN</span>
           </div>
           <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashIn)}</div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-white">{cashInCount} entries</span>
-            {monthlyComparison.percentChange.cashIn !== 0 && (
-              <span className={`text-xs flex items-center gap-0.5 font-semibold ${monthlyComparison.percentChange.cashIn >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {monthlyComparison.percentChange.cashIn >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {Math.abs(monthlyComparison.percentChange.cashIn).toFixed(1)}%
-              </span>
-            )}
-          </div>
+          <div className="text-xs text-white">{cashInCount} entries</div>
         </div>
 
         {/* Cash OUT */}
@@ -333,15 +331,47 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
             <span className="text-xs text-white uppercase tracking-wider font-medium">Cash OUT</span>
           </div>
           <div className="text-xl font-bold text-white mb-1">{formatCurrency(totalCashOut)}</div>
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-white">{cashOutCount} entries</span>
-            {monthlyComparison.percentChange.cashOut !== 0 && (
-              <span className={`text-xs flex items-center gap-0.5 font-semibold ${monthlyComparison.percentChange.cashOut >= 0 ? 'text-red-400' : 'text-green-400'}`}>
-                {monthlyComparison.percentChange.cashOut >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                {Math.abs(monthlyComparison.percentChange.cashOut).toFixed(1)}%
-              </span>
-            )}
-          </div>
+          <div className="text-xs text-white">{cashOutCount} entries</div>
+        </div>
+      </div>
+
+      {/* 💰 What's left! - NEW PRIMARY HERO CARD */}
+      <div className={`border-2 rounded-lg p-4 ${
+        periodChange >= 0
+          ? 'bg-gradient-to-br from-green-900/40 to-green-800/30 border-green-500/50'
+          : 'bg-gradient-to-br from-red-900/40 to-red-800/30 border-red-500/50'
+      }`}>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xl">💰</span>
+          <span className="text-sm font-semibold text-white">What's left!</span>
+        </div>
+        <div className="text-xs text-white mb-1 opacity-80">
+          {getPeriodLabel(dateRange)}
+        </div>
+        <div className={`text-4xl font-bold mb-2 ${
+          periodChange >= 0 ? 'text-green-400' : 'text-red-400'
+        }`}>
+          {formatCurrency(periodChange)}
+        </div>
+        <div className="text-xs text-white opacity-70">
+          Cash In - Cash Out
+        </div>
+      </div>
+
+      {/* 💳 Total cash balance - DEMOTED SECONDARY CARD */}
+      <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 border-2 border-purple-500/50 rounded-lg p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xl">💳</span>
+          <span className="text-sm font-semibold text-white">Total cash balance</span>
+        </div>
+        <div className="text-3xl font-bold mb-2 text-white">
+          {formatCurrency(cashBalance)}
+        </div>
+        <div className="text-xs text-white opacity-70 mb-1">
+          {formatCurrency(previousBalance)} previous + {formatCurrency(periodChange)} {getPeriodLabel(dateRange).toLowerCase()}
+        </div>
+        <div className="text-xs text-white opacity-60">
+          As of {format(new Date(), 'dd MMM yyyy')}
         </div>
       </div>
 
