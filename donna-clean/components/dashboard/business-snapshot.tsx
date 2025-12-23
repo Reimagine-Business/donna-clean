@@ -112,10 +112,10 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
             💰 WHAT'S YOURS?
           </div>
           <div className="text-3xl md:text-5xl lg:text-6xl font-black mb-1 md:mb-2 text-white">
-            ₹{snapshotData.cash.toLocaleString('en-IN')}
+            ₹{snapshotData.totalOwn.toLocaleString('en-IN')}
           </div>
           <div className="text-xs md:text-sm opacity-50 font-medium">
-            Your total cash balance
+            Total value of everything you own
           </div>
         </div>
       </div>

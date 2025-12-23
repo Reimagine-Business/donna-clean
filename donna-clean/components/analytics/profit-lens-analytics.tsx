@@ -4,6 +4,8 @@ import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { TrendingUp, TrendingDown, Download, RefreshCw, TrendingUpIcon } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { type Entry } from '@/lib/entries'
 import {
   getProfitMetrics,
@@ -26,8 +28,12 @@ function formatCurrency(amount: number): string {
 
 export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   const router = useRouter()
-  const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time'>('this-month')
+  const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time' | 'customize'>('this-month')
   const [isRefreshing, setIsRefreshing] = useState(false)
+  // Custom date range states
+  const [showCustomDatePickers, setShowCustomDatePickers] = useState(false)
+  const [customFromDate, setCustomFromDate] = useState<Date | undefined>()
+  const [customToDate, setCustomToDate] = useState<Date | undefined>()
 
   // Refresh data on mount to ensure latest entries are shown
   useEffect(() => {
@@ -38,6 +44,14 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   const { startDate, endDate } = useMemo(() => {
     const now = new Date()
     const currentYear = now.getFullYear()
+
+    // Handle custom date range
+    if (dateRange === 'customize' && customFromDate && customToDate) {
+      return {
+        startDate: customFromDate,
+        endDate: customToDate
+      }
+    }
 
     switch (dateRange) {
       case 'this-month':
@@ -71,7 +85,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
           endDate: endOfMonth(now)
         }
     }
-  }, [dateRange])
+  }, [dateRange, customFromDate, customToDate])
 
   // Calculate metrics
   const currentMetrics = useMemo(() => {
@@ -160,24 +174,70 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   return (
     <div className="space-y-3">
       {/* Header with Actions */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Check what you Earned!</h1>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-white">Check what you Earned!</h1>
 
-        {/* Period Dropdown */}
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-white">Period:</span>
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time')}
-            className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
-            <option value="this-month">This Month</option>
-            <option value="last-month">Last Month</option>
-            <option value="this-year">This Year</option>
-            <option value="last-year">Last Year</option>
-            <option value="all-time">All Time</option>
-          </select>
+          {/* Period Dropdown */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-white">Period:</span>
+            <select
+              value={dateRange}
+              onChange={(e) => {
+                const value = e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time' | 'customize';
+                setDateRange(value);
+                setShowCustomDatePickers(value === 'customize');
+              }}
+              className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="this-month">This Month</option>
+              <option value="last-month">Last Month</option>
+              <option value="this-year">This Year</option>
+              <option value="last-year">Last Year</option>
+              <option value="all-time">All Time</option>
+              <option value="customize">Customize</option>
+            </select>
+          </div>
         </div>
+
+        {/* Show calendar pickers when Customize is selected */}
+        {showCustomDatePickers && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="px-3 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm hover:bg-purple-900/50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customFromDate}
+                  onSelect={setCustomFromDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            <span className="text-sm text-white">to</span>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="px-3 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm hover:bg-purple-900/50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customToDate}
+                  onSelect={setCustomToDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
 
       {/* Sales - HERO CARD (LARGEST) */}
