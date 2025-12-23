@@ -13,7 +13,7 @@ import {
   validateNotes,
   validatePaymentMethod
 } from '@/lib/validation'
-import { analytics } from '@/lib/analytics'
+import { analytics } from '@/lib/event-tracking'
 
 interface CreateEntryModalProps {
   categories: Category[]

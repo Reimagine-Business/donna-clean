@@ -11,7 +11,7 @@ import { TopNavMobile } from '@/components/navigation/top-nav-mobile'
 import { BottomNav } from '@/components/navigation/bottom-nav'
 import { PartySelector } from './party-selector'
 import { format } from 'date-fns'
-import { analytics } from '@/lib/analytics'
+import { analytics } from '@/lib/event-tracking'
 
 interface EntriesShellProps {
   initialEntries: Entry[]

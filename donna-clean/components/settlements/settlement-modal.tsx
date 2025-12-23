@@ -7,7 +7,7 @@ import { X, ChevronDown, ChevronUp } from "lucide-react";
 import { type Entry } from "@/lib/entries";
 import { createSettlement } from "@/app/settlements/actions";
 import { showSuccess, showError } from "@/lib/toast";
-import { analytics } from "@/lib/analytics";
+import { analytics } from "@/lib/event-tracking";
 
 type SettlementType = 'credit-sales' | 'credit-bills' | 'advance-sales' | 'advance-expenses';
 
