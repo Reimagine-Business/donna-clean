@@ -4,6 +4,8 @@ import { useMemo, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownRight, Download, RefreshCw, Trash2 } from 'lucide-react'
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { type Entry } from '@/lib/entries'
 import {
   calculateCashBalance,
@@ -73,10 +75,14 @@ type SettlementModalType = 'credit-sales' | 'credit-bills' | 'advance-sales' | '
 
 export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnalyticsProps) {
   const router = useRouter()
-  const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time'>('this-month')
+  const [dateRange, setDateRange] = useState<'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time' | 'customize'>('this-month')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [settlementModalType, setSettlementModalType] = useState<SettlementModalType>(null)
+  // Custom date range states
+  const [showCustomDatePickers, setShowCustomDatePickers] = useState(false)
+  const [customFromDate, setCustomFromDate] = useState<Date | undefined>()
+  const [customToDate, setCustomToDate] = useState<Date | undefined>()
   // New two-stage settlement flow state
   const [dashboardOpen, setDashboardOpen] = useState(false)
   const [selectedCustomer, setSelectedCustomer] = useState<CustomerGroup | null>(null)
@@ -93,6 +99,14 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
     const now = new Date()
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth()
+
+    // Handle custom date range
+    if (dateRange === 'customize' && customFromDate && customToDate) {
+      return {
+        startDate: customFromDate,
+        endDate: customToDate
+      }
+    }
 
     switch (dateRange) {
       case 'this-month':
@@ -126,7 +140,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           endDate: endOfMonth(now)
         }
     }
-  }, [dateRange])
+  }, [dateRange, customFromDate, customToDate])
 
   const cashBalance = useMemo(() => calculateCashBalance(entries), [entries])
   const totalCashIn = useMemo(() => getTotalCashIn(entries, startDate, endDate), [entries, startDate, endDate])
@@ -293,23 +307,69 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       {/* ═══════════════════════════════════════════════════════════ */}
 
       {/* Header with Actions */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Check what you Have!</h1>
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-white">Check what you Have!</h1>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-white">Period:</span>
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time')}
-            className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-          >
-            <option value="this-month">This Month</option>
-            <option value="last-month">Last Month</option>
-            <option value="this-year">This Year</option>
-            <option value="last-year">Last Year</option>
-            <option value="all-time">All Time</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-white">Period:</span>
+            <select
+              value={dateRange}
+              onChange={(e) => {
+                const value = e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time' | 'customize';
+                setDateRange(value);
+                setShowCustomDatePickers(value === 'customize');
+              }}
+              className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="this-month">This Month</option>
+              <option value="last-month">Last Month</option>
+              <option value="this-year">This Year</option>
+              <option value="last-year">Last Year</option>
+              <option value="all-time">All Time</option>
+              <option value="customize">Customize</option>
+            </select>
+          </div>
         </div>
+
+        {/* Show calendar pickers when Customize is selected */}
+        {showCustomDatePickers && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="px-3 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm hover:bg-purple-900/50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customFromDate}
+                  onSelect={setCustomFromDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+
+            <span className="text-sm text-white">to</span>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="px-3 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm hover:bg-purple-900/50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                  {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={customToDate}
+                  onSelect={setCustomToDate}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
 
       {/* Cash IN and Cash OUT - Side by side (MOVED UP) */}

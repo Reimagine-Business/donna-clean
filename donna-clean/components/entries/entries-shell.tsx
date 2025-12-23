@@ -12,6 +12,8 @@ import { BottomNav } from '@/components/navigation/bottom-nav'
 import { PartySelector } from './party-selector'
 import { format } from 'date-fns'
 import { analytics } from '@/lib/event-tracking'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface EntriesShellProps {
   initialEntries: Entry[]
@@ -43,6 +45,10 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
 
   // Date filter for quick filtering
   const [dateFilter, setDateFilter] = useState('this-month')
+  // Custom date range states
+  const [showCustomDatePickers, setShowCustomDatePickers] = useState(false)
+  const [customFromDate, setCustomFromDate] = useState<Date | undefined>()
+  const [customToDate, setCustomToDate] = useState<Date | undefined>()
 
   // Entry type filter
   const [entryTypeFilter, setEntryTypeFilter] = useState('all')
@@ -101,20 +107,26 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     let startDate: Date | null = null
     let endDate: Date | null = null
 
-    switch (dateFilter) {
-      case 'this-month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
-        break
-      case 'last-month':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-        endDate = new Date(now.getFullYear(), now.getMonth(), 0)
-        break
-      case 'this-year':
-        startDate = new Date(now.getFullYear(), 0, 1)
-        break
-      case 'all-time':
-        // No date filtering
-        break
+    // Handle custom date range
+    if (dateFilter === 'customize' && customFromDate && customToDate) {
+      startDate = customFromDate
+      endDate = customToDate
+    } else {
+      switch (dateFilter) {
+        case 'this-month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+          break
+        case 'last-month':
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0)
+          break
+        case 'this-year':
+          startDate = new Date(now.getFullYear(), 0, 1)
+          break
+        case 'all-time':
+          // No date filtering
+          break
+      }
     }
 
     if (startDate) {
@@ -128,7 +140,7 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
     }
 
     return result
-  }, [entries, dateFilter, entryTypeFilter])
+  }, [entries, dateFilter, entryTypeFilter, customFromDate, customToDate])
 
   // Paginate entries
   const paginatedEntries = useMemo(() => {
@@ -483,15 +495,58 @@ export function EntriesShell({ initialEntries, categories, error: initialError, 
                     <span className="text-xs text-purple-400">Date:</span>
                     <select
                       value={dateFilter}
-                      onChange={(e) => setDateFilter(e.target.value)}
+                      onChange={(e) => {
+                        setDateFilter(e.target.value);
+                        setShowCustomDatePickers(e.target.value === 'customize');
+                      }}
                       className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20"
                     >
                       <option value="this-month">This Month</option>
                       <option value="last-month">Last Month</option>
                       <option value="this-year">This Year</option>
                       <option value="all-time">All Time</option>
+                      <option value="customize">Customize</option>
                     </select>
                   </div>
+
+                  {/* Custom Date Pickers */}
+                  {showCustomDatePickers && (
+                    <>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs hover:bg-purple-900/40 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20">
+                            {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From"}
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={customFromDate}
+                            onSelect={setCustomFromDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+
+                      <span className="text-xs text-purple-400">to</span>
+
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="px-2 py-1 rounded-md border border-purple-500/30 bg-purple-900/20 text-white text-xs hover:bg-purple-900/40 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20">
+                            {customToDate ? format(customToDate, "MMM dd, yyyy") : "To"}
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={customToDate}
+                            onSelect={setCustomToDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </>
+                  )}
 
                   {/* Export Button */}
                   <button
