@@ -42,7 +42,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
     // 1. CRITICAL: Very low cash
     if (cashBalance < 1000 && cashBalance > 0) {
       items.push({
-        icon: '🚨',
+        icon: '😰',
         message: `Critical: Cash balance ${fmt(cashBalance)}`,
         priority: 1
       });
@@ -50,7 +50,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
     // 2. WARNING: Low cash
     else if (cashBalance < 5000 && cashBalance > 0) {
       items.push({
-        icon: '⚠️',
+        icon: '😟',
         message: `Low cash: ${fmt(cashBalance)} (below ₹5,000)`,
         priority: 2
       });
@@ -58,7 +58,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
     // 3. GOOD: Healthy cash
     else if (cashBalance >= 10000) {
       items.push({
-        icon: '✅',
+        icon: '😊',
         message: `Cash balance is healthy: ${fmt(cashBalance)}`,
         priority: 4
       });
@@ -66,7 +66,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
     // 4. OK: Good cash
     else if (cashBalance >= 5000) {
       items.push({
-        icon: '💰',
+        icon: '😌',
         message: `Cash balance is good: ${fmt(cashBalance)}`,
         priority: 4
       });
@@ -79,7 +79,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
 
     if (todayCashIn >= 5000) {
       items.push({
-        icon: '💰',
+        icon: '🤩',
         message: `Strong cash inflow today: ${fmt(todayCashIn)}`,
         priority: 4
       });
@@ -96,13 +96,13 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
       const change = ((todayCashIn - yesterdayCashIn) / yesterdayCashIn) * 100;
       if (change > 25) {
         items.push({
-          icon: '📈',
+          icon: '🤩',
           message: `Cash IN up ${Math.round(change)}% vs yesterday`,
           priority: 4
         });
       } else if (change < -25) {
         items.push({
-          icon: '📉',
+          icon: '😰',
           message: `Cash IN down ${Math.abs(Math.round(change))}% vs yesterday`,
           priority: 2
         });
@@ -121,7 +121,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
         sum + (e.remaining_amount || e.amount || 0), 0
       );
       items.push({
-        icon: '🚨',
+        icon: '😰',
         message: `${overdueBills.length} overdue bill${overdueBills.length > 1 ? 's' : ''}: ${fmt(total)}`,
         priority: 1
       });
@@ -142,7 +142,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
       );
       const when = billsDueSoon[0].entry_date === today ? 'today' : 'tomorrow';
       items.push({
-        icon: '📅',
+        icon: '🤔',
         message: `${billsDueSoon.length} bill${billsDueSoon.length > 1 ? 's' : ''} due ${when}: ${fmt(total)}`,
         priority: 2
       });
@@ -160,7 +160,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
         sum + (e.remaining_amount || e.amount || 0), 0
       );
       items.push({
-        icon: '💳',
+        icon: '🤔',
         message: `${pendingCollections.length} pending collection${pendingCollections.length > 1 ? 's' : ''}: ${fmt(total)}`,
         priority: 3
       });
@@ -177,7 +177,7 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
         sum + (e.amount || 0), 0
       );
       items.push({
-        icon: '✅',
+        icon: '🎉',
         message: `${recentSettlements.length} settlement${recentSettlements.length > 1 ? 's' : ''} completed this week: ${fmt(total)}`,
         priority: 4
       });
@@ -200,14 +200,14 @@ export function BusinessInsights({ entries, alerts = [] }: BusinessInsightsProps
         📰 Today's News
       </h2>
 
-      <ul className="space-y-1.5">
+      <ul className="space-y-2">
         {newsItems.map((item, idx) => (
           <li
             key={idx}
-            className="text-xs flex items-start gap-2"
+            className="flex items-center justify-between gap-3 p-2 rounded-md bg-purple-500/5 hover:bg-purple-500/10 transition-all duration-200 hover:translate-x-1"
           >
-            <span className="text-sm flex-shrink-0">{item.icon}</span>
-            <span className="flex-1 leading-snug">{item.message}</span>
+            <span className="text-xs flex-1 leading-relaxed text-white/90">{item.message}</span>
+            <span className="text-2xl flex-shrink-0">{item.icon}</span>
           </li>
         ))}
       </ul>
