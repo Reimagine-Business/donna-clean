@@ -15,12 +15,13 @@ export default async function CashPulseAnalyticsPage() {
   const { settlementHistory } = await getSettlementHistory()
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
+    <main className="min-h-screen bg-gray-50">
       <div className="flex flex-col min-h-screen">
         <SiteHeader />
         <TopNavMobile />
 
-        <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
+        {/* SECTION 2: LIGHT CONTENT - Component includes its own header for now */}
+        <section className="flex-1 bg-gray-50 px-4 py-4 pb-24 md:pb-8 overflow-auto">
           <div className="mx-auto w-full max-w-6xl">
             <Suspense fallback={<EntryListSkeleton />}>
               <CashPulseAnalytics entries={entries} settlementHistory={settlementHistory} />

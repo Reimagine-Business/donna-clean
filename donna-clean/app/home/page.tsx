@@ -47,16 +47,43 @@ export default async function HomePage() {
     .order('due_date', { ascending: true });
 
   return (
-    <main className="min-h-screen bg-background text-foreground pb-24 md:pb-8">
+    <main className="min-h-screen bg-gray-50 text-foreground">
       <div className="flex flex-col min-h-screen">
         <SiteHeader />
         <TopNavMobile />
 
-        <section className="flex-1 px-4 py-3 md:px-8 overflow-auto">
-          <div className="mx-auto w-full max-w-6xl space-y-3">
-            {/* Greeting Section */}
-            <GreetingSection businessName={profile?.business_name ?? null} />
+        {/* SECTION 1: DARK HEADER */}
+        <div className="bg-gradient-to-br from-[#1a0e33] to-[#0f0820] px-4 py-6">
+          <div className="mx-auto w-full max-w-6xl">
+            {/* Greeting with user badge */}
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-white">
+                  {(() => {
+                    const hour = new Date().getHours();
+                    if (hour < 12) return 'Good morning';
+                    if (hour < 18) return 'Good afternoon';
+                    return 'Good evening';
+                  })()}
+                </h1>
+                {profile?.business_name && (
+                  <p className="text-xs sm:text-sm text-white/70 mt-0.5">
+                    {profile.business_name}
+                  </p>
+                )}
+              </div>
+              {/* User badge with initials */}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-purple-400
+                              flex items-center justify-center text-white font-bold text-sm shrink-0">
+                {profile?.business_name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+            </div>
+          </div>
+        </div>
 
+        {/* SECTION 2: LIGHT CONTENT */}
+        <section className="flex-1 bg-gray-50 px-4 py-4 pb-24 md:pb-8 overflow-auto">
+          <div className="mx-auto w-full max-w-6xl space-y-3">
             {/* Business Insights */}
             <BusinessInsights entries={entries} reminders={reminders || []} />
 

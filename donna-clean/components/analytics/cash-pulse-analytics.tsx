@@ -310,7 +310,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
       {/* Header with Actions */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-white">Check what you Have!</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Check what you Have!</h1>
 
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600">Period:</span>
@@ -321,7 +321,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
                 setDateRange(value);
                 setShowCustomDatePickers(value === 'customize');
               }}
-              className="px-3 py-1.5 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="px-3 py-1.5 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
             >
               <option value="this-month">This Month</option>
               <option value="last-month">Last Month</option>
@@ -338,7 +338,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           <div className="flex flex-wrap items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
-                <button className="px-3 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm hover:bg-purple-900/50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
                   {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                 </button>
               </PopoverTrigger>
@@ -356,7 +356,7 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
 
             <Popover>
               <PopoverTrigger asChild>
-                <button className="px-3 py-2 bg-purple-900/30 border border-purple-500/30 rounded-lg text-white text-sm hover:bg-purple-900/50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
                   {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                 </button>
               </PopoverTrigger>
