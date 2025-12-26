@@ -17,7 +17,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-slate-800 bg-card h-24 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-200 bg-white h-24 md:hidden">
       <div className="h-full flex items-center justify-evenly px-4">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -33,8 +33,8 @@ export function BottomNav() {
                 className={cn(
                   "flex h-14 w-14 items-center justify-center rounded-lg border-2 transition-colors",
                   isActive
-                    ? "border-[#673AB7] bg-[#673AB7]"
-                    : "border-[#673AB7] bg-[#1a1a2e]"
+                    ? "border-purple-600 bg-purple-600"
+                    : "border-gray-300 bg-white"
                 )}
               >
                 <Icon
@@ -42,14 +42,14 @@ export function BottomNav() {
                   strokeWidth={2}
                   className={cn(
                     "transition-colors",
-                    isActive ? "text-white" : "text-[#B39DDB]"
+                    isActive ? "text-white" : "text-gray-600"
                   )}
                 />
               </div>
               <span
                 className={cn(
                   "text-[10px] md:text-[11px] font-medium transition-colors",
-                  isActive ? "text-white" : "text-[#B39DDB]"
+                  isActive ? "text-purple-600" : "text-gray-600"
                 )}
               >
                 {item.label}
