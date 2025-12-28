@@ -302,43 +302,39 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
   }
 
   return (
-    <div className="space-y-3">
-      {/* ═══════════════════════════════════════════════════════════ */}
-      {/* COMPACT MAIN VIEW (Visible in one viewport) */}
-      {/* ═══════════════════════════════════════════════════════════ */}
-
-      {/* Header with Actions */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Check what you Have!</h1>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Period:</span>
-            <select
-              value={dateRange}
-              onChange={(e) => {
-                const value = e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time' | 'customize';
-                setDateRange(value);
-                setShowCustomDatePickers(value === 'customize');
-              }}
-              className="px-3 py-1.5 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            >
-              <option value="this-month">This Month</option>
-              <option value="last-month">Last Month</option>
-              <option value="this-year">This Year</option>
-              <option value="last-year">Last Year</option>
-              <option value="all-time">All Time</option>
-              <option value="customize">Customize</option>
-            </select>
+    <div>
+      {/* Header Section - Dark Purple */}
+      <div className="bg-[#5b21b6] px-4 pt-6 pb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-xl font-bold text-white">Check what you Have!</h1>
+            <p className="text-sm text-white/70">Period:</p>
           </div>
         </div>
 
+        <select
+          value={dateRange}
+          onChange={(e) => {
+            const value = e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time' | 'customize';
+            setDateRange(value);
+            setShowCustomDatePickers(value === 'customize');
+          }}
+          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="this-month">This Month</option>
+          <option value="last-month">Last Month</option>
+          <option value="this-year">This Year</option>
+          <option value="last-year">Last Year</option>
+          <option value="all-time">All Time</option>
+          <option value="customize">Customize</option>
+        </select>
+
         {/* Show calendar pickers when Customize is selected */}
         {showCustomDatePickers && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 mt-3">
             <Popover>
               <PopoverTrigger asChild>
-                <button className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500">
                   {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                 </button>
               </PopoverTrigger>
@@ -352,11 +348,11 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
               </PopoverContent>
             </Popover>
 
-            <span className="text-sm text-gray-600">to</span>
+            <span className="text-sm text-white/70">to</span>
 
             <Popover>
               <PopoverTrigger asChild>
-                <button className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500">
                   {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                 </button>
               </PopoverTrigger>
@@ -373,18 +369,23 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         )}
       </div>
 
-      {/* Cash IN and Cash OUT - Side by side (MOVED UP) */}
+      {/* Content Area */}
+      <div className="px-4 py-4 pb-24 space-y-3">
+
+      {/* Cash IN and Cash OUT - Side by side */}
       <div className="grid grid-cols-2 gap-3 md:gap-4">
         {/* Cash IN */}
-        <div className="bg-white border-2 border-gray-200 border-l-4 border-l-green-500 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3 mb-3">
-            <DonnaIcon icon={DonnaIcons.cashIn} size="sm" variant="success" />
-            <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-              Cash In
+        <div className="bg-white border-2 border-white/10 border-l-4 border-l-green-500 rounded-2xl p-5 shadow-lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center">
+              <DonnaIcon icon={DonnaIcons.cashIn} size="sm" className="text-green-600" iconClassName="text-green-600" />
             </div>
+            <span className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+              Cash In
+            </span>
           </div>
-          <div className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
-            {formatCurrency(totalCashIn)}
+          <div className="text-3xl font-bold text-gray-900 mb-1">
+            {formatCurrencyLakhs(totalCashIn)}
           </div>
           <div className="text-xs text-gray-400">
             {cashInCount} entries
@@ -392,15 +393,17 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         </div>
 
         {/* Cash OUT */}
-        <div className="bg-white border-2 border-gray-200 border-l-4 border-l-red-500 p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-3 mb-3">
-            <DonnaIcon icon={DonnaIcons.cashOut} size="sm" variant="danger" />
-            <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-              Cash Out
+        <div className="bg-white border-2 border-white/10 border-l-4 border-l-red-500 rounded-2xl p-5 shadow-lg">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center">
+              <DonnaIcon icon={DonnaIcons.cashOut} size="sm" className="text-red-600" iconClassName="text-red-600" />
             </div>
+            <span className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+              Cash Out
+            </span>
           </div>
-          <div className="text-xl md:text-2xl font-bold text-gray-900 mb-1">
-            {formatCurrency(totalCashOut)}
+          <div className="text-3xl font-bold text-gray-900 mb-1">
+            {formatCurrencyLakhs(totalCashOut)}
           </div>
           <div className="text-xs text-gray-400">
             {cashOutCount} entries
@@ -408,81 +411,79 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         </div>
       </div>
 
-      {/* What's left! - NEW PRIMARY HERO CARD */}
-      <div className={`bg-white border-2 border-gray-200 p-6 md:p-8 rounded-2xl shadow-md relative overflow-hidden ${
-        periodChange >= 0
-          ? 'border-l-4 border-l-green-500'
-          : 'border-l-4 border-l-red-500'
-      }`}>
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-3">
-            <DonnaIcon
-              icon={DonnaIcons.whatsLeft}
-              size="md"
-              variant={periodChange >= 0 ? 'success' : 'danger'}
-            />
-            <span className="text-sm font-semibold text-gray-900">What's left!</span>
+      {/* What's left! - HERO CARD */}
+      <div className="bg-white border-2 border-white/10 border-l-4 border-l-green-500 rounded-2xl p-6 shadow-lg">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-14 h-14 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center">
+            <DonnaIcon icon={DonnaIcons.whatsLeft} size="md" className="text-purple-600" iconClassName="text-purple-600" />
           </div>
-          <div className="text-xs text-gray-500 mb-3">
-            {getPeriodLabel(dateRange)}
-          </div>
-          <div className="text-4xl md:text-5xl lg:text-6xl font-extrabold bg-gradient-to-br from-purple-600 to-purple-400 bg-clip-text text-transparent mb-2">
-            {formatCurrency(periodChange)}
-          </div>
-          <div className="text-xs text-gray-400">
-            Cash In - Cash Out
-          </div>
+          <span className="text-base font-semibold text-gray-900">
+            What's left!
+          </span>
         </div>
+
+        <div className="text-xs text-gray-400 mb-2">{getPeriodLabel(dateRange)}</div>
+
+        <div className="text-6xl font-black text-gray-900 mb-2">
+          {formatCurrencyLakhs(periodChange)}
+        </div>
+
+        <div className="text-sm text-gray-400">Cash In - Cash Out</div>
       </div>
 
-      {/* Total cash balance - DEMOTED SECONDARY CARD */}
-      <div className="bg-white border-2 border-gray-200 p-5 rounded-xl shadow-sm">
-        <div className="flex items-center gap-3 mb-3">
-          <DonnaIcon icon={DonnaIcons.totalCashBalance} size="md" />
-          <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-            Total cash balance
+      {/* Total cash balance */}
+      <div className="bg-white border-2 border-white/10 border-l-4 border-l-purple-500 rounded-2xl p-6 shadow-lg">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-12 h-12 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center">
+            <DonnaIcon icon={DonnaIcons.totalCashBalance} size="md" className="text-purple-600" iconClassName="text-purple-600" />
           </div>
+          <span className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+            Total Cash Balance
+          </span>
         </div>
-        <div className="text-3xl md:text-4xl font-bold mb-2 text-gray-900">
-          {formatCurrency(cashBalance)}
+
+        <div className="text-5xl font-black text-gray-900 mb-2">
+          {formatCurrencyLakhs(cashBalance)}
         </div>
-        <div className="text-xs text-gray-500 mb-1">
-          {formatCurrency(previousBalance)} previous + {formatCurrency(periodChange)} {getPeriodLabel(dateRange).toLowerCase()}
-        </div>
-        <div className="text-xs text-gray-400">
+
+        <div className="text-sm text-gray-400">
+          {formatCurrencyLakhs(previousBalance)} previous + {formatCurrencyLakhs(periodChange)} {getPeriodLabel(dateRange).toLowerCase()}<br/>
           As of {format(new Date(), 'dd MMM yyyy')}
         </div>
       </div>
 
       {/* Balances */}
-      <div className="bg-white border-2 border-gray-200 rounded-lg p-3 shadow-sm">
-        <h3 className="text-sm font-semibold text-gray-900 mb-2">Balances</h3>
+      <div className="mt-4">
+        <h3 className="text-sm font-bold text-white/90 uppercase tracking-wide mb-3 px-1">
+          Balances
+        </h3>
 
-        {/* Cash */}
-        <div className="space-y-1 mb-2">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-700">Cash</span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-900">{formatCurrency(cashAmount)}</span>
-              <span className="text-xs text-gray-500">{cashPercentage.toFixed(1)}%</span>
+        <div className="bg-white border-2 border-white/10 rounded-2xl p-5 shadow-lg">
+          <div className="space-y-4">
+            {/* Cash */}
+            <div className="flex justify-between items-center">
+              <span className="text-base font-semibold text-gray-900">Cash</span>
+              <div className="text-right">
+                <div className="text-lg font-bold text-gray-900">
+                  {formatCurrencyLakhs(cashAmount)}
+                </div>
+                <div className="text-xs text-gray-400">{cashPercentage.toFixed(1)}%</div>
+              </div>
             </div>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-            <div className="bg-purple-600 h-2 rounded-full transition-all" style={{ width: `${Math.min(cashPercentage, 100)}%` }}></div>
-          </div>
-        </div>
 
-        {/* Bank */}
-        <div className="space-y-1">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-700">Bank</span>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-900">{formatCurrency(bankAmount)}</span>
-              <span className="text-xs text-gray-500">{bankPercentage.toFixed(1)}%</span>
+            {/* Divider */}
+            <div className="h-px bg-gray-100"></div>
+
+            {/* Bank */}
+            <div className="flex justify-between items-center">
+              <span className="text-base font-semibold text-gray-900">Bank</span>
+              <div className="text-right">
+                <div className="text-lg font-bold text-gray-900">
+                  {formatCurrencyLakhs(bankAmount)}
+                </div>
+                <div className="text-xs text-gray-400">{bankPercentage.toFixed(1)}%</div>
+              </div>
             </div>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-            <div className="bg-purple-600 h-2 rounded-full transition-all" style={{ width: `${Math.min(bankPercentage, 100)}%` }}></div>
           </div>
         </div>
       </div>
@@ -609,6 +610,9 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
           )}
         </div>
       </div>
+
+      </div>
+      {/* End Content Area */}
 
       {/* New Two-Stage Settlement Flow - Collections - Stage 1: Dashboard */}
       {dashboardOpen && settlementModalType === 'credit-sales' && (

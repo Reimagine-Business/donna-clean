@@ -173,40 +173,39 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
   const opexPercentage = totalExpenses > 0 ? (currentMetrics.operatingExpenses / totalExpenses) * 100 : 0
 
   return (
-    <div className="space-y-3">
-      {/* Header with Actions */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900">Check what you Earned!</h1>
-
-          {/* Period Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">Period:</span>
-            <select
-              value={dateRange}
-              onChange={(e) => {
-                const value = e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time' | 'customize';
-                setDateRange(value);
-                setShowCustomDatePickers(value === 'customize');
-              }}
-              className="px-3 py-1.5 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-            >
-              <option value="this-month">This Month</option>
-              <option value="last-month">Last Month</option>
-              <option value="this-year">This Year</option>
-              <option value="last-year">Last Year</option>
-              <option value="all-time">All Time</option>
-              <option value="customize">Customize</option>
-            </select>
+    <div>
+      {/* Header Section - Dark Purple */}
+      <div className="bg-[#5b21b6] px-4 pt-6 pb-6">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h1 className="text-xl font-bold text-white">Check what you Earned!</h1>
+            <p className="text-sm text-white/70">Period:</p>
           </div>
         </div>
 
+        <select
+          value={dateRange}
+          onChange={(e) => {
+            const value = e.target.value as 'this-month' | 'last-month' | 'this-year' | 'last-year' | 'all-time' | 'customize';
+            setDateRange(value);
+            setShowCustomDatePickers(value === 'customize');
+          }}
+          className="w-full bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="this-month">This Month</option>
+          <option value="last-month">Last Month</option>
+          <option value="this-year">This Year</option>
+          <option value="last-year">Last Year</option>
+          <option value="all-time">All Time</option>
+          <option value="customize">Customize</option>
+        </select>
+
         {/* Show calendar pickers when Customize is selected */}
         {showCustomDatePickers && (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 mt-3">
             <Popover>
               <PopoverTrigger asChild>
-                <button className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500">
                   {customFromDate ? format(customFromDate, "MMM dd, yyyy") : "From Date"}
                 </button>
               </PopoverTrigger>
@@ -220,11 +219,11 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
               </PopoverContent>
             </Popover>
 
-            <span className="text-sm text-gray-600">to</span>
+            <span className="text-sm text-white/70">to</span>
 
             <Popover>
               <PopoverTrigger asChild>
-                <button className="px-3 py-2 bg-white border-2 border-gray-300 rounded-lg text-gray-900 text-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <button className="px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-purple-500">
                   {customToDate ? format(customToDate, "MMM dd, yyyy") : "To Date"}
                 </button>
               </PopoverTrigger>
@@ -241,143 +240,159 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
         )}
       </div>
 
-      {/* Sales - HERO CARD (LARGEST) */}
-      <div className="bg-white border-2 border-purple-500 p-8 md:p-10 rounded-2xl shadow-lg shadow-purple-500/30 relative overflow-hidden">
-        {/* Decorative background */}
-        <div className="absolute top-[-50%] right-[-20%] w-64 h-64 bg-purple-500/15 rounded-full" />
+      {/* Content Area */}
+      <div className="px-4 py-4 pb-24 space-y-3">
 
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <DonnaIcon icon={DonnaIcons.profitLens} size="lg" variant="success" />
-            <div className="text-xs uppercase tracking-widest opacity-60 font-bold">
-              Sales
-            </div>
+      {/* Sales - HERO CARD */}
+      <div className="bg-white border-2 border-white/10 border-l-4 border-l-purple-500 rounded-2xl p-6 shadow-lg mb-4">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-14 h-14 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center">
+            <DonnaIcon icon={DonnaIcons.profitLens} size="md" className="text-purple-600" iconClassName="text-purple-600" />
           </div>
-          <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-3 text-white">
-            {formatCurrency(currentMetrics.revenue)}
-          </div>
-          <div className="text-sm text-gray-400 font-medium flex items-center gap-2">
-            Margin:
-            <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold">
-              {currentMetrics.profitMargin.toFixed(1)}%
-            </span>
-          </div>
+          <span className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+            Sales
+          </span>
+        </div>
+
+        <div className="text-6xl font-black text-gray-900 mb-2">
+          {formatCurrency(currentMetrics.revenue)}
+        </div>
+
+        <div className="text-sm text-gray-400">
+          Margin: <span className="text-green-600 font-semibold">{currentMetrics.profitMargin.toFixed(1)}%</span>
         </div>
       </div>
 
-      {/* Total Expenses + Profit - Side by side (SMALLER) */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4">
+      {/* Total Expenses + Profit - Side by side */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4 mb-4">
         {/* Total Expenses */}
-        <div className="bg-white border-2 border-gray-200 border-l-4 border-l-red-500 p-4 rounded-xl">
-          <div className="flex items-center gap-3 mb-3">
-            <DonnaIcon icon={DonnaIcons.totalExpenses} size="sm" variant="danger" />
-            <div className="text-xs uppercase tracking-wide text-gray-400 font-semibold">
-              Total Expenses
+        <div className="bg-white border-2 border-white/10 border-l-4 border-l-red-500 rounded-2xl p-5 shadow-lg">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center">
+              <DonnaIcon icon={DonnaIcons.totalExpenses} size="sm" className="text-red-600" iconClassName="text-red-600" />
             </div>
+            <span className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+              Total Expenses
+            </span>
           </div>
-          <div className="text-2xl md:text-3xl font-bold text-white mb-1">
+
+          <div className="text-3xl font-bold text-gray-900">
             {formatCurrency(currentMetrics.cogs + currentMetrics.operatingExpenses)}
-          </div>
-          <div className="text-xs opacity-40">
-            {currentMetrics.revenue > 0
-              ? (((currentMetrics.cogs + currentMetrics.operatingExpenses) / currentMetrics.revenue) * 100).toFixed(1)
-              : '0.0'}% of sales
           </div>
         </div>
 
         {/* Profit */}
-        <div className="bg-white border-2 border-gray-200 border-l-4 border-l-green-500 p-4 rounded-xl">
-          <div className="flex items-center gap-3 mb-3">
-            <DonnaIcon icon={DonnaIcons.profit} size="sm" variant="success" />
-            <div className="text-xs uppercase tracking-wide text-gray-400 font-semibold">
-              Profit
+        <div className="bg-white border-2 border-white/10 border-l-4 border-l-green-500 rounded-2xl p-5 shadow-lg">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center">
+              <DonnaIcon icon={DonnaIcons.profit} size="sm" className="text-green-600" iconClassName="text-green-600" />
             </div>
+            <span className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+              Profit
+            </span>
           </div>
-          <div className="text-2xl md:text-3xl font-bold text-white mb-1">
+
+          <div className="text-3xl font-bold text-gray-900">
             {formatCurrency(currentMetrics.netProfit)}
-          </div>
-          <div className="text-xs opacity-40">
-            {currentMetrics.revenue > 0
-              ? ((currentMetrics.netProfit / currentMetrics.revenue) * 100).toFixed(1)
-              : '0.0'}% of sales
           </div>
         </div>
       </div>
 
       {/* Expense Breakdown */}
-      <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-3">
-        <h3 className="text-sm font-semibold text-white mb-2">Expense Breakdown</h3>
-        {expenseBreakdown.length > 0 ? (
-          <div className="space-y-2">
-            {expenseBreakdown.map((cat) => (
-              <div key={cat.category} className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">{cat.category}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(cat.amount)}</span>
-                    <span className="text-xs text-purple-400">{cat.percentage.toFixed(1)}%</span>
-                  </div>
-                </div>
-                <div className="w-full bg-purple-900/30 rounded-full h-2">
-                  <div
-                    className="bg-purple-600 h-2 rounded-full transition-all"
-                    style={{ width: `${cat.percentage}%` }}
-                  />
-                </div>
+      <div className="mt-4">
+        <h3 className="text-sm font-bold text-white/90 uppercase tracking-wide mb-3 px-1">
+          Expense Breakdown
+        </h3>
+
+        <div className="bg-white border-2 border-white/10 rounded-2xl p-5 shadow-lg space-y-4">
+          {/* COGS */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-base font-semibold text-gray-900">COGS</span>
+              <span className="text-base font-bold text-gray-900">
+                {formatCurrency(currentMetrics.cogs)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                <div className="bg-purple-600 h-2 rounded-full" style={{ width: `${cogsPercentage}%` }}></div>
               </div>
-            ))}
+              <span className="text-xs text-gray-500 font-semibold min-w-[45px] text-right">
+                {cogsPercentage.toFixed(1)}%
+              </span>
+            </div>
           </div>
-        ) : (
-          <p className="text-center text-purple-400 text-sm py-4">No expense data available</p>
-        )}
+
+          {/* Opex */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-base font-semibold text-gray-900">Opex</span>
+              <span className="text-base font-bold text-gray-900">
+                {formatCurrency(currentMetrics.operatingExpenses)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                <div className="bg-purple-600 h-2 rounded-full" style={{ width: `${opexPercentage}%` }}></div>
+              </div>
+              <span className="text-xs text-gray-500 font-semibold min-w-[45px] text-right">
+                {opexPercentage.toFixed(1)}%
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Top 5 Expenses */}
-      <div className="bg-purple-900/10 border border-purple-500/20 rounded-lg p-3">
-        <h3 className="text-sm font-semibold text-white mb-3">Top 5 Expenses</h3>
-        {topExpenses.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-purple-500/20">
-                  <th className="text-left text-xs text-purple-300 font-medium pb-2 pr-2">Date</th>
-                  <th className="text-left text-xs text-purple-300 font-medium pb-2 pr-2">Type</th>
-                  <th className="text-right text-xs text-purple-300 font-medium pb-2 pr-2">Amount</th>
-                  <th className="text-left text-xs text-purple-300 font-medium pb-2">Vendor</th>
+      <div className="mt-4">
+        <h3 className="text-sm font-bold text-white/90 uppercase tracking-wide mb-3 px-1">
+          Top 5 Expenses
+        </h3>
+
+        <div className="bg-white border-2 border-white/10 rounded-2xl overflow-hidden shadow-lg">
+          {topExpenses.length > 0 ? (
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b-2 border-gray-100">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Date
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Type
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Amount
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                    Vendor
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {topExpenses.map((expense, index) => (
-                  <tr key={expense.id} className={index < topExpenses.length - 1 ? 'border-b border-purple-500/10' : ''}>
-                    <td className="py-2 pr-2 text-white">
+                  <tr key={expense.id} className="border-b border-gray-100 last:border-0">
+                    <td className="px-4 py-3 text-sm text-gray-900">
                       {format(new Date(expense.entry_date), 'MMM dd, yyyy')}
                     </td>
-                    <td className="py-2 pr-2">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                        expense.category === 'COGS'
-                          ? 'bg-orange-900/30 text-orange-300 border border-orange-500/30'
-                          : expense.category === 'Opex'
-                          ? 'bg-blue-900/30 text-blue-300 border border-blue-500/30'
-                          : 'bg-gray-900/30 text-gray-300 border border-gray-500/30'
-                      }`}>
-                        {expense.category}
-                      </span>
-                    </td>
-                    <td className="py-2 pr-2 text-right font-medium text-white">
+                    <td className="px-4 py-3 text-sm text-gray-600">{expense.category}</td>
+                    <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
                       {formatCurrency(expense.amount)}
                     </td>
-                    <td className="py-2 text-white truncate max-w-[120px]">
+                    <td className="px-4 py-3 text-sm text-gray-600 truncate max-w-[120px]">
                       {expense.party?.name || '-'}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-          </div>
-        ) : (
-          <p className="text-center text-purple-400 text-sm py-4">No expense data available</p>
-        )}
+          ) : (
+            <p className="text-center text-gray-400 text-sm py-4">No expense data available</p>
+          )}
+        </div>
       </div>
+
+      </div>
+      {/* End Content Area */}
     </div>
   )
 }
