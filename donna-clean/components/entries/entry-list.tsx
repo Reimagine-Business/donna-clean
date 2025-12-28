@@ -96,8 +96,26 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
   };
 
   const getEntryTypeColor = (type: string) => {
-    // White text with no background or border
-    return "text-white";
+    switch (type) {
+      case "Cash IN":
+        return "bg-green-500/20 text-green-400 border-green-500/30";
+      case "Cash OUT":
+        return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "Credit":
+        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+      case "Advance":
+        return "bg-purple-500/20 text-purple-400 border-purple-500/30";
+      case "Credit Settlement (Collections)":
+        return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
+      case "Credit Settlement (Bills)":
+        return "bg-orange-500/20 text-orange-400 border-orange-500/30";
+      case "Advance Settlement (Received)":
+        return "bg-teal-500/20 text-teal-400 border-teal-500/30";
+      case "Advance Settlement (Paid)":
+        return "bg-amber-500/20 text-amber-400 border-amber-500/30";
+      default:
+        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
+    }
   };
 
   if (entries.length === 0) {
@@ -115,9 +133,9 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
       {/* Compact Table Layout - Mobile Only with Horizontal Scroll */}
       <div className="md:hidden bg-purple-900/10 border border-purple-500/30 rounded-lg overflow-hidden">
         <div className="overflow-x-auto -mx-0">
-          <div className="min-w-[490px]">
+          <div className="min-w-[700px]">
             {/* Table Header */}
-            <div className="bg-purple-900/20 px-1.5 py-1.5 grid grid-cols-[45px_115px_75px_80px_75px_50px_24px] gap-1 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
+            <div className="bg-purple-900/20 px-1.5 py-1.5 grid grid-cols-[45px_115px_75px_80px_75px_50px_35px] gap-1 text-[10px] font-semibold text-purple-300 border-b border-purple-500/30">
               <div className="whitespace-nowrap">DATE</div>
               <div className="whitespace-nowrap">TYPE</div>
               <div className="text-left whitespace-nowrap">PARTY</div>
@@ -139,7 +157,7 @@ export function EntryList({ entries, categories, onRefresh }: EntryListProps) {
                 return (
                   <div
                     key={entry.id}
-                    className="px-1.5 py-1.5 grid grid-cols-[45px_115px_75px_80px_75px_50px_24px] gap-1 items-center hover:bg-purple-900/20 transition-colors"
+                    className="px-1.5 py-1.5 grid grid-cols-[45px_115px_75px_80px_75px_50px_35px] gap-1 items-center hover:bg-purple-900/20 transition-colors"
                   >
                 {/* Date */}
                 <div className="text-[10px] text-purple-300 whitespace-nowrap">
