@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { Entry } from "@/lib/entries";
+import type { LucideIcon } from "lucide-react";
 import { DonnaIcon } from "@/components/common/donna-icon";
 import { DonnaIcons } from "@/lib/icon-mappings";
 
@@ -20,7 +21,7 @@ interface BusinessInsightsProps {
 }
 
 interface NewsItem {
-  icon: string; // DonnaIcons key
+  icon: LucideIcon;
   variant?: 'default' | 'success' | 'warning' | 'danger';
   message: string;
   priority: number; // 1=critical, 2=warning, 3=info, 4=success
