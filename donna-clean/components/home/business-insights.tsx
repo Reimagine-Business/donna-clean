@@ -2,6 +2,8 @@
 
 import { useMemo } from "react";
 import type { Entry } from "@/lib/entries";
+import { DonnaIcon } from "@/components/common/donna-icon";
+import { DonnaIcons } from "@/lib/icon-mappings";
 
 interface Reminder {
   id: string;
@@ -18,7 +20,8 @@ interface BusinessInsightsProps {
 }
 
 interface NewsItem {
-  icon: string;
+  icon: string; // DonnaIcons key
+  variant?: 'default' | 'success' | 'warning' | 'danger';
   message: string;
   priority: number; // 1=critical, 2=warning, 3=info, 4=success
 }
@@ -38,7 +41,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
     if (overdueReminders.length > 0) {
       const daysOverdue = Math.ceil((new Date().getTime() - new Date(overdueReminders[0].due_date).getTime()) / (1000 * 60 * 60 * 24));
       items.push({
-        icon: '😰',
+        icon: DonnaIcons.alert,
+        variant: 'danger',
         message: overdueReminders.length === 1
           ? `Overdue: ${overdueReminders[0].title}`
           : `${overdueReminders.length} overdue reminders (${daysOverdue}+ days)`,
@@ -55,7 +59,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
       const daysUntil = Math.ceil((new Date(upcomingReminders[0].due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
       const when = daysUntil === 0 ? 'today' : daysUntil === 1 ? 'tomorrow' : `in ${daysUntil} days`;
       items.push({
-        icon: '🤔',
+        icon: DonnaIcons.clock,
+        variant: 'warning',
         message: upcomingReminders.length === 1
           ? `Reminder due ${when}: ${upcomingReminders[0].title}`
           : `${upcomingReminders.length} reminders due ${when}`,
@@ -76,7 +81,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
     // 1. CRITICAL: Very low cash
     if (cashBalance < 1000 && cashBalance > 0) {
       items.push({
-        icon: '😰',
+        icon: DonnaIcons.alert,
+        variant: 'danger',
         message: `Critical: Cash balance ${fmt(cashBalance)}`,
         priority: 1
       });
@@ -84,7 +90,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
     // 2. WARNING: Low cash
     else if (cashBalance < 5000 && cashBalance > 0) {
       items.push({
-        icon: '😟',
+        icon: DonnaIcons.cashOut,
+        variant: 'warning',
         message: `Low cash: ${fmt(cashBalance)} (below ₹5,000)`,
         priority: 2
       });
@@ -92,7 +99,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
     // 3. GOOD: Healthy cash
     else if (cashBalance >= 10000) {
       items.push({
-        icon: '😊',
+        icon: DonnaIcons.totalCashBalance,
+        variant: 'success',
         message: `Cash balance is healthy: ${fmt(cashBalance)}`,
         priority: 4
       });
@@ -100,7 +108,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
     // 4. OK: Good cash
     else if (cashBalance >= 5000) {
       items.push({
-        icon: '😌',
+        icon: DonnaIcons.totalCashBalance,
+        variant: 'success',
         message: `Cash balance is good: ${fmt(cashBalance)}`,
         priority: 4
       });
@@ -113,7 +122,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
 
     if (todayCashIn >= 5000) {
       items.push({
-        icon: '🤩',
+        icon: DonnaIcons.cashIn,
+        variant: 'success',
         message: `Strong cash inflow today: ${fmt(todayCashIn)}`,
         priority: 4
       });
@@ -130,13 +140,15 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
       const change = ((todayCashIn - yesterdayCashIn) / yesterdayCashIn) * 100;
       if (change > 25) {
         items.push({
-          icon: '🤩',
+          icon: DonnaIcons.cashIn,
+          variant: 'success',
           message: `Cash IN up ${Math.round(change)}% vs yesterday`,
           priority: 4
         });
       } else if (change < -25) {
         items.push({
-          icon: '😰',
+          icon: DonnaIcons.cashOut,
+          variant: 'danger',
           message: `Cash IN down ${Math.abs(Math.round(change))}% vs yesterday`,
           priority: 2
         });
@@ -155,7 +167,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
         sum + (e.remaining_amount || e.amount || 0), 0
       );
       items.push({
-        icon: '😰',
+        icon: DonnaIcons.billsDue,
+        variant: 'danger',
         message: `${overdueBills.length} overdue bill${overdueBills.length > 1 ? 's' : ''}: ${fmt(total)}`,
         priority: 1
       });
@@ -176,7 +189,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
       );
       const when = billsDueSoon[0].entry_date === today ? 'today' : 'tomorrow';
       items.push({
-        icon: '🤔',
+        icon: DonnaIcons.billsDue,
+        variant: 'warning',
         message: `${billsDueSoon.length} bill${billsDueSoon.length > 1 ? 's' : ''} due ${when}: ${fmt(total)}`,
         priority: 2
       });
@@ -194,7 +208,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
         sum + (e.remaining_amount || e.amount || 0), 0
       );
       items.push({
-        icon: '🤔',
+        icon: DonnaIcons.pendingCollection,
+        variant: 'warning',
         message: `${pendingCollections.length} pending collection${pendingCollections.length > 1 ? 's' : ''}: ${fmt(total)}`,
         priority: 3
       });
@@ -211,7 +226,8 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
         sum + (e.amount || 0), 0
       );
       items.push({
-        icon: '🎉',
+        icon: DonnaIcons.checkCircle,
+        variant: 'success',
         message: `${recentSettlements.length} settlement${recentSettlements.length > 1 ? 's' : ''} completed this week: ${fmt(total)}`,
         priority: 4
       });
@@ -230,8 +246,9 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
 
   return (
     <div className="rounded-lg border-2 border-gray-200 bg-white p-3 shadow-sm">
-      <h2 className="text-sm font-semibold mb-2 text-gray-900">
-        📰 Today's News
+      <h2 className="text-sm font-semibold mb-2 text-gray-900 flex items-center gap-2">
+        <DonnaIcon icon={DonnaIcons.news} size="xs" />
+        <span>Today's News</span>
       </h2>
 
       <ul className="space-y-2">
@@ -241,7 +258,7 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
             className="flex items-center justify-between gap-3 p-2 rounded-md bg-purple-500/5 hover:bg-purple-500/10 transition-all duration-200 hover:translate-x-1"
           >
             <span className="text-xs flex-1 leading-relaxed text-gray-700">{item.message}</span>
-            <span className="text-2xl flex-shrink-0">{item.icon}</span>
+            <DonnaIcon icon={item.icon} size="sm" variant={item.variant} className="flex-shrink-0" />
           </li>
         ))}
       </ul>

@@ -381,7 +381,7 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
                     <td className="px-4 py-3 text-sm text-gray-900">
                       {format(new Date(expense.entry_date), 'MMM dd, yyyy')}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600">{expense.category}</td>
+                    <td className="px-4 py-3 text-sm text-white">{expense.category}</td>
                     <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">
                       {formatCurrency(expense.amount)}
                     </td>
