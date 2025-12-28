@@ -24,15 +24,15 @@ export default async function ProfitLensAnalyticsPage() {
 
   // Always render the page layout
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#7c3aed] to-[#6d28d9] pb-24 md:pb-8">
+    <main className="min-h-screen bg-gradient-to-b from-[#0f0f23] to-[#1a1a2e] text-white pb-24 md:pb-8">
       <div className="flex flex-col min-h-screen">
         <SiteHeader />
         <TopNavMobile />
 
-        <section className="flex-1 overflow-auto">
+        <section className="flex-1 px-4 py-4 md:px-8 overflow-auto">
           <div className="mx-auto w-full max-w-6xl">
             {error ? (
-              <div className="p-8 bg-red-900/20 border-2 border-red-500/50 rounded-lg mx-4 my-4">
+              <div className="p-8 bg-red-900/20 border-2 border-red-500/50 rounded-lg">
                 <h2 className="text-2xl font-bold text-red-400 mb-4">Error Loading Data</h2>
                 <p className="text-red-200 mb-4">{error}</p>
                 <button
