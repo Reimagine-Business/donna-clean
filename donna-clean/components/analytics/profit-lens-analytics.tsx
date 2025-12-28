@@ -353,12 +353,12 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
                       {format(new Date(expense.entry_date), 'MMM dd, yyyy')}
                     </td>
                     <td className="py-2 pr-2">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white ${
                         expense.category === 'COGS'
-                          ? 'bg-orange-900/30 text-orange-300 border border-orange-500/30'
+                          ? 'border border-orange-500/30'
                           : expense.category === 'Opex'
-                          ? 'bg-blue-900/30 text-blue-300 border border-blue-500/30'
-                          : 'bg-gray-900/30 text-gray-300 border border-gray-500/30'
+                          ? 'border border-blue-500/30'
+                          : 'border border-gray-500/30'
                       }`}>
                         {expense.category}
                       </span>
