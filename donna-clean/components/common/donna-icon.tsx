@@ -36,22 +36,22 @@ const variantConfig = {
   default: {
     bg: 'bg-purple-500/10',
     border: 'border-purple-500/30',
-    icon: 'text-purple-600',
+    icon: 'text-zinc-300',
   },
   success: {
     bg: 'bg-green-500/10',
     border: 'border-green-500/30',
-    icon: 'text-green-600',
+    icon: 'text-green-300',
   },
   danger: {
     bg: 'bg-red-500/10',
     border: 'border-red-500/30',
-    icon: 'text-red-600',
+    icon: 'text-red-300',
   },
   warning: {
     bg: 'bg-yellow-500/10',
     border: 'border-yellow-500/30',
-    icon: 'text-yellow-600',
+    icon: 'text-yellow-300',
   },
 }
 

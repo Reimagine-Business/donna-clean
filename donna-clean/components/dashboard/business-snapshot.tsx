@@ -91,7 +91,7 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
     <div className="space-y-3 md:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">How is your Business doing?</h1>
+        <h1 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">How is your Business doing?</h1>
       </div>
 
       {/* Period Filter */}
@@ -105,18 +105,21 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
       </div>
 
       {/* What You Own - HERO CARD (LARGEST) */}
-      <div className="bg-white border-2 border-gray-200 border-l-4 border-l-green-500 p-4 md:p-8 rounded-xl md:rounded-2xl shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+      <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border-2 border-purple-500 p-4 md:p-8 rounded-xl md:rounded-2xl shadow-lg shadow-purple-500/30 relative overflow-hidden">
+        {/* Decorative background - hidden on mobile for compactness */}
+        <div className="hidden md:block absolute top-[-50%] right-[-20%] w-64 h-64 bg-purple-500/15 rounded-full" />
+
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-2 md:mb-4">
             <DonnaIcon icon={DonnaIcons.whatYouOwn} size="xl" />
-            <div className="text-[10px] md:text-xs uppercase tracking-widest text-gray-500 font-bold">
+            <div className="text-[10px] md:text-xs uppercase tracking-widest opacity-60 font-bold">
               WHAT'S YOURS?
             </div>
           </div>
-          <div className="text-3xl md:text-5xl lg:text-6xl font-black mb-1 md:mb-2 bg-gradient-to-br from-purple-600 to-purple-400 bg-clip-text text-transparent">
+          <div className="text-3xl md:text-5xl lg:text-6xl font-black mb-1 md:mb-2 text-white">
             ₹{snapshotData.totalOwn.toLocaleString('en-IN')}
           </div>
-          <div className="text-xs md:text-sm text-gray-400 font-medium">
+          <div className="text-xs md:text-sm opacity-50 font-medium">
             Total value of everything you own
           </div>
         </div>
@@ -125,27 +128,27 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
       {/* What You Owe + Total Profit - Side by side (SMALLER) */}
       <div className="grid grid-cols-2 gap-2 md:gap-4">
         {/* What You Owe */}
-        <div className="bg-white border-2 border-gray-200 border-l-4 border-l-red-500 p-3 md:p-4 rounded-lg md:rounded-xl shadow-sm">
+        <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-red-500 p-3 md:p-4 rounded-lg md:rounded-xl">
           <div className="flex items-center gap-2 mb-2 md:mb-3">
             <DonnaIcon icon={DonnaIcons.whatYouOwe} size="sm" variant="danger" />
-            <div className={`text-[10px] md:text-xs uppercase tracking-wide font-semibold ${snapshotData.totalOwe === 0 ? 'text-gray-400' : 'text-gray-500'}`}>
+            <div className={`text-[10px] md:text-xs uppercase tracking-wide font-semibold ${snapshotData.totalOwe === 0 ? 'opacity-50' : 'opacity-70'}`}>
               What is NOT yours?
             </div>
           </div>
-          <div className={`text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 ${snapshotData.totalOwe === 0 ? 'opacity-30' : ''}`}>
+          <div className={`text-xl md:text-2xl lg:text-3xl font-bold text-white ${snapshotData.totalOwe === 0 ? 'opacity-30' : ''}`}>
             ₹{snapshotData.totalOwe.toLocaleString('en-IN')}
           </div>
         </div>
 
         {/* Total Profit */}
-        <div className="bg-white border-2 border-gray-200 border-l-4 border-l-purple-500 p-3 md:p-4 rounded-lg md:rounded-xl shadow-sm">
+        <div className="bg-gradient-to-br from-[#2d1b4e] to-[#1e1538] border border-purple-500/30 border-l-4 border-l-purple-500 p-3 md:p-4 rounded-lg md:rounded-xl">
           <div className="flex items-center gap-2 mb-2 md:mb-3">
             <DonnaIcon icon={DonnaIcons.profit} size="sm" variant="success" />
-            <div className="text-[10px] md:text-xs uppercase tracking-wide text-gray-500 font-semibold">
+            <div className="text-[10px] md:text-xs uppercase tracking-wide opacity-50 font-semibold">
               Your Profit from Sales
             </div>
           </div>
-          <div className="text-xl md:text-2xl lg:text-3xl font-bold text-gray-900">
+          <div className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
             ₹{snapshotData.profit.toLocaleString('en-IN')}
           </div>
         </div>
@@ -154,45 +157,45 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
       {/* Expandable Details Section */}
       <div className="space-y-3">
         {/* What You Own Details (Collapsible) */}
-        <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-gray-900/50 border border-gray-700 rounded-xl overflow-hidden">
           <button
             onClick={() => setExpandedOwn(!expandedOwn)}
-            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full p-3 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
           >
-            <div className="flex items-center gap-2 text-sm text-gray-900 font-medium">
+            <div className="flex items-center gap-2 text-sm text-white font-medium">
               <DonnaIcon icon={DonnaIcons.whatYouOwn} size="xs" />
               <span>What's Yours?</span>
             </div>
             {expandedOwn ? (
-              <ChevronUp className="w-4 h-4 text-gray-600" />
+              <ChevronUp className="w-4 h-4 text-gray-400" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-gray-600" />
+              <ChevronDown className="w-4 h-4 text-gray-400" />
             )}
           </button>
 
           {expandedOwn && (
-            <div className="px-3 pb-3 space-y-2 border-t border-gray-200">
+            <div className="px-3 pb-3 space-y-2 border-t border-gray-700">
               <div className="flex justify-between items-center pt-2">
-                <span className="text-xs text-gray-500">Cash in Bank/Hand</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-xs text-gray-400">Cash in Bank/Hand</span>
+                <span className="text-sm font-semibold text-white">
                   ₹{snapshotData.cash.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">Money to Collect</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-xs text-gray-400">Money to Collect</span>
+                <span className="text-sm font-semibold text-white">
                   ₹{snapshotData.receivables.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">Advances Paid</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-xs text-gray-400">Advances Paid</span>
+                <span className="text-sm font-semibold text-white">
                   ₹{snapshotData.prepaid.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">Fixed Assets</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-xs text-gray-400">Fixed Assets</span>
+                <span className="text-sm font-semibold text-white">
                   ₹{snapshotData.fixedAssets.toLocaleString('en-IN')}
                 </span>
               </div>
@@ -201,33 +204,33 @@ export function BusinessSnapshot({ entries }: BusinessSnapshotProps) {
         </div>
 
         {/* What You Owe Details (Collapsible) */}
-        <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden shadow-sm">
+        <div className="bg-gray-900/50 border border-gray-700 rounded-xl overflow-hidden">
           <button
             onClick={() => setExpandedOwe(!expandedOwe)}
-            className="w-full p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+            className="w-full p-3 flex items-center justify-between hover:bg-gray-800/50 transition-colors"
           >
-            <div className="flex items-center gap-2 text-sm text-gray-900 font-medium">
+            <div className="flex items-center gap-2 text-sm text-white font-medium">
               <DonnaIcon icon={DonnaIcons.whatYouOwe} size="xs" />
               <span>What's left to pay?</span>
             </div>
             {expandedOwe ? (
-              <ChevronUp className="w-4 h-4 text-gray-600" />
+              <ChevronUp className="w-4 h-4 text-gray-400" />
             ) : (
-              <ChevronDown className="w-4 h-4 text-gray-600" />
+              <ChevronDown className="w-4 h-4 text-gray-400" />
             )}
           </button>
 
           {expandedOwe && (
-            <div className="px-3 pb-3 space-y-2 border-t border-gray-200">
+            <div className="px-3 pb-3 space-y-2 border-t border-gray-700">
               <div className="flex justify-between items-center pt-2">
-                <span className="text-xs text-gray-500">Bills to Pay</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-xs text-gray-400">Bills to Pay</span>
+                <span className="text-sm font-semibold text-white">
                   ₹{snapshotData.creditBills.toLocaleString('en-IN')}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-xs text-gray-500">Customer Advances</span>
-                <span className="text-sm font-semibold text-gray-900">
+                <span className="text-xs text-gray-400">Customer Advances</span>
+                <span className="text-sm font-semibold text-white">
                   ₹{snapshotData.customerAdvances.toLocaleString('en-IN')}
                 </span>
               </div>
