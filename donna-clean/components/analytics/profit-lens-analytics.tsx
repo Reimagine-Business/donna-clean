@@ -243,23 +243,30 @@ export function ProfitLensAnalytics({ entries }: ProfitLensAnalyticsProps) {
       {/* Content Area */}
       <div className="px-4 py-4 pb-24 space-y-3">
 
-      {/* Sales - HERO CARD */}
-      <div className="bg-white border-2 border-white/10 border-l-4 border-l-purple-500 rounded-2xl p-6 shadow-lg mb-4">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-14 h-14 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center">
-            <DonnaIcon icon={DonnaIcons.profitLens} size="md" className="text-purple-600" iconClassName="text-purple-600" />
+      {/* Sales - HERO CARD (Purple gradient) */}
+      <div className="bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] border-2 border-purple-500 p-8 md:p-10 rounded-2xl shadow-lg shadow-purple-500/30 relative overflow-hidden mb-4">
+        <div className="absolute top-[-50%] right-[-20%] w-64 h-64 bg-purple-500/15 rounded-full" />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+              <DonnaIcon icon={DonnaIcons.profitLens} size="lg" className="text-white" iconClassName="text-white" />
+            </div>
+            <div className="text-xs uppercase tracking-widest text-white/60 font-bold">
+              Sales
+            </div>
           </div>
-          <span className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-            Sales
-          </span>
-        </div>
 
-        <div className="text-6xl font-black text-gray-900 mb-2">
-          {formatCurrency(currentMetrics.revenue)}
-        </div>
+          <div className="text-5xl md:text-6xl lg:text-7xl font-black mb-3 text-white">
+            {formatCurrency(currentMetrics.revenue)}
+          </div>
 
-        <div className="text-sm text-gray-400">
-          Margin: <span className="text-green-600 font-semibold">{currentMetrics.profitMargin.toFixed(1)}%</span>
+          <div className="text-sm text-white/50 font-medium flex items-center gap-2">
+            Margin:
+            <span className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs font-bold">
+              {currentMetrics.profitMargin.toFixed(1)}%
+            </span>
+          </div>
         </div>
       </div>
 

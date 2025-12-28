@@ -411,43 +411,47 @@ export function CashPulseAnalytics({ entries, settlementHistory }: CashPulseAnal
         </div>
       </div>
 
-      {/* What's left! - HERO CARD */}
-      <div className="bg-white border-2 border-white/10 border-l-4 border-l-green-500 rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-14 h-14 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center">
-            <DonnaIcon icon={DonnaIcons.whatsLeft} size="md" className="text-purple-600" iconClassName="text-purple-600" />
+      {/* What's left! - HERO CARD (Purple gradient) */}
+      <div className="bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] border-2 border-purple-500/50 p-6 md:p-8 rounded-2xl shadow-lg relative overflow-hidden">
+        <div className="absolute top-[-50%] right-[-20%] w-48 h-48 bg-purple-500/10 rounded-full" />
+
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-14 h-14 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+              <DonnaIcon icon={DonnaIcons.whatsLeft} size="md" className="text-white" iconClassName="text-white" />
+            </div>
+            <span className="text-sm font-semibold text-white">What's left!</span>
           </div>
-          <span className="text-base font-semibold text-gray-900">
-            What's left!
-          </span>
+
+          <div className="text-xs text-white/70 mb-3">{getPeriodLabel(dateRange)}</div>
+
+          <div className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white mb-2">
+            {formatCurrencyLakhs(periodChange)}
+          </div>
+
+          <div className="text-xs text-white/70">Cash In - Cash Out</div>
         </div>
-
-        <div className="text-xs text-gray-400 mb-2">{getPeriodLabel(dateRange)}</div>
-
-        <div className="text-6xl font-black text-gray-900 mb-2">
-          {formatCurrencyLakhs(periodChange)}
-        </div>
-
-        <div className="text-sm text-gray-400">Cash In - Cash Out</div>
       </div>
 
-      {/* Total cash balance */}
-      <div className="bg-white border-2 border-white/10 border-l-4 border-l-purple-500 rounded-2xl p-6 shadow-lg">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 rounded-full bg-purple-500/15 border border-purple-500/30 flex items-center justify-center">
-            <DonnaIcon icon={DonnaIcons.totalCashBalance} size="md" className="text-purple-600" iconClassName="text-purple-600" />
+      {/* Total cash balance - HERO CARD (Purple gradient) */}
+      <div className="bg-gradient-to-br from-[#7c3aed] to-[#6d28d9] border border-purple-500 p-5 rounded-xl">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center">
+            <DonnaIcon icon={DonnaIcons.totalCashBalance} size="md" className="text-white" iconClassName="text-white" />
           </div>
-          <span className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-            Total Cash Balance
-          </span>
+          <div className="text-xs uppercase tracking-wide text-white/70 font-semibold">
+            Total cash balance
+          </div>
         </div>
 
-        <div className="text-5xl font-black text-gray-900 mb-2">
+        <div className="text-3xl md:text-4xl font-bold text-white mb-2">
           {formatCurrencyLakhs(cashBalance)}
         </div>
 
-        <div className="text-sm text-gray-400">
-          {formatCurrencyLakhs(previousBalance)} previous + {formatCurrencyLakhs(periodChange)} {getPeriodLabel(dateRange).toLowerCase()}<br/>
+        <div className="text-xs text-white/50 mb-1">
+          {formatCurrencyLakhs(previousBalance)} previous + {formatCurrencyLakhs(periodChange)} {getPeriodLabel(dateRange).toLowerCase()}
+        </div>
+        <div className="text-xs text-white/40">
           As of {format(new Date(), 'dd MMM yyyy')}
         </div>
       </div>
