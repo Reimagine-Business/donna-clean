@@ -41,7 +41,7 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
     if (overdueReminders.length > 0) {
       const daysOverdue = Math.ceil((new Date().getTime() - new Date(overdueReminders[0].due_date).getTime()) / (1000 * 60 * 60 * 24));
       items.push({
-        icon: DonnaIcons.alert,
+        icon: DonnaIcons.alertTriangle,
         variant: 'danger',
         message: overdueReminders.length === 1
           ? `Overdue: ${overdueReminders[0].title}`
@@ -81,7 +81,7 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
     // 1. CRITICAL: Very low cash
     if (cashBalance < 1000 && cashBalance > 0) {
       items.push({
-        icon: DonnaIcons.alert,
+        icon: DonnaIcons.alertTriangle,
         variant: 'danger',
         message: `Critical: Cash balance ${fmt(cashBalance)}`,
         priority: 1
@@ -247,7 +247,7 @@ export function BusinessInsights({ entries, reminders = [] }: BusinessInsightsPr
   return (
     <div className="rounded-lg border-2 border-gray-200 bg-white p-3 shadow-sm">
       <h2 className="text-sm font-semibold mb-2 text-gray-900 flex items-center gap-2">
-        <DonnaIcon icon={DonnaIcons.news} size="xs" />
+        <DonnaIcon icon={DonnaIcons.alerts} size="xs" />
         <span>Today's News</span>
       </h2>
 
